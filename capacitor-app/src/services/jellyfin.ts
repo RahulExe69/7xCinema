@@ -89,14 +89,17 @@ export function mapJellyfinItem(dto: JellyfinItemDto): MediaItem {
   const genres = [...new Set((dto.Genres ?? []).filter((genre): genre is string => typeof genre === "string").map((genre) => genre.trim()).filter(Boolean))];
   const tmdbId = libraryItemType === "episode" ? undefined : providerTmdbId(dto);
   const imdbId = libraryItemType === "episode" ? undefined : providerImdbId(dto);
+  const year = finiteNumber(dto.ProductionYear);
+  const resumePositionMs = dto.UserData?.Played ? undefined : (finiteNumber(dto.UserData?.PlaybackPositionTicks) ?? 0) >= 300_000_000 ? Math.round((dto.UserData?.PlaybackPositionTicks ?? 0) / 10_000) : undefined;
   return {
     id: "jellyfin:" + dto.Id,
     libraryItemId: dto.Id,
     libraryItemType,
+    libraryVariants: [{ providerId: "jellyfin-library", itemId: dto.Id, itemType: libraryItemType, title, year, resumePositionMs }],
     kind: libraryItemType === "movie" ? "movie" : "tv",
     title,
     originalTitle: dto.OriginalTitle?.trim() || title,
-    year: finiteNumber(dto.ProductionYear),
+    year,
     overview: dto.Overview?.trim() || "",
     rating: finiteNumber(dto.CommunityRating),
     tmdbId,
@@ -107,7 +110,7 @@ export function mapJellyfinItem(dto: JellyfinItemDto): MediaItem {
     seasonCount: libraryItemType === "series" ? finiteNumber(dto.ChildCount) : undefined,
     episodeNumber: libraryItemType === "episode" ? finiteNumber(dto.IndexNumber) : undefined,
     seasonNumber: libraryItemType === "episode" ? finiteNumber(dto.ParentIndexNumber) : undefined,
-    resumePositionMs: dto.UserData?.Played ? undefined : (finiteNumber(dto.UserData?.PlaybackPositionTicks) ?? 0) >= 300_000_000 ? Math.round((dto.UserData?.PlaybackPositionTicks ?? 0) / 10_000) : undefined,
+    resumePositionMs,
     externalIds: { ...(imdbId ? { imdb: imdbId } : {}) },
     sources: ["jellyfin-library"],
   };
