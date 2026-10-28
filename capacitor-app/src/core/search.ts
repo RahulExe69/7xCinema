@@ -77,11 +77,15 @@ export async function searchEveryProvider(
   await Promise.all(providers.map(async (provider, index) => {
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let didTimeout = false;
     try {
       const timeout = new Promise<MediaItem[]>((_, reject) => {
         timer = setTimeout(() => {
-          controller.abort();
+          // Record the cause before aborting: abort listeners can reject the
+          // provider promise synchronously, and otherwise win Promise.race.
+          didTimeout = true;
           reject(timeoutError("Provider took too long"));
+          controller.abort();
         }, timeoutMs);
       });
       const result = await Promise.race([provider.search(query, controller.signal), timeout]);
@@ -97,7 +101,7 @@ export async function searchEveryProvider(
         message: result.length ? undefined : "No matching titles",
       };
     } catch (error) {
-      const timedOut = error instanceof Error && error.name === "TimeoutError";
+      const timedOut = didTimeout || (error instanceof Error && error.name === "TimeoutError");
       reports[index] = {
         providerId: provider.id,
         label: provider.label,
