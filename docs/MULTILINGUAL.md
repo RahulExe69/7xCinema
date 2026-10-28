@@ -100,3 +100,16 @@ Tests must cover:
 - stale language claims;
 - subtitle/audio preference independence;
 - no false selectable-track claim when playback capability is unknown.
+
+
+## 9. Subtitle API integration policy
+
+Subtitle discovery is an independent capability. A subtitle search result must not be presented as an audio dub, and the existence of a subtitle file does not prove the video has a corresponding audio track.
+
+An eligible external subtitle adapter should return (where available): title/episode ID, language tag, format, source/provider, release/file-name or hash match, download reference, evidence level, and retrieval time. Validate the returned file type, encoding and size before loading; handle temporary links and redirects securely, and never log signed download URLs or keys.
+
+### Candidates to evaluate
+- [OpenSubtitles.com REST API](https://ai.opensubtitles.com/api-docs): current official API for subtitle search, with application API key and documented limits. Do not use legacy OpenSubtitles.org XML-RPC integrations; an official January 2026 notice announced its shutdown/migration.
+- [Wyzie Subs](https://docs.wyzie.io/subs/intro): key-based subtitle aggregation API, subject to its published terms and quota. Its terms expressly prohibit use that facilitates copyright infringement/unauthorised distribution or bypasses technical controls.
+
+Before enabling either, confirm current terms, quota, caching/download and attribution conditions, exact version-match quality, and that 7xCinema's intended subtitle use is permitted. Keep provider code behind the subtitle adapter interface so the choice remains replaceable.
