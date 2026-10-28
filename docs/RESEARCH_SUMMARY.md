@@ -68,23 +68,26 @@ MovieBox-TUI remains a potential source of isolated provider/domain concepts; it
 | Architecture and source/language models | Documented as proposed design |
 | Candidate repository audit | Initial code-level pass completed; full per-repo review remains |
 | Provider/source eligibility | Not yet cleared; candidate documentation is not approval |
-| Framework/base choice | Open; must be decided by proof of concept |
+| Framework/base choice | Provisional preference: fresh Kotlin/Compose + Media3 for a small Android-first spike; final selection remains open until a Capacitor comparison and device proof |
 | Framework-neutral universal-search prototype | Implemented under prototype/aggregation-core; GitHub Actions passed on main commit dcd413a7816218b08fdfebc2ee3e32b56c6c1156 |
 | Cross-provider title deduplication | Prototype tested with synthetic fixtures; production matching policy and wider evaluation remain open |
 | Language/source aggregation | Prototype preserves per-source claims and separates provider-reported audio from player-observed tracks; player integration remains open |
 | Playback integration and fallback | Not started |
-| Prototype tests / CI | Node built-in tests run in GitHub Actions and passed on the merged commit; full app build/release CI is not established |
+| Prototype tests / CI | Node built-in tests run in GitHub Actions and passed on the merged commit; a later identity-conflict regression fix also passed CI and merged as ceac6430c9ba32173a7afffd4808741380dc0a63; full app build/release CI is not established |
 
 ## Next milestone
 
-The first framework-neutral aggregation slice is now implemented and tested with synthetic providers; its scope and limits are documented in [the prototype README](../prototype/aggregation-core/README.md). The remaining feasibility gate is app-base/player comparison:
-1. build NuvioMobile unmodified and estimate the cost of adapting its source-centric result sections;
-2. compare it with a fresh native Kotlin/Compose + Media3 vertical slice and a fresh React/Capacitor + native Media3 slice;
-3. play a licensed test asset and discover its actual audio/subtitle tracks;
-4. trigger a player-start failure and verify recovery;
-5. compare build effort, source-model fit, licence obligations and maintainability.
+The framework-neutral aggregation slice is implemented and tested with synthetic providers; its scope and limits are documented in [the prototype README](../prototype/aggregation-core/README.md). Direct inspection of NuvioMobile's `SearchRepository.kt` confirms concurrent addon/server requests and progressive section updates, while the Android player source confirms Media3 ExoPlayer with libmpv fallback. The important mismatch is that its search results remain grouped by catalogue/server section rather than becoming 7xCinema's single canonical-title result list. See the new [Android feasibility gate](ANDROID_FEASIBILITY_GATE.md).
 
-The prototype does **not** include a live third-party provider or validate end-to-end video playback. It is not a final app framework decision. Record the next decision in the decision log.
+The provisional next step is a tiny fresh Kotlin/Compose + Media3 vertical slice, with a short React/Capacitor + native-player comparison before committing to a final stack:
+1. create shared JSON fixtures based on the current search-core test cases;
+2. show one globally grouped title with multiple source options and per-source language claims;
+3. play an owned or otherwise authorised test asset, and list the tracks exposed by the prepared player;
+4. make source selection visibly transition through loading, playback, and error states;
+5. force a provider failure/timeout and prove other sources remain usable;
+6. build a debug APK reproducibly from a clean checkout.
+
+The prototype still has **no live provider adapter, Android UI, or end-to-end playback validation**. The native spike is a provisional engineering direction, not an already-working app or a final architecture decision.
 
 
 ## Subtitle coverage research
