@@ -174,3 +174,16 @@ Do not lock the framework until:
 - one provider adapter can be exercised in a prototype;
 - Android packaging and playback are demonstrated;
 - the alternatives and trade-offs are recorded in the decision log.
+
+
+## 10. Audit-driven architecture considerations
+
+The initial code audit found that the inspected MovieBox-TUI service method takes one ProviderKind and routes search to that provider. The TUI search caller passes its selected provider context. 7xCinema should therefore not assume that the existing service already performs global search. Introduce a separate coordinator around eligible ProviderAdapter instances.
+
+The existing crate exports TUI modules alongside provider and service modules. A library target is useful, but not sufficient to conclude that the crate is cleanly embeddable or that the dependency graph is suitable for Android. Run a build spike and consider a smaller provider-core crate before selecting a reuse strategy.
+
+The existing dub data model includes provider-specific subject IDs, language labels, and dubbed-source records. 7xCinema must keep those claims distinct from audio tracks discovered in the media player. Aggregate title-level language availability for discovery; after the selected source is prepared, show selectable tracks only from the actual media item.
+
+The first player spike should use authorised test media and verify real track discovery. Android Media3 supports track-selection parameters for supported tracks, but stream compatibility depends on formats/codecs and actual manifest/media structure. See [Media3 supported formats](https://developer.android.com/media/media3/exoplayer/supported-formats) and [track selection](https://developer.android.com/media/media3/exoplayer/track-selection).
+
+See [Technical Audit](TECHNICAL_AUDIT.md) and [Framework Comparison](FRAMEWORK_COMPARISON.md) for evidence and the current provisional recommendation.
