@@ -38,6 +38,7 @@ The application should do the coordination internally. Users search once; 7xCine
 - [Search and deduplication](docs/SEARCH_AND_DEDUPLICATION.md) — matching, merging, and avoiding false matches.
 - [Playback](docs/PLAYBACK.md) — source ranking, playback states, retries, and error handling.
 - [Research register](docs/RESEARCH_REGISTER.md) — candidate repositories, evidence, unknowns, and next investigations.
+- [Provider matrix](docs/PROVIDER_MATRIX.md) — integration roles, eligibility gates, and evidence-based scoring.
 - [Technical audit](docs/TECHNICAL_AUDIT.md) — code-level findings on the core candidates and existing provider model.
 - [Framework comparison](docs/FRAMEWORK_COMPARISON.md) — React/Capacitor, native Kotlin, Flutter, Rust reuse, and backend trade-offs.
 - [Roadmap](docs/ROADMAP.md) — staged plan from research to a testable application.
@@ -52,7 +53,7 @@ The application should do the coordination internally. Users search once; 7xCine
 | Area | Current status |
 |---|---|
 | Product vision | Documented |
-| Provider candidates | Two-pass architecture audit; per-source eligibility and runtime verification ongoing |
+| Provider candidates | Two-pass architecture audit and initial provider matrix; eligibility/runtime verification ongoing |
 | Existing Rust provider foundation | Provider traits and service dispatcher inspected; native-provider search is single-provider, so universal aggregation is new work |
 | Android/UI framework | Native Kotlin/Compose + Media3 and React/Capacitor + native player both under comparison |
 | Universal search engine | Planned; not implemented here yet |
