@@ -110,3 +110,61 @@ For each future finding, record:
 - decision and follow-up owner/action.
 
 Do not use “supports every language,” “all sources working,” or similar claims without reproducible evidence.
+
+
+## Code-level audit update — 2026-10-28
+
+This section supersedes any earlier impression that a repository listing alone proves implementation readiness.
+
+### MovieBox-TUI: inspected contract and service dispatch
+Reviewed the upstream README, Cargo manifest, src/lib.rs, src/providers/mod.rs, src/providers/models.rs, src/service.rs, and the search call site in src/tui/app/search.rs. The same provider contract and service dispatcher were confirmed in Rahul's renamed fork.
+
+- A library target exists, and the provider contract exposes capabilities, search, details, and a separate episode stream-resolution trait.
+- The TUI search caller passes a currently selected context.provider to search_typed. MovieBoxService dispatches that single ProviderKind to its corresponding adapter. Therefore the core does **not** currently implement 7xCinema's desired “one user query searches every native provider” flow. It will need a separate orchestration/aggregation layer.
+- src/lib.rs exposes TUI modules together with provider/service/network/player modules. A library target alone does not mean clean modular reuse. Verify build dependencies before choosing between extracting a provider-core crate, adapting select modules, or implementing a new provider layer.
+- The README documents Android (Termux) use and external media players. This is not the same delivery model as a standalone polished APK with an in-app native player.
+- AudioTrackOption currently carries a subject ID, language, and label, and MediaDetails holds a dubs collection. This is source/dub metadata; it is not proof of multiple selectable audio tracks inside the resolved media asset. Keep this distinction in 7xCinema's domain model.
+- Project manifests/README declare MIT OR Apache-2.0. Review the exact license files and retain notices before copying any code.
+
+**Status:** Highest-priority source of provider/domain reference material; not approved as a direct app dependency and not yet proven Android-app reusable.
+
+Relevant files: [provider contract](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/mod.rs), [models](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/models.rs), [service](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/service.rs), [Android/Termux install](https://github.com/mesamirh/MovieBox-Tui/blob/main/docs/installation.md).
+
+### FlixQuest: reference, not default fork
+Reviewed its main README, pubspec.yaml, and provider module listing. It is a Flutter app; the repo declares GPL-3.0. The documented player integration depends on a separately maintained customised better_player_plus package, with the current pubspec using a sibling path and the README documenting a Git alternative. It also documents a separate Scraper API, so the client alone is not a self-contained provider engine.
+
+**Status:** Study UI/player and track/subtitle UX; do not choose it as the base without a licence/build reproducibility review.
+
+References: [repository](https://github.com/flixquest/flixquest), [pubspec](https://github.com/flixquest/flixquest/blob/main/pubspec.yaml), [provider modules](https://github.com/flixquest/flixquest/tree/main/lib/video_providers), [custom player setup](https://github.com/flixquest/flixquest/blob/main/README.md).
+
+### CloudStream: native extension-architecture reference
+The public repository is Kotlin/Android and declares GPL-3.0. It is actively maintained, but its size and copyleft obligations make it an architecture reference rather than an assumed base.
+
+**Status:** Study extension boundaries and lifecycle. Reuse requires explicit licence compatibility analysis.
+
+Reference: [CloudStream](https://github.com/recloudstream/cloudstream).
+
+### TMDB-Embed-API: reference-only pending source and security review
+Its README describes an aggregation API with a provider registry and numerous third-party stream/scraping adapters. The repo declares MIT, but this does not grant permission to use each upstream service or distribute its content. The public GitHub security page reports no configured security policy; the README also documents generated default admin credentials that must be changed.
+
+**Status:** Learn from the registry/result-normalisation concept only. Do not copy or enable its stream resolvers until source authorization, access terms, security, maintenance, dependencies, and rights are independently assessed.
+
+References: [repository](https://github.com/Inside4ndroid/TMDB-Embed-API), [package manifest](https://github.com/Inside4ndroid/TMDB-Embed-API/blob/main/package.json), [security page](https://github.com/Inside4ndroid/TMDB-Embed-API/security).
+
+### Stremio Addon SDK: protocol candidate
+Its documented protocol separates manifest, catalog, metadata, streams, and subtitles. The protocol can support an adapter boundary, but it does not guarantee the legality or reliability of individual addons.
+
+**Status:** Candidate for a constrained interoperability adapter after addon-level review.
+
+Reference: [resource documentation](https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/api/README.md).
+
+### Metadata and native playback evidence
+- [TMDB API FAQ](https://developer.themoviedb.org/docs/faq): TMDB documents non-commercial developer use with attribution and specific logo/notice requirements; commercial use requires a separate licensing conversation. TMDB is a metadata candidate, not a video-stream provider.
+- [Media3 supported formats](https://developer.android.com/media/media3/exoplayer/supported-formats) and [track selection](https://developer.android.com/media/media3/exoplayer/track-selection): the player can select tracks that the prepared media exposes; it cannot turn title-level language aggregation into a selectable track menu.
+
+### Current research direction
+1. Use MovieBox-TUI as a reference for provider concepts, while building a separate universal-search coordinator.
+2. Prototype a React/TypeScript + Capacitor UI with a small Kotlin/Media3 player boundary first, subject to comparison with Flutter/native Kotlin in a technical spike.
+3. Build aggregation tests with fake providers before depending on any live third-party source.
+4. Prioritise official/documented and otherwise explicitly authorised sources. Treat public code, an HTTP response, a README claim, or an encrypted endpoint as insufficient evidence of permission or stability.
+5. Keep TMDB metadata adoption conditional on intended use, terms, attribution, and any commercial licensing needs.
