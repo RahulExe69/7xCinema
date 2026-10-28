@@ -95,3 +95,15 @@ One label cannot substitute for another. Search verification does not imply play
 5. Do not enable MovieBox-TUI source adapters, Consumet site adapters, unknown community addons, or any scraped resolver merely because it appears in candidate code. Each must pass the eligibility and evidence gates.
 6. Study AIOStreams' aggregation pipeline alongside the TUI addon aggregator; neither a protocol aggregator nor its upstream addons replace per-source eligibility review.
 7. Keep user-owned server integrations and official destination links as possible coverage layers, distinct from general third-party playable-source coverage.
+
+
+## Subtitle-specific integration candidates
+
+| Candidate | Role | Current evidence | Decision | Gate |
+|---|---|---|---|---|
+| OpenSubtitles.com REST API | External subtitle search/download | Official REST docs accept external IDs, file hash or query; API key required. Old OpenSubtitles.org XML-RPC API received a 2026 shutdown/migration notice | Primary candidate to evaluate | Use current .com REST API only; review current terms/quota/download rules, key handling, rate-limit headers, file/version matching and redistribution |
+| Wyzie Subs API | External subtitle aggregation/search | Current docs require API key and advertise free/paid plans. Terms dated 2026-09-24 prohibit facilitating piracy/copyright infringement and circumvention of technical controls | Alternate candidate; no approval yet | Confirm intended use fits terms; review quotas, current provider coverage, key handling, source/version matching and subtitle data terms |
+
+These integrations return subtitle candidates, not audio dubs or movie video. The app must associate every subtitle with a title/episode/version and verify format/encoding and timing where possible.
+
+References: [OpenSubtitles API docs](https://ai.opensubtitles.com/api-docs), [OpenSubtitles legacy API migration notice](https://forum.opensubtitles.com/t/opensubtitles-org-api-final-shutdown-notice-for-non-vip-users/5045), [Wyzie docs](https://docs.wyzie.io/subs/intro), [Wyzie terms](https://store.wyzie.io/terms).
