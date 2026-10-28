@@ -7,6 +7,8 @@ The primary app shell is React + TypeScript + Vite inside Capacitor 8. The older
 - Local starter catalogue, title details, filters, and a device-local watchlist.
 - One search entry point that fans out concurrently to every enabled catalogue adapter, streams partial results, and isolates provider errors/timeouts.
 - An Internet Archive adapter that searches only explicit Public Domain Mark/CC0 declarations, verifies that item metadata contains a compatible MP4, preserves the original item/licence links, and offers direct playback.
+- An experimental bundled MovieBox-TUI Rust engine for Android ARM64. A single query fans out across MovieBox, 4KHDHub, Dramachi, CircleFTP (BDIX), and DhakaFlix (BDIX); the engine merges title matches while preserving provider-specific IDs and reported language labels.
+- Provider-specific release selection and series episode selection. The selected release is resolved by its source ID/index, then handed to the native Media3 player with supported source request headers.
 - Optional live TMDB multi-search and trending catalogues when a TMDB v3 API key is configured.
 - Official watch/rent/buy destinations reported by TMDB for a selected country.
 - Optional Jellyfin personal-library connection: sign in to a server you own or are authorised to use, store the native session token with Android secure storage, browse recent library titles and resumable movies/episodes, and play with Media3. Resume position and progress are read/written through the Jellyfin server.
@@ -40,11 +42,11 @@ Open **Settings**, paste your own TMDB v3 API key, choose the region, and save. 
 
 TMDB data provides metadata and reported official watch destinations, not playback URLs. Review TMDB's terms and branding requirements before public distribution.
 
-## What this is not yet
-This migration does **not** claim a finished third-party stream resolver or a broad library of live playback providers. The app no longer asks for a URL by default: a direct URL returned by an adapter opens automatically in Android Media3, while the web preview uses HTML5 video. Titles without a direct media source show official viewing options/trailers where metadata supports them; manual URL entry is an Advanced fallback. The Internet Archive adapter filters to uploader-declared Public Domain Mark/CC0 entries, but those claims still require user review. HLS/DASH support varies by device, and the native player has not yet been validated on a physical phone. More individually reviewed, authorised source integrations and real-device testing remain release blockers.
+## Limits and verification status
+The MovieBox-TUI source integrations are experimental: successful code/build integration does not guarantee a provider is reachable, authorised for a particular title/use, or able to resolve a playable stream from the users network. The current all-provider search includes five built-in sources; optional community Stremio add-ons are not exposed yet. Source language labels are metadata, not proof of an embedded selectable audio track. External subtitle selection from provider metadata is not yet wired into the player; the native player still exposes tracks it actually detects. The web preview uses HTML5 video and cannot emulate every provider header needed by a direct release. The Android ARM64 build and JS tests are covered by CI, but live provider-by-provider playback, network/BDIX reachability, lifecycle, audio/subtitle behavior and resume on a physical phone remain release checks. Review upstream rights/terms and per-provider behavior before publicly advertising any source as supported.
 
 ## Build output
-The `Capacitor Android Build` GitHub Actions workflow runs tests, builds the web assets, generates the Android shell, builds `app-debug.apk`, and uploads it as `7xCinema-Capacitor-Debug`.
+The `Capacitor Android Build` GitHub Actions workflow builds the pinned MovieBox-TUI Rust engine for Android ARM64, bundles its shared library, runs JS tests, builds the web assets, generates the Android shell with both native plugins, builds `app-debug.apk`, and uploads it as `7xCinema-Capacitor-Debug`. The engine is served only over loopback with an ephemeral port and random process token; no hosted scraping API is required.
 
 
 ## Open-license archive safety
