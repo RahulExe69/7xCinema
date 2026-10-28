@@ -108,7 +108,7 @@ export function mapJellyfinItem(dto: JellyfinItemDto): MediaItem {
     episodeNumber: libraryItemType === "episode" ? finiteNumber(dto.IndexNumber) : undefined,
     seasonNumber: libraryItemType === "episode" ? finiteNumber(dto.ParentIndexNumber) : undefined,
     externalIds: { ...(imdbId ? { imdb: imdbId } : {}) },
-    sources: ["jellyfin"],
+    sources: ["jellyfin-library"],
   };
 }
 
