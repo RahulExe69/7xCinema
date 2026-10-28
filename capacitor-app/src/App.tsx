@@ -345,7 +345,7 @@ export default function App() {
           ? mergeResults([...trending, ...jellyfinLibrary, ...jellyfinResume])
           : trending;
     if (page === "movies") items = items.filter((item) => item.kind === "movie");
-    if (page === "series") items = items.filter((item) => item.kind === "tv");
+    if (page === "series") items = items.filter((item) => item.kind === "tv" && item.libraryItemType !== "episode");
     if (kindFilter !== "all" && page !== "movies" && page !== "series") items = items.filter((item) => item.kind === kindFilter);
     if (genreFilter !== "all") items = items.filter((item) => item.genres.includes(genreFilter));
     return items;
