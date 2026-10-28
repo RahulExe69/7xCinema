@@ -131,3 +131,41 @@ A Stremio-compatible adapter is a candidate, not an automatic source list. Any c
 The best next step is not to fork a large application. It is to keep 7xCinema independent, implement the provider aggregation domain around a stable interface, use MovieBox-TUI as a reference for provider concepts, compare a modern mobile UI path, and prove one eligible search-to-playback path before scaling integrations.
 
 See [Framework Comparison](FRAMEWORK_COMPARISON.md) and [Decision Log](DECISIONS.md). The stack remains provisional until the technical spike passes.
+
+
+## 8. Second-pass findings: closer fits for source aggregation
+
+### Lumora — strong aggregation reference, not a rebrand base
+Reviewed repository metadata, README, LICENSE and source-level snippets in Channel.kt and ContentGrouping.kt. Lumora describes combining multiple user-configured source types into a shared catalogue, a Find & Play flow, and grouping duplicate content. A source-model comment explicitly warns that source-specific details and playback URLs cannot be determined from one global provider field when multiple providers coexist. The grouping utility demonstrates explicit title normalisation and source/quality-tag handling.
+
+The current licence is PolyForm Noncommercial 1.0.0 and the README expressly rejects rebranding/reskinning. The README says versions through v4.4 carried MIT but that later change is not retroactive. The repository description says “parked”. For 7xCinema, use the architectural lesson—source provenance and cautious grouping—not the project as a base. Do not rebrand it.
+
+References: [Lumora README](https://github.com/LumoraPlayer/Lumora), [ContentGrouping.kt](https://github.com/LumoraPlayer/Lumora/blob/main/app/src/main/java/com/lumora/util/ContentGrouping.kt), [Channel.kt](https://github.com/LumoraPlayer/Lumora/blob/main/app/src/main/java/com/lumora/model/Channel.kt), [LICENSE](https://github.com/LumoraPlayer/Lumora/blob/main/LICENSE).
+
+### Nuvio Mobile — native player/addon architecture reference
+Reviewed [NuvioMobile](https://github.com/NuvioMedia/NuvioMobile), its public README, player source, and PlaybackAvailabilityTest.kt. It declares GPL-3.0 and follows a “bring your own sources” model. Tests demonstrate a critical capability rule: catalog/metadata-only addons do not establish playback availability, whereas a compatible stream addon can; requested media type and ID namespace/prefix are checked. Its Android player integrates Media3/ExoPlayer and optional MPV.
+
+This is strong evidence for typed capabilities and executable contract tests. The source-management model differs from 7xCinema: our target is internally coordinated providers with low user setup. Treat as a design reference unless GPL and dependency obligations are deliberately accepted.
+
+References: [NuvioMobile](https://github.com/NuvioMedia/NuvioMobile), [PlaybackAvailabilityTest.kt](https://github.com/NuvioMedia/NuvioMobile/blob/cmp-rewrite/composeApp/src/commonTest/kotlin/com/nuvio/app/features/streams/PlaybackAvailabilityTest.kt), [PlayerEngine.android.kt](https://github.com/NuvioMedia/NuvioMobile/blob/cmp-rewrite/composeApp/src/androidMain/kotlin/com/nuvio/app/features/player/PlayerEngine.android.kt).
+
+### Nuvio TV
+[NuvioTV](https://github.com/NuvioMedia/NuvioTV) is a native Kotlin/Compose Android TV app with Media3 and a GPL-3.0 licence. It is an optional TV-navigation/addon-management reference, not necessary to start mobile.
+
+### Community Stremio Android
+[stremio-native/stremio-android](https://github.com/stremio-native/stremio-android) describes a community Kotlin/Compose app using Stremio core/addons, ExoPlayer/MPV and a Rust local component. GitHub metadata did not identify a licence and last reported code push was 2026-07-23. Do not reuse code until the actual licence, dependencies/submodules and maintenance are reviewed.
+
+### Official Sources
+[user-griffin/official-sources](https://github.com/user-griffin/official-sources) is an MIT-licensed Stremio-compatible addon whose README says it returns official subscription/free/rental/purchase destinations and links out to official apps/pages; it deliberately does not play, proxy, decrypt, scrape, download or redistribute video. This suggests a useful separate 7xCinema official-availability layer. It can improve “where can I watch?” coverage without claiming the app can play that provider's video. Watchmode terms, attribution, caching, quota and API plan details still need review. Metadata showed the last push on 2026-08-03.
+
+### SHS-Player
+[SHS-Player](https://github.com/SHSLabs/SHS-Player) declares MIT and is a native Kotlin/Compose player with Media3/LibVLC and subtitle/local-media/IPTV features. It is a player reference, not a catalogue aggregator; maintenance and dependency suitability need review.
+
+## 9. Audit implications
+
+1. Each source record needs an explicit provider identity; do not use a global “current provider” for an aggregated title.
+2. Coverage must be split into catalogue discovery, verified in-app playback, and official external destinations.
+3. A catalogue-only integration must never enable Watch by itself. Addon/provider capabilities require tests.
+4. Native Kotlin/Compose is now a serious alternative to Capacitor; compare a narrow proof of concept before finalising the framework.
+
+See [Provider System](PROVIDER_SYSTEM.md), [Coverage Model](COVERAGE_MODEL.md), and [Framework Comparison](FRAMEWORK_COMPARISON.md).
