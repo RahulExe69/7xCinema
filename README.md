@@ -41,6 +41,7 @@ The application should do the coordination internally. Users search once; 7xCine
 - [Provider matrix](docs/PROVIDER_MATRIX.md) — integration roles, eligibility gates, and evidence-based scoring.
 - [Technical audit](docs/TECHNICAL_AUDIT.md) — code-level findings on the core candidates and existing provider model.
 - [Framework comparison](docs/FRAMEWORK_COMPARISON.md) — React/Capacitor, native Kotlin, Flutter, Rust reuse, and backend trade-offs.
+- [Base repository comparison](docs/BASE_REPOSITORY_COMPARISON.md) — whether to adapt NuvioMobile or build a fresh 7xCinema app.
 - [Roadmap](docs/ROADMAP.md) — staged plan from research to a testable application.
 - [Decision log](docs/DECISIONS.md) — recorded decisions and choices that still require evidence.
 - [Security and privacy](docs/SECURITY.md) — provider trust boundaries, secrets, network safety, and data minimisation.
