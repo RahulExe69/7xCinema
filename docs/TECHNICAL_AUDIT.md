@@ -214,3 +214,14 @@ This is among the closest architectural references to the orchestration pattern 
 Use it to compare pipeline stages, addon capabilities, filtering/sorting configuration and deduplication tests. The 7xCinema core should define its own source eligibility rules, provenance model, safe networking boundaries, and distinct discovery/playback/official-destination coverage.
 
 References: [README](https://github.com/Viren070/AIOStreams), [LICENSE](https://github.com/Viren070/AIOStreams/blob/main/LICENSE).
+
+
+## 13. TMDB versus Watchmode for official-availability discovery
+
+TMDB's official [movie Watch Providers endpoint](https://developer.themoviedb.org/reference/movie-watch-providers) and [TV Watch Providers endpoint](https://developer.themoviedb.org/reference/tv-series-watch-providers) return per-country streaming/rental/purchase availability. The documentation says the data is powered by a JustWatch partnership, does not provide full deep links, and requires JustWatch attribution. TMDB's own API also has distinct attribution/logo and use terms. A 7xCinema implementation must satisfy both sets of requirements and confirm India/region coverage.
+
+Watchmode's current [public pricing page](https://api.watchmode.com/pricing) lists a free Developer plan with 2,500 monthly credits, non-commercial use with attribution, up to three selected countries and no app/episode deep links. It currently lists Startup at USD $349/month and Business at USD $599/month; all pricing/features are subject to change. Watchmode returns availability and links, not video streams.
+
+**Practical recommendation:** compare the TMDB Watch Providers endpoint first for a modest non-commercial prototype, then compare Watchmode if it offers meaningful coverage/link advantages. Neither should be a core video provider; both belong to the optional official-destination/availability layer. Confirm terms, country list, freshness, credits, caching and attribution before any shipped integration.
+
+Sources: [TMDB FAQ](https://developer.themoviedb.org/docs/faq), [TMDB movie watch providers](https://developer.themoviedb.org/reference/movie-watch-providers), [TMDB TV watch providers](https://developer.themoviedb.org/reference/tv-series-watch-providers), [Watchmode pricing](https://api.watchmode.com/pricing).
