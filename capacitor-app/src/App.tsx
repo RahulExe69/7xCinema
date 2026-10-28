@@ -43,6 +43,8 @@ export default function App() {
   const [trendingBusy, setTrendingBusy] = useState(false);
   const [playTarget, setPlayTarget] = useState<MediaItem | null>(null);
   const [playUrl, setPlayUrl] = useState("");
+  const [playbackQueue, setPlaybackQueue] = useState<string[]>([]);
+  const [currentSourceIndex, setCurrentSourceIndex] = useState(0);
   const [playerLoaded, setPlayerLoaded] = useState(false);
   const [playerError, setPlayerError] = useState("");
   const [showAdvancedSource, setShowAdvancedSource] = useState(false);
@@ -180,20 +182,33 @@ export default function App() {
       setApiRevision((value) => value + 1); setSearchMessage("");
     } catch (error) { setSettingsMessage(error instanceof Error ? error.message : "Settings could not be saved."); }
   };
-  const openMediaSource = async (item: MediaItem, rawUrl: string) => {
-    const intent = getPlaybackIntent({ playableUrl: rawUrl });
+  const openMediaSource = async (item: MediaItem, rawUrl: string, fallbackUrls: string[] = []) => {
+    const candidates = [rawUrl, ...fallbackUrls];
+    const intent = getPlaybackIntent({
+      playableUrl: rawUrl,
+      playbackSources: candidates.map((url, index) => ({
+        id: `selected-source:${index}`,
+        providerId: item.sources[0] ?? "manual-source",
+        label: index === 0 ? "Selected source" : `Fallback source ${index + 1}`,
+        url,
+        type: "unknown" as const,
+      })),
+    });
     if (intent.type !== "direct") {
       setPlayerError("That source did not provide a valid HTTP(S) media URL.");
       return;
     }
+    const queue = [intent.url, ...intent.fallbackUrls];
     setPlayTarget(item);
+    setPlaybackQueue(queue);
+    setCurrentSourceIndex(0);
     setPlayUrl(intent.url);
     setPlayerLoaded(false);
     setPlayerError("");
     setShowAdvancedSource(false);
     if (isNativePlayerAvailable()) {
       try {
-        await NativePlayer.play({ url: intent.url, title: item.title });
+        await NativePlayer.play({ url: intent.url, fallbackUrls: intent.fallbackUrls, title: item.title });
         setPlayTarget(null);
       } catch (error) {
         setPlayerError(error instanceof Error ? error.message : "The native player could not open this source.");
@@ -206,20 +221,36 @@ export default function App() {
   const startPlayback = (item: MediaItem) => {
     setPlayTarget(item);
     setPlayUrl("");
+    setPlaybackQueue([]);
+    setCurrentSourceIndex(0);
     setPlayerLoaded(false);
     setPlayerError("");
     setShowAdvancedSource(false);
     const intent = getPlaybackIntent(item);
     if (intent.type === "direct") {
-      // A source returned by an actual adapter goes straight to playback.
-      // Only titles with no playable source land on the source chooser.
-      void openMediaSource(item, intent.url);
+      // Adapter-supplied URLs open immediately; remaining candidates are tried
+      // automatically if the first source fails.
+      void openMediaSource(item, intent.url, intent.fallbackUrls);
     }
   };
 
   const validatePlaybackUrl = async () => {
     if (!playTarget) return;
     await openMediaSource(playTarget, playUrl);
+  };
+
+  const handleWebPlaybackError = () => {
+    const nextIndex = currentSourceIndex + 1;
+    if (nextIndex < playbackQueue.length) {
+      setCurrentSourceIndex(nextIndex);
+      setPlayUrl(playbackQueue[nextIndex]);
+      setPlayerError("");
+      setPlayerLoaded(true);
+      return;
+    }
+    setPlayerError(playbackQueue.length > 1
+      ? "Every supplied media source failed. Choose an official destination or review the original item."
+      : "This URL could not be played. Check the link, permissions, format, and device support.");
   };
 
   return <div className="app-shell">
@@ -322,7 +353,7 @@ export default function App() {
       {!playerLoaded || !playUrl || playerError ? <div className="player-entry">
         <div className="player-entry-icon">{getPlaybackIntent(playTarget).type === "direct" ? "↻" : "↗"}</div>
         {getPlaybackIntent(playTarget).type === "direct" && playerError
-          ? <><h3>That source didn’t start.</h3><p>Try the original source page, or choose another authorised destination. We won’t pretend a metadata result is a working stream.</p><button className="button button-primary" onClick={() => void openMediaSource(playTarget, playTarget.playableUrl ?? "")}>Retry source <span>→</span></button></>
+          ? <><h3>That source didn’t start.</h3><p>Try the original source page, or choose another authorised destination. We won’t pretend a metadata result is a working stream.</p><button className="button button-primary" onClick={() => startPlayback(playTarget)}>Retry source <span>→</span></button></>
           : <><h3>Choose how to watch.</h3><p className="source-choice-note">7xCinema checks the available playback information first. When a real media source is present, it opens automatically. Otherwise, choose an official destination or trailer below.</p></>}
         {watchLoading && <div className="inline-loading"><span className="spinner" /> Checking official watch options…</div>}
         {watchError && <div className="watch-message">{watchError}</div>}
@@ -334,9 +365,9 @@ export default function App() {
         {!watchData?.link && !trailerUrl && !playTarget.itemPageUrl && !playTarget.playableUrl && <p className="watch-message">{tmdbEnabled ? "No direct playback source or official destination was returned for this title. It may need another catalogue/provider integration." : "Connect TMDB in Settings to discover official viewing options. Direct playback only appears when a source adapter returns a compatible media URL."}</p>}
         {playerError && <div className="player-error">{playerError}</div>}
         <div className="advanced-source-toggle"><button className="text-action" onClick={() => setShowAdvancedSource((value) => !value)}>{showAdvancedSource ? "Hide advanced source entry" : "Advanced · enter a direct media URL manually"} <span>{showAdvancedSource ? "−" : "+"}</span></button></div>
-        {showAdvancedSource && <div className="advanced-source-panel"><label className="field-label" htmlFor="media-url">Direct media URL (advanced fallback)</label><input id="media-url" className="settings-input" inputMode="url" autoComplete="off" placeholder="https://example.com/authorised-video.mp4" value={playUrl} onChange={(event) => { setPlayUrl(event.target.value); setPlayerError(""); setPlayerLoaded(false); }} /><p className="field-help">For a source you are authorised to access. HTTP(S) only; URLs containing credentials are rejected. Protected streams and provider restrictions are not bypassed.</p><button className="button button-secondary" onClick={validatePlaybackUrl}>Load manual source <span>→</span></button></div>}
+        {showAdvancedSource && <div className="advanced-source-panel"><label className="field-label" htmlFor="media-url">Direct media URL (advanced fallback)</label><input id="media-url" className="settings-input" inputMode="url" autoComplete="off" placeholder="https://example.com/authorised-video.mp4" value={playUrl} onChange={(event) => { setPlayUrl(event.target.value); setPlaybackQueue([]); setCurrentSourceIndex(0); setPlayerError(""); setPlayerLoaded(false); }} /><p className="field-help">For a source you are authorised to access. HTTP(S) only; URLs containing credentials are rejected. Protected streams and provider restrictions are not bypassed.</p><button className="button button-secondary" onClick={validatePlaybackUrl}>Load manual source <span>→</span></button></div>}
       </div>
-        : <div className="video-stage"><video key={playUrl} src={playUrl} controls autoPlay playsInline preload="metadata" onError={() => setPlayerError("This URL could not be played. Check the link, permissions, format, and device support.")} /><div className="video-actions"><button className="button button-ghost" onClick={() => { setPlayUrl(""); setPlayerLoaded(false); setPlayerError(""); setShowAdvancedSource(true); }}>Change source</button><span>Direct source · native Media3 on Android</span></div>{playerError && <div className="player-error">{playerError}</div>}</div>}
+        : <div className="video-stage"><video key={playUrl} src={playUrl} controls autoPlay playsInline preload="metadata" onError={handleWebPlaybackError} /><div className="video-actions"><button className="button button-ghost" onClick={() => { setPlayUrl(""); setPlaybackQueue([]); setCurrentSourceIndex(0); setPlayerLoaded(false); setPlayerError(""); setShowAdvancedSource(true); }}>Change source</button><span>Direct source · native Media3 on Android</span></div>{playerError && <div className="player-error">{playerError}</div>}</div>}
     </section></div>}
   </div>;
 }
