@@ -42,10 +42,10 @@ This roadmap sequences work by reducing the biggest risks early. Dates and effor
 **Goal:** Prove the difficult pieces before investing in a large app.
 
 - [x] Document Nuvio source findings, candidate trade-offs, licensing notes, and the shared end-to-end acceptance gate in ANDROID_FEASIBILITY_GATE.md.
-- [ ] Build a small fresh Kotlin/Compose + Media3 vertical slice as the preferred Android-first spike; keep React/Capacitor as a timed comparison candidate.
+- [x] Build a fresh Kotlin/Compose + Media3 Android slice: synthetic multi-provider search, unified result card, per-source picker, embedded Media3 player screen, and actual player track inspection/selection controls. CI produces a debug APK; physical-device playback verification remains open.
 - [ ] Compare the fresh native slice with a minimal React/Capacitor + native Media3 bridge against the same fixture-driven acceptance tests before final stack selection.
 - If the Nuvio spike is not selected, establish whether reusable Rust components compile and run in the intended Android environment.
-- Demonstrate UI-to-provider request and typed result mapping.
+- [x] Demonstrate UI-to-domain request and typed result mapping through synthetic adapters; network-backed provider integration remains open.
 - Demonstrate playback of a permitted test asset through the intended player.
 - Prove that the chosen approach can expose player errors and actual audio/subtitle tracks where supported.
 - [x] Implement a framework-neutral prototype for bounded multi-provider catalogue search, progressive partial results, conservative title grouping and source-scoped language claims using synthetic providers.
@@ -54,7 +54,7 @@ This roadmap sequences work by reducing the biggest risks early. Dates and effor
 - [x] Fix a duplicate-source identity-conflict edge case and add a regression test; PR #2 merged to main after GitHub Actions passed (merge commit ceac6430c9ba32173a7afffd4808741380dc0a63).
 - Record a decision and rationale in the decision log after the Android/player and app-base comparison.
 
-**Exit gate:** A repeatable proof of concept runs on Android and confirms the chosen stack and provider-execution model. The framework-neutral aggregation slice passes CI, but the Android/player portion remains open.
+**Exit gate:** A repeatable proof of concept runs on Android and confirms the chosen stack and provider-execution model. The JavaScript/Kotlin prototypes pass CI, and the native Android slice builds a debug APK in CI. The Android/device player-validation portion remains open.
 
 ## Phase 3 — Aggregation core
 **Goal:** Turn the validated prototype into a production-ready domain module before adding live integrations.
@@ -62,12 +62,12 @@ This roadmap sequences work by reducing the biggest risks early. Dates and effor
 - [x] Prototype provider contracts, eligibility gating, bounded parallel search, per-provider timeout isolation and partial results.
 - [x] Prototype conservative title grouping, source provenance, duplicate same-source row handling and separate language claim kinds.
 - [x] Add deterministic synthetic-provider tests and a passing CI workflow.
-- [ ] Add shared JSON contract fixtures and verify JavaScript/Kotlin parity.
+- [x] Add shared pipe-delimited identity fixtures consumed by both the JavaScript and Kotlin tests; both suites pass against the same canonical-ID/grouping/language cases.
 - [ ] Decide production language/runtime after the app-base comparison; retain or port the prototype only if the final stack benefits from it.
 - [ ] Add user cancellation, cache expiry, typed provider diagnostics, ranking policy and broader adversarial/matching fixtures.
 - [x] Add regression coverage preventing a conflicted source from regaining a year from a later duplicate row.
 - [ ] Validate metadata conflict handling and stable identity behaviour on a curated cross-provider title set.
-- [ ] Connect the chosen app UI/player to the domain layer.
+- [x] Connect a prototype Compose search/source-selection screen and Media3 player surface to the Kotlin domain layer. Playback source resolution remains unconnected.
 
 **Exit gate:** The acceptance gate in REQUIREMENTS.md passes for at least two independent test providers.
 
