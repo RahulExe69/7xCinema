@@ -36,6 +36,33 @@ describe("universal search core", () => {
     expect(merged[0].playbackSources?.map((source) => source.url)).toEqual([firstUrl, fallbackUrl]);
   });
 
+  it("preserves a Jellyfin playback identity regardless of provider completion order", () => {
+    const jellyfin = item({
+      id: "jellyfin:movie-123",
+      tmdbId: 10,
+      libraryItemId: "movie-123",
+      libraryItemType: "movie",
+      externalIds: { imdb: "tt1375666" },
+      sources: ["jellyfin-library"],
+    });
+    const metadata = item({
+      id: "tmdb:movie:10",
+      tmdbId: 10,
+      posterPath: "/poster.jpg",
+      sources: ["tmdb"],
+    });
+    for (const ordered of [[metadata, jellyfin], [jellyfin, metadata]]) {
+      const merged = mergeResults(ordered);
+      expect(merged).toHaveLength(1);
+      expect(merged[0].libraryItemId).toBe("movie-123");
+      expect(merged[0].libraryItemType).toBe("movie");
+      expect(merged[0].tmdbId).toBe(10);
+      expect(merged[0].posterPath).toBe("/poster.jpg");
+      expect(merged[0].sources).toContain("jellyfin-library");
+      expect(merged[0].sources).toContain("tmdb");
+    }
+  });
+
   it("merges language claims without erasing per-provider provenance", () => {
     const merged = mergeResults([
       item({ sources: ["alpha"], languageClaims: [
