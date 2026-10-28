@@ -62,6 +62,7 @@ This roadmap sequences work by reducing the biggest risks early. Dates and effor
 - [x] Prototype provider contracts, eligibility gating, bounded parallel search, per-provider timeout isolation and partial results.
 - [x] Prototype conservative title grouping, source provenance, duplicate same-source row handling and separate language claim kinds.
 - [x] Add deterministic synthetic-provider tests and a passing CI workflow.
+- [ ] Add shared JSON contract fixtures and verify JavaScript/Kotlin parity.
 - [ ] Decide production language/runtime after the app-base comparison; retain or port the prototype only if the final stack benefits from it.
 - [ ] Add user cancellation, cache expiry, typed provider diagnostics, ranking policy and broader adversarial/matching fixtures.
 - [x] Add regression coverage preventing a conflicted source from regaining a year from a later duplicate row.
