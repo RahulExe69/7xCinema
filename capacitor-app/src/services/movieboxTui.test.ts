@@ -28,6 +28,27 @@ describe("MovieBox-TUI catalogue adapter", () => {
     expect(item.providerItems).toHaveLength(3);
   });
 
+  it("keeps a merged title's catalogue ID stable when its primary provider changes", () => {
+    const fromMovieBox = mapMovieboxCatalogEntry({
+      id: { provider: "moviebox", value: "movie-1" },
+      title: "Example Film!",
+      media_type: "movie",
+      year: "2024",
+      sources: [{ provider: "moviebox", value: "movie-1" }],
+    });
+    const fromFourK = mapMovieboxCatalogEntry({
+      id: { provider: "fourkhdhub", value: "film-2" },
+      title: "  example   film ",
+      media_type: "movie",
+      year: "2024",
+      sources: [{ provider: "fourkhdhub", value: "film-2" }],
+    });
+
+    expect(fromMovieBox.id).toBe(fromFourK.id);
+    expect(fromMovieBox.providerItems?.[0]?.provider).toBe("moviebox");
+    expect(fromFourK.providerItems?.[0]?.provider).toBe("fourkhdhub");
+  });
+
   it("keeps provider-reported languages clearly marked as unverified metadata", () => {
     const row: MovieboxCatalogEntry = {
       id: { provider: "moviebox", value: "film-1" },
