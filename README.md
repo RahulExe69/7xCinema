@@ -1,107 +1,70 @@
 # 7xCinema
 
-**One search. Multiple providers. One unified discovery and playback experience.**
+**One search. Multiple catalogues. One cinematic discovery experience.**
 
-7xCinema is an independent streaming-discovery application project. Its core idea is to coordinate multiple independently maintained providers so that users can discover more of the movies, series, seasons, episodes, audio languages, subtitles, and compatible playback sources available to them—without manually searching each provider.
+7xCinema is an independent media-discovery application designed around one unified search, careful deduplication, source provenance, language accuracy, and trustworthy watch destinations. The primary app shell is now **React + TypeScript + Vite + Capacitor 8**. The previous Kotlin/Compose application remains in the repository as a player-feasibility reference, not the primary UI.
 
-The application should do the coordination internally. Users search once; 7xCinema gathers results from enabled integrations, reconciles duplicates carefully, preserves source provenance, combines verified language information, and offers the best compatible playback options it can establish.
+## What exists in the Capacitor app
 
-> **Project status:** Research/prototype stage. JavaScript and Kotlin/JVM aggregation cores are tested, and a Kotlin/Compose + Media3 Android demo builds as a debug APK in CI. The search adapters are synthetic; source resolution and physical-device playback validation remain open.
+- A responsive, cinematic interface for Android and web.
+- A curated offline starter catalogue so the app opens without an account or API key.
+- Parallel search across enabled catalogue adapters, progressive results, provider-level timeout/error isolation, and conservative ID-based deduplication.
+- Optional live TMDB multi-search and trending titles when a user configures a TMDB v3 API key.
+- Region-aware official watch/rent/buy destinations reported by TMDB.
+- A device-local watchlist, title details, genre/kind filters, and settings.
+- A direct HTTP(S) media URL player for media the user is authorised to access and the WebView supports.
+- Unit tests for deduplication, provenance, partial results, provider errors, and timeouts.
+- GitHub Actions that tests the app, builds web assets, generates the Capacitor Android shell, builds a debug APK, and uploads it.
 
-## Vision
+## Project status — migration MVP, not a finished streaming service
 
-- **Broad coverage:** search all configured providers concurrently and show useful partial results as they arrive.
-- **One catalogue:** merge matching titles without hiding distinct seasons, episodes, cuts, or editions.
-- **Language-aware discovery:** aggregate verified audio-track, separate dubbed-version, and subtitle availability across sources.
-- **Reliable playback:** resolve sources, rank compatible options, handle failures, and retry sensible alternatives without trapping users in an endless loading state.
-- **Provider independence:** an outage or change in one provider should not take down the application or erase results from others.
-- **Honest UX:** distinguish confirmed details from provider claims and never promise a language or source that has not been verified.
-- **Responsible integrations:** evaluate licences, terms, source legitimacy, privacy, and security before using any provider or repository.
+The app shell and discovery experience are being migrated; the application is **not yet a complete streaming app**. Live metadata needs a TMDB API key. There are no real third-party playback-provider adapters or automatic stream resolver in the Capacitor app yet, and the current player is the browser/WebView media element rather than the old native Media3 player. HLS/DASH, protected streams, audio/subtitle selection, and device playback still need a native-player integration and validation on real devices. We will not label provider-reported language metadata as a verified audio/subtitle track.
+
+## Run the app
+
+Requires Node.js 22.12+ and, for Android, Android Studio and Android SDK.
+
+```sh
+cd capacitor-app
+npm install
+npm run dev
+npm test
+npm run build
+npx cap add android
+npx cap sync android
+npx cap open android
+```
+
+For a later frontend rebuild, run `npm run android:sync`. See [capacitor-app/README.md](capacitor-app/README.md). The generated Android platform directory is ignored in this migration phase; CI creates a clean native project and uploads the APK artifact.
+
+## Configure live catalogue data
+
+Open **Settings**, enter your own TMDB v3 API key, choose the availability region, and save. The key is stored in the app's local WebView storage. A build-time `VITE_TMDB_API_KEY` is also supported, but any build-time client value is bundled into the app and must be treated as public. Do not include privileged server secrets or access tokens. Review [TMDB's documentation](https://developer.themoviedb.org/docs) and terms/branding requirements before public distribution.
+
+TMDB provides catalogue metadata and reported official destinations—not stream URLs or guaranteed subscription access.
+
+## Architecture and research
+
+- [Capacitor app guide](capacitor-app/README.md) — setup, current app capabilities, build output, and limitations.
+- [Capacitor migration decision and remaining gates](docs/CAPACITOR_MIGRATION.md).
+- [Universal JavaScript search-core prototype](prototype/aggregation-core/README.md) — framework-neutral proof of concept and tests.
+- [Kotlin aggregation core](prototype/kotlin-aggregation-core/README.md) — Kotlin/JVM title grouping, language provenance, bounded fan-out, and timeout isolation.
+- [Previous Kotlin/Compose/Media3 feasibility slice](android-app/README.md) — retained reference, not the new primary shell.
+- [Product vision](docs/PRODUCT_VISION.md), [requirements](docs/REQUIREMENTS.md), [architecture](docs/ARCHITECTURE.md), [provider system](docs/PROVIDER_SYSTEM.md), [coverage model](docs/COVERAGE_MODEL.md), [multilingual model](docs/MULTILINGUAL.md), [search and deduplication](docs/SEARCH_AND_DEDUPLICATION.md), and [playback](docs/PLAYBACK.md).
+- [Research summary](docs/RESEARCH_SUMMARY.md), [research register](docs/RESEARCH_REGISTER.md), [provider matrix](docs/PROVIDER_MATRIX.md), [technical audit](docs/TECHNICAL_AUDIT.md), [framework comparison](docs/FRAMEWORK_COMPARISON.md), [base repository comparison](docs/BASE_REPOSITORY_COMPARISON.md), and [Android feasibility gate](docs/ANDROID_FEASIBILITY_GATE.md).
+- [Roadmap](docs/ROADMAP.md), [decisions](docs/DECISIONS.md), [security and privacy](docs/SECURITY.md), [testing strategy](docs/TESTING.md), [glossary](docs/GLOSSARY.md), and [contribution guide](CONTRIBUTING.md).
+
+The repository's existing research evaluated MovieBox-TUI, NuvioMobile, AIOStreams, FlixQuest, CloudStream, Stremio add-ons, official-source directories, subtitle APIs, and metadata/availability services. Use that evidence before selecting a real integration. A public repository, a responding endpoint, or a provider name in documentation does not by itself establish that its sources are authorised, safe, stable, or appropriate to integrate.
 
 ## Product principles
 
-1. **Search once, aggregate internally.** Provider selection is an implementation/configuration concern, not a required step in the normal user journey.
-2. **Keep provenance.** Every title, language, episode, subtitle, and stream option must remain traceable to the provider that supplied it.
-3. **Do not confuse languages with files.** A separate Hindi-dubbed video is not the same thing as a Hindi audio track inside an English video.
-4. **Prefer verified playback over inflated counts.** A source that resolves and plays is more valuable than a large list of dead links.
-5. **Fail independently.** Use timeouts, cancellation, health indicators, sensible retries, and partial-result handling.
-6. **Research before choosing.** Reuse proven components when their architecture, maintenance, licence, and suitability have been checked; do not copy projects blindly.
-
-## Documentation map
-
-- [Product vision](docs/PRODUCT_VISION.md) — goals, users, principles, non-goals, success measures.
-- [Requirements](docs/REQUIREMENTS.md) — intended user-facing behaviour and acceptance criteria.
-- [Architecture](docs/ARCHITECTURE.md) — proposed components and data flow; implementation choices remain open.
-- [Provider system](docs/PROVIDER_SYSTEM.md) — integration contract, capabilities, health, and lifecycle.
-- [Coverage model](docs/COVERAGE_MODEL.md) — distinguishes catalogue discovery, in-app playback, official destinations, and language availability.
-- [Multilingual model](docs/MULTILINGUAL.md) — audio, dubbed versions, subtitle languages, provenance, and confidence.
-- [Search and deduplication](docs/SEARCH_AND_DEDUPLICATION.md) — matching, merging, and avoiding false matches.
-- [Playback](docs/PLAYBACK.md) — source ranking, playback states, retries, and error handling.
-- [Research summary](docs/RESEARCH_SUMMARY.md) — key findings, provisional base recommendation, and next feasibility gate.
-- [Research register](docs/RESEARCH_REGISTER.md) — candidate repositories, evidence, unknowns, and next investigations.
-- [Provider matrix](docs/PROVIDER_MATRIX.md) — integration roles, eligibility gates, and evidence-based scoring.
-- [Technical audit](docs/TECHNICAL_AUDIT.md) — code-level findings on the core candidates and existing provider model.
-- [Framework comparison](docs/FRAMEWORK_COMPARISON.md) — React/Capacitor, native Kotlin, Flutter, Rust reuse, and backend trade-offs.
-- [Base repository comparison](docs/BASE_REPOSITORY_COMPARISON.md) — whether to adapt NuvioMobile or build a fresh 7xCinema app.
-- [Android feasibility gate](docs/ANDROID_FEASIBILITY_GATE.md) — verified Nuvio search/player observations, candidate trade-offs, and the end-to-end acceptance gate.
-- [Roadmap](docs/ROADMAP.md) — staged plan from research to a testable application.
-- [Decision log](docs/DECISIONS.md) — recorded decisions and choices that still require evidence.
-- [Security and privacy](docs/SECURITY.md) — provider trust boundaries, secrets, network safety, and data minimisation.
-- [Testing strategy](docs/TESTING.md) — validation plan for aggregation, providers, languages, and playback.
-- [Universal search core prototype](prototype/aggregation-core/README.md) — JavaScript reference implementation and automated tests using synthetic providers.
-- [Kotlin aggregation core](prototype/kotlin-aggregation-core/README.md) — Kotlin/JVM title grouping, language provenance, bounded provider fan-out, timeout isolation, and CI tests.
-- [Android app slice](android-app/README.md) — Compose search demo, source picker, Media3 playback probe, debug build instructions, and current limitations.
-- [Glossary](docs/GLOSSARY.md) — shared terminology for the project.
-- [Contributing](CONTRIBUTING.md) — workflow and quality expectations.
-
-## Project status at a glance
-
-| Area | Current status |
-|---|---|
-| Product vision | Documented |
-| Provider candidates | Multi-pass architecture audit, provider matrix and summary; eligibility/runtime verification ongoing |
-| Existing Rust provider foundation | Provider traits and service dispatcher inspected; native-provider search is single-provider, so universal aggregation is new work |
-| Android/UI framework | Kotlin/Compose + Media3 Android slice is implemented and builds in CI; physical-device playback checks and a time-boxed Capacitor comparison remain open |
-| Universal search engine | JavaScript and Kotlin/JVM reference/fan-out tests pass; the Android demo UI is integrated with synthetic adapters; live provider adapters remain open |
-| Cross-provider deduplication | Prototype groups by shared IDs with a conservative ID-less title/year fallback; broader evaluation remains open |
-| Language aggregation | Prototype preserves source-scoped claims and distinguishes provider claims from player-verified tracks |
-| Playback and fallback | Media3 player surface, playback/error states, and actual-track inspection/selection controls compile; no authorised real-media session has been device-verified |
-| Automated tests / CI | Shared JS/Kotlin fixtures pass; GitHub Actions built and uploaded the debug APK in [run 40670343817](https://github.com/RahulExe69/7xCinema/actions/runs/40670343817); device playback validation remains open |
-
-## Current research references
-
-- [MovieBox-TUI](https://github.com/mesamirh/MovieBox-Tui) — Rust/TUI project with provider abstractions; useful reference, not a finished mobile app.
-- [NuvioMobile](https://github.com/NuvioMedia/NuvioMobile) — Kotlin/Compose + Media3 + addon-based app; useful architecture/player reference. Current search is concurrent but section-oriented; GPL-3.0 must be considered before reusing code.
-- [Lumora](https://github.com/LumoraPlayer/Lumora) — multi-source grouping reference only; current licence/author constraints rule it out as a rebrand base.
-- [AIOStreams](https://github.com/Viren070/AIOStreams) — Stremio addon aggregation-pipeline reference, AGPL-3.0; not a complete consumer app.
-- [FlixQuest](https://github.com/flixquest/flixquest) — Flutter Android/Android TV application; useful for mobile UX and player architecture research.
-- [CloudStream](https://github.com/recloudstream/cloudstream) — Android application with an extension-oriented provider model.
-- [TMDB-Embed-API](https://github.com/Inside4ndroid/TMDB-Embed-API) — Node.js multi-provider aggregation example; backend behaviour and source suitability require review.
-- [Stremio Addon SDK](https://github.com/Stremio/stremio-addon-sdk) — reference for a standardised catalogue/stream/subtitle integration protocol.
-- [Official Sources](https://github.com/user-griffin/official-sources) — reference for official watch destinations that link out instead of proxying video.
-- [Watchmode](https://api.watchmode.com/) — optional official-availability metadata API, not a playback source; pricing/region/terms need review.
-- [OpenSubtitles.com API](https://ai.opensubtitles.com/api-docs) — candidate for subtitle search; use the current REST API, not the retired legacy endpoint.
-- [Wyzie Subs](https://docs.wyzie.io/subs/intro) — alternative subtitle API candidate subject to its terms and quota.
-- [iptv-org/iptv](https://github.com/iptv-org/iptv) — separate candidate source of publicly listed live-TV streams; each stream's authorisation and availability must be checked.
-
-See the [research register](docs/RESEARCH_REGISTER.md) for the evidence and caveats. A repository being public, an endpoint responding, or a provider appearing in documentation does **not** by itself establish that it is reliable, authorised, or appropriate to integrate.
-
-## Current implementation checkpoint
-
-The JavaScript reference core and Kotlin/JVM aggregation/fan-out core are implemented and tested with synthetic providers. Shared identity fixtures are consumed by both test suites so cross-provider grouping, canonical IDs, source conflicts, and language claims can be compared consistently.
-
-A first **native Android slice** now exists in [android-app](android-app/README.md): Kotlin + Jetpack Compose, three synthetic search adapters, one globally grouped title card with per-source choices, and an embedded AndroidX Media3 player screen that reports actual audio/subtitle tracks after the tester supplies an authorised HTTP(S) media URL. GitHub Actions built a debug APK successfully and uploaded it as an artifact.
-
-**Important:** the app's search entries are mock data; provider source resolution is not connected, and no physical-device playback test has been completed. This is a feasibility slice—not a ready-to-use streaming app or release build.
-
-Next gates are to install the APK on a device, test it with an authorised media asset, verify track selection and error/lifecycle behaviour, and then implement one provider integration only after eligibility/terms review. The final app architecture still remains provisional. See [Android feasibility gate](docs/ANDROID_FEASIBILITY_GATE.md).
+1. Search all configured catalogue adapters in parallel; do not force the user to select a provider first.
+2. Merge by strong, shared IDs before considering conservative title/year matching; never erase meaningful edition, season, episode, or media-type differences.
+3. Preserve each result's provider provenance and distinguish original-language metadata, separate dubbed versions, subtitles, and player-verified tracks.
+4. Prefer working and authorised destinations to inflated source counts.
+5. Keep provider failures isolated, give useful progress, and never strand the user behind a spinner.
+6. Review provider terms, licensing, privacy, network safety, and regional restrictions before enabling any real integration.
 
 ## Responsible use
 
-7xCinema is intended to integrate sources that the project is authorised to access and present. Do not implement DRM circumvention, access-control bypasses, credential theft, or methods to evade a provider's restrictions. Respect applicable law, licences, terms, regional restrictions, and takedown requirements. Prefer official APIs and documented interfaces where available.
-
-Metadata and provider responses are untrusted input. Follow the security guidance before exposing provider integrations to users or hosting a backend.
-
-## Contributions
-
-Start with [CONTRIBUTING.md](CONTRIBUTING.md). Changes should preserve provider independence, source provenance, accurate language claims, and testability.
+7xCinema is intended for services and sources the project is authorised to access and present. Do not implement DRM circumvention, access-control bypasses, credential theft, or methods to evade provider restrictions. Respect applicable law, terms, licences, regional restrictions, and takedown requirements. Metadata and provider responses are untrusted input; follow [security guidance](docs/SECURITY.md) before exposing integrations or hosting a backend.
