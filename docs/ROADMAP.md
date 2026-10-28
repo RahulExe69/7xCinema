@@ -46,19 +46,23 @@ This roadmap sequences work by reducing the biggest risks early. Dates and effor
 - Demonstrate UI-to-provider request and typed result mapping.
 - Demonstrate playback of a permitted test asset through the intended player.
 - Prove that the chosen approach can expose player errors and actual audio/subtitle tracks where supported.
-- Record a decision and rationale in the decision log.
+- [x] Implement a framework-neutral prototype for bounded multi-provider catalogue search, progressive partial results, conservative title grouping and source-scoped language claims using synthetic providers.
+- [x] Add deterministic tests for eligibility gating, concurrency, timeouts, partial results, errors vs empty results, title matching, episode coordinates, duplicate source rows, and player-observed tracks.
+- [x] Confirm the prototype test workflow passes on main commit dcd413a7816218b08fdfebc2ee3e32b56c6c1156.
+- Record a decision and rationale in the decision log after the Android/player and app-base comparison.
 
-**Exit gate:** A repeatable proof of concept runs on Android and confirms the chosen stack and provider-execution model.
+**Exit gate:** A repeatable proof of concept runs on Android and confirms the chosen stack and provider-execution model. The framework-neutral aggregation slice passes CI, but the Android/player portion remains open.
 
 ## Phase 3 — Aggregation core
-**Goal:** Prove the central product value with fake/test providers before adding many live integrations.
+**Goal:** Turn the validated prototype into a production-ready domain module before adding live integrations.
 
-- Define domain types and provider contract.
-- Implement registry, bounded parallel search, per-provider timeouts, cancellation, and partial results.
-- Implement normalisation, conservative deduplication, source provenance, and metadata conflict handling.
-- Model audio tracks, separate dubbed versions, and subtitles separately.
-- Implement health observations, cache expiry, and typed errors.
-- Add unit tests and deterministic evaluation fixtures.
+- [x] Prototype provider contracts, eligibility gating, bounded parallel search, per-provider timeout isolation and partial results.
+- [x] Prototype conservative title grouping, source provenance, duplicate same-source row handling and separate language claim kinds.
+- [x] Add deterministic synthetic-provider tests and a passing CI workflow.
+- [ ] Decide production language/runtime after the app-base comparison; retain or port the prototype only if the final stack benefits from it.
+- [ ] Add user cancellation, cache expiry, typed provider diagnostics, ranking policy and broader adversarial/matching fixtures.
+- [ ] Validate metadata conflict handling and stable identity behaviour on a curated cross-provider title set.
+- [ ] Connect the chosen app UI/player to the domain layer.
 
 **Exit gate:** The acceptance gate in REQUIREMENTS.md passes for at least two independent test providers.
 
