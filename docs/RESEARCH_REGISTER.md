@@ -300,3 +300,11 @@ Reference: [AIOStreams README](https://github.com/Viren070/AIOStreams), [LICENSE
 
 ### Watchmode plan constraint update
 The official [Watchmode pricing page](https://api.watchmode.com/pricing) currently says the free Developer plan has 2,500 monthly credits, supports non-commercial use with attribution, covers up to three selected countries, and does not include app/episode deep links. The current public page lists paid Startup at USD $349/month and Business at USD $599/month. These prices and features may change. Watchmode remains optional and must not be selected before comparing it with TMDB's Watch Providers endpoint and checking whether India is supported in the chosen plan.
+
+
+### NuvioMobile deeper search-flow inspection
+The current branch's SearchRepository creates search requests from all enabled addon manifest catalogs that advertise search support and from configured server-library targets. These loaders run concurrently and emit progressive HomeCatalogSection results. This is stronger evidence than README-only claims that the app can search several configured catalogue sources at once.
+
+However, each catalogue remains a separate section carrying addon/catalog identity; the normal search code does not globally collapse all provider records into one canonical title object. Its Discover flow selects one catalogue at a time. PlaybackAvailability checks stream resource support against media type/ID and tests that catalogue-only addons do not count as playable. The Android player uses Media3/ExoPlayer and optional MPV.
+
+Conclusion: NuvioMobile is now the strongest existing consumer-app base to test, but global title deduplication/source-language aggregation and automatic curated-source setup are material refactors. GPL-3.0 distribution requirements must be accepted before code reuse. See [Base Repository Comparison](BASE_REPOSITORY_COMPARISON.md).
