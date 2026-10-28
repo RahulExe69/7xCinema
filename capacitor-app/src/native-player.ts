@@ -3,6 +3,8 @@ import { Capacitor, registerPlugin } from "@capacitor/core";
 export interface NativePlayerOptions {
   url: string;
   title: string;
+  /** Resume position in milliseconds, used for the first source only. */
+  startPositionMs?: number;
   /** Ordered, adapter-supplied fallback URLs tried after a player error. */
   fallbackUrls?: string[];
   headers?: Record<string, string>;
