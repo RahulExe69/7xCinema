@@ -106,7 +106,7 @@ public final class NativePlayerActivity extends Activity {
         if (rawHeaders != null) {
             try {
                 JSONObject headers = new JSONObject(rawHeaders);
-                for (String allowed : new String[] {"Authorization", "X-Emby-Token"}) {
+                for (String allowed : new String[] {"Authorization", "X-Emby-Token", "Referer", "Origin", "User-Agent", "Cookie", "Accept", "Accept-Language", "X-Requested-With"}) {
                     String value = headers.optString(allowed, "");
                     if (!value.isEmpty() && value.length() <= 4096
                             && value.indexOf('\r') < 0 && value.indexOf('\n') < 0) {
