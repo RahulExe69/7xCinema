@@ -13,7 +13,7 @@ export function mergeResults(items: MediaItem[]): MediaItem[] {
     const id = getStableMediaId(item);
     const existing = groups.get(id);
     if (!existing) {
-      groups.set(id, { ...item, genreIds: [...item.genreIds], genres: [...item.genres], sources: [...item.sources], languageClaims: [...(item.languageClaims ?? [])], playbackSources: [...(item.playbackSources ?? [])], libraryVariants: [...(item.libraryVariants ?? [])] });
+      groups.set(id, { ...item, genreIds: [...item.genreIds], genres: [...item.genres], sources: [...item.sources], languageClaims: [...(item.languageClaims ?? [])], playbackSources: [...(item.playbackSources ?? [])], libraryVariants: [...(item.libraryVariants ?? [])], providerItems: [...(item.providerItems ?? [])] });
       continue;
     }
     const sources = [...new Set([...existing.sources, ...item.sources])];
@@ -22,6 +22,11 @@ export function mergeResults(items: MediaItem[]): MediaItem[] {
     const sourceCandidates = new Map<string, PlaybackSource>();
     for (const candidate of [...(existing.playbackSources ?? []), ...(item.playbackSources ?? [])]) {
       if (!sourceCandidates.has(candidate.url)) sourceCandidates.set(candidate.url, candidate);
+    }
+    const providerItems = new Map<string, import("../types").ProviderMediaRef>();
+    for (const source of [...(existing.providerItems ?? []), ...(item.providerItems ?? [])]) {
+      const sourceKey = source.provider + "|" + source.value;
+      if (!providerItems.has(sourceKey)) providerItems.set(sourceKey, source);
     }
     const libraryVariants = new Map<string, LibraryVariant>();
     for (const variant of [...(existing.libraryVariants ?? []), ...(item.libraryVariants ?? [])]) {
@@ -51,6 +56,7 @@ export function mergeResults(items: MediaItem[]): MediaItem[] {
       libraryItemId: existing.libraryItemId || item.libraryItemId,
       libraryItemType: existing.libraryItemType || item.libraryItemType,
       libraryVariants: [...libraryVariants.values()],
+      providerItems: [...providerItems.values()],
       episodeNumber: existing.episodeNumber ?? item.episodeNumber,
       seasonNumber: existing.seasonNumber ?? item.seasonNumber,
       externalIds: { ...(item.externalIds ?? {}), ...(existing.externalIds ?? {}) },
@@ -117,6 +123,7 @@ export async function searchEveryProvider(
     let timer: ReturnType<typeof setTimeout> | undefined;
     let didTimeout = false;
     try {
+      const providerTimeoutMs = provider.timeoutMs ?? timeoutMs;
       const timeout = new Promise<MediaItem[]>((_, reject) => {
         timer = setTimeout(() => {
           // Record the cause before aborting: abort listeners can reject the
@@ -124,7 +131,7 @@ export async function searchEveryProvider(
           didTimeout = true;
           reject(timeoutError("Provider took too long"));
           controller.abort();
-        }, timeoutMs);
+        }, providerTimeoutMs);
       });
       const result = await Promise.race([provider.search(query, controller.signal), timeout]);
       collected = [...collected, ...result.map((item) => ({
