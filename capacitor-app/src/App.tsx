@@ -73,7 +73,6 @@ export default function App() {
   const [jellyfinEpisodes, setJellyfinEpisodes] = useState<JellyfinEpisode[]>([]);
   const [jellyfinEpisodesBusy, setJellyfinEpisodesBusy] = useState(false);
   const [jellyfinEpisodesMessage, setJellyfinEpisodesMessage] = useState("");
-  const [movieboxSource, setMovieboxSource] = useState<ProviderMediaRef | null>(null);
   const [movieboxDetails, setMovieboxDetails] = useState<MovieboxMediaDetails | null>(null);
   const [movieboxPlayback, setMovieboxPlayback] = useState<MovieboxPlaybackResponse | null>(null);
   const [movieboxLoading, setMovieboxLoading] = useState(false);
@@ -393,10 +392,6 @@ export default function App() {
   };
 
   const openMovieboxPlayback = async (item: MediaItem) => {
-    if (item.providerItems?.length) {
-      void openMovieboxPlayback(item);
-      return;
-    }
     setPlayTarget(item);
     setPlayUrl("");
     setPlaybackQueue([]);
@@ -415,7 +410,6 @@ export default function App() {
       setMovieboxMessage("This result has no provider-specific ID for playback.");
       return;
     }
-    setMovieboxSource(source);
     if (item.kind !== "tv") {
       await loadMovieboxSources(item, source);
       return;
@@ -507,6 +501,10 @@ export default function App() {
     if (item.libraryItemType === "series" && item.libraryItemId) {
       setPlayTarget(null);
       setSelected(item);
+      return;
+    }
+    if (item.providerItems?.length) {
+      void openMovieboxPlayback(item);
       return;
     }
     setPlayTarget(item);
@@ -730,6 +728,34 @@ export default function App() {
         {getPlaybackIntent(playTarget).type === "direct" && playerError
           ? <><h3>That source didn’t start.</h3><p>Try the original source page, or choose another authorised destination. We won’t pretend a metadata result is a working stream.</p><button className="button button-primary" onClick={() => startPlayback(playTarget)}>Retry source <span>→</span></button></>
           : <><h3>Choose how to watch.</h3><p className="source-choice-note">7xCinema checks the available playback information first. When a real media source is present, it opens automatically. Otherwise, choose an official destination or trailer below.</p></>}
+        {playTarget.providerItems?.length ? <section className="moviebox-source-panel">
+          <div className="moviebox-panel-heading"><span className="section-kicker">MOVIEBOX-TUI · MULTI-SOURCE ENGINE</span><strong>{movieboxDetails ? "Choose an episode" : movieboxPlayback ? "Choose a release" : "Checking available sources"}</strong></div>
+          <p className="field-help">Sources are searched across enabled providers. Titles are merged for browsing, while each provider-specific ID is retained for playback.</p>
+          {movieboxLoading && <div className="inline-loading"><span className="spinner" /> {movieboxDetails ? "Loading episodes and available source details…" : "Searching MovieBox, 4KHDHub, Dramachi and available BDIX sources…"}</div>}
+          {movieboxMessage && <div className="watch-message moviebox-message">{movieboxMessage}</div>}
+          {movieboxDetails?.seasons?.map((season) => <div className="moviebox-season" key={season.number}>
+            <div className="moviebox-season-title">Season {season.number}</div>
+            {season.episodes.map((episode) => <button className="moviebox-episode-row" key={season.number + "-" + episode.number} disabled={movieboxLoading || movieboxResolvingIndex !== null} onClick={() => {
+              if (!playTarget) return;
+              void loadMovieboxSources(playTarget, movieboxDetails.id, season.number, episode.number);
+            }}>
+              <span className="moviebox-episode-number">S{String(season.number).padStart(2, "0")}E{String(episode.number).padStart(2, "0")}</span>
+              <span className="moviebox-episode-copy"><strong>{episode.title || ("Episode " + episode.number)}</strong>{episode.overview && <small>{episode.overview}</small>}</span>
+              <span>▶</span>
+            </button>)}
+          </div>)}
+          {movieboxPlayback && <div className="moviebox-release-list">
+            <div className="moviebox-list-title">{movieboxPlayback.releases.length} release{movieboxPlayback.releases.length === 1 ? "" : "s"} found{movieboxSelectedEpisode ? " · S" + String(movieboxSelectedEpisode.season).padStart(2, "0") + "E" + String(movieboxSelectedEpisode.episode).padStart(2, "0") : ""}</div>
+            {movieboxPlayback.releases.slice(0, 20).map((release, index) => {
+              const source = movieboxPlayback.release_sources[index];
+              return <button className="moviebox-release-row" key={source ? source.provider + "|" + source.media_id + "|" + source.release_index : release.provider + "|" + release.filename + "|" + index} disabled={!source || movieboxResolvingIndex !== null} onClick={() => void playMovieboxRelease(index)}>
+                <span className="moviebox-release-copy"><strong>{release.filename || "Untitled release"}</strong><small>{release.provider} · {release.quality || "Quality unknown"}{release.language ? " · " + release.language : ""}{release.codec ? " · " + release.codec : ""}</small></span>
+                <span className="moviebox-play-icon">{movieboxResolvingIndex === index ? "…" : "▶"}</span>
+              </button>;
+            })}
+            {movieboxPlayback.releases.length > 20 && <p className="field-help">Showing the first 20 releases. Use another source/provider if the available versions do not fit your needs.</p>}
+          </div>}
+        </section> : null}
         {watchLoading && <div className="inline-loading"><span className="spinner" /> Checking official watch options…</div>}
         {watchError && <div className="watch-message">{watchError}</div>}
         {watchData?.providers?.length ? <div className="source-provider-list"><div className="field-label">REPORTED IN {watchData.country}</div><div className="source-provider-chips">{watchData.providers.map((provider) => <span key={provider.providerId + "-" + provider.bucket}>{provider.name}<small>{provider.bucket === "flatrate" ? "Subscription" : provider.bucket === "free" ? "Free" : provider.bucket === "ads" ? "With ads" : provider.bucket === "rent" ? "Rent" : "Buy"}</small></span>)}</div></div> : null}
@@ -737,7 +763,7 @@ export default function App() {
         {trailerUrl && <button className="button button-secondary source-action-button" onClick={() => void openOfficialDestination(trailerUrl)}>Watch official trailer <span>↗</span></button>}
         {playTarget.itemPageUrl && <button className="button button-secondary source-action-button" onClick={() => void openOfficialDestination(playTarget.itemPageUrl)}>Open original source page <span>↗</span></button>}
         {playTarget.licenseUrl && <button className="button button-ghost source-action-button" onClick={() => void openOfficialDestination(playTarget.licenseUrl)}>Review licence <span>↗</span></button>}
-        {!watchData?.link && !trailerUrl && !playTarget.itemPageUrl && !playTarget.playableUrl && <p className="watch-message">{tmdbEnabled ? "No direct playback source or official destination was returned for this title. It may need another catalogue/provider integration." : "Connect TMDB in Settings to discover official viewing options. Direct playback only appears when a source adapter returns a compatible media URL."}</p>}
+        {!watchData?.link && !trailerUrl && !playTarget.itemPageUrl && !playTarget.playableUrl && !playTarget.providerItems?.length && <p className="watch-message">{tmdbEnabled ? "No direct playback source or official destination was returned for this title. It may need another catalogue/provider integration." : "Connect TMDB in Settings to discover official viewing options. Direct playback only appears when a source adapter returns a compatible media URL."}</p>}
         {playerError && <div className="player-error">{playerError}</div>}
         <div className="advanced-source-toggle"><button className="text-action" onClick={() => setShowAdvancedSource((value) => !value)}>{showAdvancedSource ? "Hide advanced source entry" : "Advanced · enter a direct media URL manually"} <span>{showAdvancedSource ? "−" : "+"}</span></button></div>
         {showAdvancedSource && <div className="advanced-source-panel"><label className="field-label" htmlFor="media-url">Direct media URL (advanced fallback)</label><input id="media-url" className="settings-input" inputMode="url" autoComplete="off" placeholder="https://example.com/authorised-video.mp4" value={playUrl} onChange={(event) => { setPlayUrl(event.target.value); setPlaybackQueue([]); setCurrentSourceIndex(0); setPlayerError(""); setPlayerLoaded(false); }} /><p className="field-help">For a source you are authorised to access. HTTP(S) only; URLs containing credentials are rejected. Protected streams and provider restrictions are not bypassed.</p><button className="button button-secondary" onClick={validatePlaybackUrl}>Load manual source <span>→</span></button></div>}
