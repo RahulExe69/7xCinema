@@ -47,6 +47,7 @@ The application should do the coordination internally. Users search once; 7xCine
 - [Decision log](docs/DECISIONS.md) — recorded decisions and choices that still require evidence.
 - [Security and privacy](docs/SECURITY.md) — provider trust boundaries, secrets, network safety, and data minimisation.
 - [Testing strategy](docs/TESTING.md) — validation plan for aggregation, providers, languages, and playback.
+- [Universal search core prototype](prototype/aggregation-core/README.md) — framework-neutral implementation and automated tests using synthetic providers.
 - [Glossary](docs/GLOSSARY.md) — shared terminology for the project.
 - [Contributing](CONTRIBUTING.md) — workflow and quality expectations.
 
@@ -58,11 +59,11 @@ The application should do the coordination internally. Users search once; 7xCine
 | Provider candidates | Multi-pass architecture audit, provider matrix and summary; eligibility/runtime verification ongoing |
 | Existing Rust provider foundation | Provider traits and service dispatcher inspected; native-provider search is single-provider, so universal aggregation is new work |
 | Android/UI framework | Native Kotlin/Compose + Media3 and React/Capacitor + native player both under comparison |
-| Universal search engine | Planned; not implemented here yet |
-| Cross-provider deduplication | Planned |
-| Language aggregation | Planned |
+| Universal search engine | Framework-neutral prototype implemented; live provider adapters and UI integration remain open |
+| Cross-provider deduplication | Prototype groups by shared IDs with a conservative ID-less title/year fallback; broader evaluation remains open |
+| Language aggregation | Prototype preserves source-scoped claims and distinguishes provider claims from player-verified tracks |
 | Playback and fallback | Planned; per-provider behaviour unverified |
-| Automated tests / CI | Not yet established in this repository |
+| Automated tests / CI | Prototype tests run in GitHub Actions; application-level CI/build not established |
 
 ## Current research references
 
@@ -84,7 +85,7 @@ See the [research register](docs/RESEARCH_REGISTER.md) for the evidence and cave
 
 ## Before implementation
 
-The first engineering milestone is a research-backed architecture decision, followed by a small end-to-end proof of concept:
+The framework-neutral search prototype now passes its automated tests. The next milestone is a research-backed app-base decision and a small Android/player proof of concept:
 
 1. inspect candidate repositories and their licences;
 2. document each candidate provider's capabilities and constraints;
