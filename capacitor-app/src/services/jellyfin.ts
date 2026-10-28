@@ -22,7 +22,7 @@ export interface JellyfinItemDto {
   IndexNumber?: number | null;
   ParentIndexNumber?: number | null;
   ChildCount?: number | null;
-  UserData?: { PlaybackPositionTicks?: number | null } | null;
+  UserData?: { PlaybackPositionTicks?: number | null; Played?: boolean | null } | null;
 }
 interface JellyfinItemsResponse { Items?: JellyfinItemDto[]; TotalRecordCount?: number; }
 interface JellyfinAuthResponse {
@@ -107,6 +107,7 @@ export function mapJellyfinItem(dto: JellyfinItemDto): MediaItem {
     seasonCount: libraryItemType === "series" ? finiteNumber(dto.ChildCount) : undefined,
     episodeNumber: libraryItemType === "episode" ? finiteNumber(dto.IndexNumber) : undefined,
     seasonNumber: libraryItemType === "episode" ? finiteNumber(dto.ParentIndexNumber) : undefined,
+    resumePositionMs: dto.UserData?.Played ? undefined : (finiteNumber(dto.UserData?.PlaybackPositionTicks) ?? 0) >= 300_000_000 ? Math.round((dto.UserData?.PlaybackPositionTicks ?? 0) / 10_000) : undefined,
     externalIds: { ...(imdbId ? { imdb: imdbId } : {}) },
     sources: ["jellyfin-library"],
   };
