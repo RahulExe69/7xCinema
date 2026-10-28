@@ -178,3 +178,28 @@ GitHub's compare endpoint reports the current main branches of mesamirh/MovieBox
 This means the renamed fork currently adds no detected differences to those core paths; it remains a clean upstream snapshot, not a custom universal-search implementation. Recheck the comparison before importing code later because branches can move independently.
 
 Reference: [upstream-to-fork compare](https://github.com/mesamirh/MovieBox-Tui/compare/main...RahulExe69:main).
+
+
+## 11. Addon aggregation and dub-model findings
+
+### An aggregator already exists inside the addon provider, but only at addon scope
+Reviewed [src/providers/addons/aggregator.rs](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/addons/aggregator.rs). It fans stream requests out to configured addons with a five-second per-addon timeout, gathers results, deduplicates entries with the same direct URL, sorts by quality, and returns a list of blocked addons separately.
+
+That is a useful pattern for bounded concurrency, independent addon failures, duplicate stream handling and source ranking. It is not the universal catalogue search 7xCinema wants: the normal native-provider search path still calls one selected ProviderKind at a time. It also deduplicates matching direct URLs, which is not sufficient for grouping same-title catalogue rows across different native providers.
+
+### The MovieBox dub records represent alternate source subjects
+Reviewed [src/providers/moviebox/adapt.rs](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/moviebox/adapt.rs) and [src/providers/models.rs](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/models.rs). The adapter maps provider dubs into AudioTrackOption records containing a subject ID, language and label. MediaDetails.sibling_ids includes those alternate subject IDs. That suggests these are provider-level alternate title/source subjects, not proof that the current media file contains selectable audio tracks. 7xCinema must keep this representation separate from track metadata read from the actual player.
+
+### Existing test patterns worth carrying forward
+The existing test suite includes:
+- search failure versus empty result distinction;
+- provider/query-specific cache-key isolation;
+- stale detail response protection;
+- URL scheme rejection in playback handling;
+- stream-resolution failure cleanup and user notification;
+- addon manifest/capability checks;
+- deduplication/sorting of addon streams.
+
+These are valuable test categories to reproduce in the new universal-search engine. They do not establish that all current providers are stable or authorised.
+
+References: [addon aggregator](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/addons/aggregator.rs), [content pipeline tests](https://github.com/mesamirh/MovieBox-Tui/blob/main/tests/content_pipeline.rs), [error handling tests](https://github.com/mesamirh/MovieBox-Tui/blob/main/tests/error_handling.rs), [addon manifest tests](https://github.com/mesamirh/MovieBox-Tui/blob/main/tests/addons_manifest.rs).
