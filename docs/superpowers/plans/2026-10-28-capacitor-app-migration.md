@@ -47,8 +47,10 @@
 
 **Files:** `capacitor-app/src/App.tsx`, `capacitor-app/src/styles.css`.
 
+- [x] Add one-tap Watch controls and source chooser using official destinations/trailers.
 - [ ] Validate home, search, movies, series, My List, settings, detail modal, watch-provider destination, web player fallback, and native Media3 player.
-- [ ] Verify URL cannot be played before the user presses Load and passes validation.
+- [x] Verify a valid adapter-supplied URL is passed straight to the player without a manual paste/load step.
+- [x] Hide manual URL entry behind Advanced when there is no direct source.
 - [ ] Verify keyboard-only focus, reduced-motion preference, mobile bottom navigation, and narrow viewport layout.
 
 ### Task 4: Documentation and release workflow
@@ -76,3 +78,16 @@
 - **Ruling:** Use TMDB as the first live catalogue integration and point users to TMDB-reported official destinations — because the repository has no authorised resolver/API credentials yet; cost if wrong: a narrower first release until another eligible provider is approved.
 - **Ruling:** Keep the old Kotlin/Compose project while changing the primary shell — because it contains useful Media3 evidence and removing it would destroy a rollback/reference path; cost if wrong: temporary repository duplication.
 - **Ruling:** Build Android project during CI rather than commit generated Android scaffolding in this phase — because generated files are large and reproducible from Capacitor configuration; cost if wrong: contributors must run `npx cap add android` locally before opening Android Studio.
+
+
+### Task 6: Watch-first source selection
+
+**Files:** `capacitor-app/src/core/playback.ts`, `capacitor-app/src/core/playback.test.ts`, `capacitor-app/src/App.tsx`, `capacitor-app/src/styles.css`.
+
+- [x] Add an explicit source-intent function: valid adapter-supplied HTTP(S) media starts automatically; missing/unsafe source opens a chooser instead.
+- [x] Add regression tests for auto-play intent and unsafe/missing media URLs.
+- [x] Move manual URL input behind the Advanced fallback.
+- [x] Add a one-tap Watch action to catalogue cards.
+- [ ] Confirm the newest CI run and APK build on the final commit.
+- [ ] Test on Rahul's Android device with one open-license archive item, an official-watch-only title, and an invalid URL.
+
