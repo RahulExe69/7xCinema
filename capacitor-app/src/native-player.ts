@@ -5,6 +5,8 @@ export interface NativePlayerOptions {
   title: string;
   /** Resume position in milliseconds, used for the first source only. */
   startPositionMs?: number;
+  /** Optional authenticated Jellyfin progress endpoint on the same server. */
+  progressUrl?: string;
   /** Ordered, adapter-supplied fallback URLs tried after a player error. */
   fallbackUrls?: string[];
   headers?: Record<string, string>;
