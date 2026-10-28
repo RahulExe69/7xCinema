@@ -1,4 +1,4 @@
-import { genreNames } from "../catalogue";
+import { genreNames, languageNames } from "../catalogue";
 import type { MediaItem, MediaKind, SearchProvider, WatchProviderResponse } from "../types";
 
 const API_ROOT = "https://api.themoviedb.org/3";
