@@ -499,9 +499,9 @@ export default function App() {
 
           <section className="feature-strip"><div className="feature-item"><span className="feature-icon">⌕</span><div><strong>One search, many catalogues</strong><p>Provider searches run in parallel, with partial results and individual failure handling.</p></div></div><div className="feature-item"><span className="feature-icon">◎</span><div><strong>Honest language details</strong><p>Original-language metadata is not mislabeled as a verified audio or subtitle track.</p></div></div><div className="feature-item"><span className="feature-icon">↗</span><div><strong>Watch from official sources</strong><p>Availability links come from catalogue data, never invented by the app.</p></div></div></section>
           <section className="section-block"><div className="section-heading"><div><div className="section-kicker">KEEP EXPLORING</div><h2>Different worlds. One place.</h2><p>Jump into a mood, a universe, or a whole new story.</p></div></div><div className="mood-grid">
-            <button className="mood-card mood-scifi" onClick={() => { setQuery("Sci-Fi"); void runSearch("Sci-Fi"); }}><span>01 / SPECULATIVE</span><strong>Beyond<br />the known.</strong><i>SCI-FI & FANTASY ↗</i></button>
-            <button className="mood-card mood-drama" onClick={() => { setQuery("Drama"); void runSearch("Drama"); }}><span>02 / HUMAN STORIES</span><strong>Feel it<br />all.</strong><i>DRAMA ↗</i></button>
-            <button className="mood-card mood-action" onClick={() => { setQuery("Action"); void runSearch("Action"); }}><span>03 / ADRENALINE</span><strong>No time<br />to blink.</strong><i>ACTION & ADVENTURE ↗</i></button>
+            <button className="mood-card mood-scifi" onClick={() => { setGenreFilter("Sci-Fi"); setKindFilter("all"); openPage("movies"); }}><span>01 / SPECULATIVE</span><strong>Beyond<br />the known.</strong><i>SCI-FI & FANTASY ↗</i></button>
+            <button className="mood-card mood-drama" onClick={() => { setGenreFilter("Drama"); setKindFilter("all"); openPage("movies"); }}><span>02 / HUMAN STORIES</span><strong>Feel it<br />all.</strong><i>DRAMA ↗</i></button>
+            <button className="mood-card mood-action" onClick={() => { setGenreFilter("Action"); setKindFilter("all"); openPage("movies"); }}><span>03 / ADRENALINE</span><strong>No time<br />to blink.</strong><i>ACTION & ADVENTURE ↗</i></button>
           </div></section>
         </>}
 
