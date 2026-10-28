@@ -119,6 +119,8 @@ describe("Jellyfin personal-library adapter", () => {
       username: "Rahul",
     }, "item-1");
     expect(playback.url).toBe("https://media.example.net/jellyfin/Videos/item-1/stream?static=true");
+    expect(playback.progressUrl).toBe("https://media.example.net/jellyfin/Users/user-1/PlayingItems/item-1/Progress");
+    expect(playback.progressUrl).not.toContain("0123456789");
     expect(playback.url).not.toContain("0123456789");
     expect(playback.headers.Authorization).toContain('Token="0123456789abcdef0123456789abcdef"');
   });
