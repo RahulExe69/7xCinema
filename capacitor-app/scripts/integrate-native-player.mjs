@@ -73,7 +73,10 @@ if (!manifest.includes('android:name=".NativePlayerActivity"')) {
   const activity = `    <activity\n            android:name=".NativePlayerActivity"\n            android:configChanges="orientation|screenSize|smallestScreenSize|keyboardHidden"\n            android:exported="false"\n            android:screenOrientation="unspecified"\n            android:theme="@android:style/Theme.Material.NoActionBar" />\n`;
   if (!manifest.includes("</application>")) throw new Error("Generated Android manifest has no application closing tag.");
   manifest = manifest.replace("</application>", activity + "</application>");
-  await writeFile(androidManifest, manifest);
 }
+if (!manifest.includes('android:usesCleartextTraffic=')) {
+  manifest = manifest.replace(/<application\\b/, '<application android:usesCleartextTraffic="true"');
+}
+await writeFile(androidManifest, manifest);
 
-console.log("Integrated the local Media3 native player into generated Capacitor Android project.");
+console.log("Integrated the local Media3 player and authenticated loopback MovieBox-TUI backend into generated Capacitor Android project.");
