@@ -21,6 +21,7 @@ A provider being named in an upstream repository is evidence that the repository
 | Other community Stremio addons | Additional catalogue/stream/subtitle options | Protocol supports compatible resource responses; actual add-ons differ | Not automatically enabled | Review each addon URL, ownership, data it returns, terms, security, reliability, region and capabilities |
 | iptv-org/iptv channel list | Possible separate live-TV catalogue | Public repository of channel playlists | Deferred; not part of movie/series MVP | Validate each channel/source authority, terms, region, stream availability and category; listing is not proof of redistribution rights |
 | FlixQuest Scraper API | Architecture reference for a separate multi-provider API | FlixQuest README describes an external Scraper API and provider status; implementation is not fully inside its client repository | Reference only; no adoption decision | Inspect API implementation if accessible, licence, terms, safety boundaries and actual provider behaviour |
+| AIOStreams | Stremio addon aggregation reference | Active TypeScript project; README documents fan-out, deduplication, filtering, sorting and formatting; AGPL-3.0 | High-value architecture reference only; no bundled provider automatically approved | Review AGPL implications and security; assess every upstream addon separately; do not adopt restriction-evasion proxy paths |
 | TMDB-Embed-API | Aggregation architecture reference | Public Node.js project demonstrates provider registry/result aggregation; README lists many source integrations | Reference only; do not blindly use its stream adapters | Review code, security, dependency and rights boundary for every individual integration |
 
 References:
@@ -31,6 +32,7 @@ References:
 - [Stremio Addon SDK resource protocol](https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/api/README.md)
 - [MovieBox-TUI provider guide](https://github.com/mesamirh/MovieBox-Tui/blob/main/docs/providers.md)
 - [FlixQuest](https://github.com/flixquest/flixquest)
+- [AIOStreams](https://github.com/Viren070/AIOStreams)
 - [TMDB-Embed-API](https://github.com/Inside4ndroid/TMDB-Embed-API)
 - [iptv-org/iptv](https://github.com/iptv-org/iptv)
 
@@ -71,4 +73,5 @@ One label cannot substitute for another. Search verification does not imply play
 3. Run the native Kotlin/Compose + Media3 versus React/Capacitor + native-player thin-slice comparison.
 4. Treat TMDB and Watchmode as separate replaceable metadata/availability adapters; make neither a playback backend.
 5. Do not enable MovieBox-TUI source adapters, unknown community addons, or any scraped resolver merely because it appears in candidate code. Each must pass the eligibility and evidence gates.
-6. Keep user-owned server integrations and official destination links as possible coverage layers, distinct from general third-party playable-source coverage.
+6. Study AIOStreams' aggregation pipeline alongside the TUI addon aggregator; neither a protocol aggregator nor its upstream addons replace per-source eligibility review.
+7. Keep user-owned server integrations and official destination links as possible coverage layers, distinct from general third-party playable-source coverage.
