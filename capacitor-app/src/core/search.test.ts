@@ -20,6 +20,22 @@ describe("universal search core", () => {
     expect(merged[0].genres).toEqual(["Sci-Fi", "Adventure"]);
   });
 
+  it("merges language claims without erasing per-provider provenance", () => {
+    const merged = mergeResults([
+      item({ sources: ["alpha"], languageClaims: [
+        { languageCode: "en", language: "English", kind: "reported", evidence: "provider-metadata", sourceId: "alpha:10", selectable: false },
+      ] }),
+      item({ sources: ["beta"], languageClaims: [
+        { languageCode: "hi", language: "Hindi", kind: "dubbed-version", evidence: "provider-metadata", sourceId: "beta:10", selectable: false },
+        { languageCode: "hi", language: "Hindi", kind: "dubbed-version", evidence: "provider-metadata", sourceId: "beta:10", selectable: false },
+      ] }),
+    ]);
+    expect(merged).toHaveLength(1);
+    expect(merged[0].languageClaims).toHaveLength(2);
+    expect(merged[0].languageClaims?.map((claim) => claim.sourceId)).toEqual(["alpha:10", "beta:10"]);
+    expect(merged[0].languageClaims?.every((claim) => !claim.selectable)).toBe(true);
+  });
+
   it("does not merge different explicit IDs or media types", () => {
     expect(mergeResults([
       item({ tmdbId: 1 }),
