@@ -67,7 +67,9 @@
 - [x] Add an initial native Media3 playback Activity and audio/subtitle track picker through a local Capacitor bridge.
 - [ ] Verify the bridge build and all native behaviour in CI and on a physical Android device.
 - [ ] Verify actual audio/subtitle track discovery and selection with authorized local/test assets on a physical device.
-- [ ] Add only integrations whose terms, licence, reliability, and source permissions have been reviewed.
+- [x] Add a limited Internet Archive direct-media adapter gated to uploader-declared Public Domain Mark/CC0 metadata, with visible item-page/licence links.
+- [ ] Independently verify the Archive licence filtering against live sample responses and confirm Android playback with a permitted test asset.
+- [ ] Add only additional integrations whose terms, licence, reliability, and source permissions have been reviewed.
 - [ ] Do not report the app as production-ready until these end-to-end gates pass.
 
 ## Rulings
