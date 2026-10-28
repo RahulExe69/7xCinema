@@ -288,3 +288,15 @@ Reference: [compare main branches](https://github.com/mesamirh/MovieBox-Tui/comp
 - **Status:** Priority 1 architecture reference for aggregation pipeline; no code/provider reuse approved.
 
 Reference: [AIOStreams README](https://github.com/Viren070/AIOStreams), [LICENSE](https://github.com/Viren070/AIOStreams/blob/main/LICENSE).
+
+
+### TMDB Watch Providers endpoint — official availability candidate
+- Official docs: [Movie watch providers](https://developer.themoviedb.org/reference/movie-watch-providers) and [TV series watch providers](https://developer.themoviedb.org/reference/tv-series-watch-providers).
+- The endpoints expose streaming, rental and purchase provider availability per country. The documentation says the data is provided through a partnership with JustWatch and does not return full deep links; the response provides enough information to display what's available and a TMDB URL that may be linked for deeper destinations.
+- The official docs require JustWatch attribution for this data. TMDB's broader API also has its own developer terms and attribution/logo notice; see [TMDB FAQ](https://developer.themoviedb.org/docs/faq). Both obligations must be satisfied.
+- Value: May be a practical first official-availability candidate alongside TMDB catalogue metadata. It avoids treating a link-only availability service as a playback provider.
+- Limits: It does not provide video. Country support and availability completeness must be tested for India and all intended regions. Full provider deep links may require another authorised source; do not fabricate deep links.
+- Status: Candidate for implementation only after reviewing current TMDB and JustWatch attribution requirements, rate limits, cache terms, and intended distribution model.
+
+### Watchmode plan constraint update
+The official [Watchmode pricing page](https://api.watchmode.com/pricing) currently says the free Developer plan has 2,500 monthly credits, supports non-commercial use with attribution, covers up to three selected countries, and does not include app/episode deep links. The current public page lists paid Startup at USD $349/month and Business at USD $599/month. These prices and features may change. Watchmode remains optional and must not be selected before comparing it with TMDB's Watch Providers endpoint and checking whether India is supported in the chosen plan.
