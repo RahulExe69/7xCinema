@@ -1,5 +1,5 @@
 import { getStableMediaId, starterCatalogue } from "../catalogue";
-import type { LanguageClaim, MediaItem, PlaybackSource, ProviderReport, SearchProvider, SearchSnapshot } from "../types";
+import type { LanguageClaim, LibraryVariant, MediaItem, PlaybackSource, ProviderReport, SearchProvider, SearchSnapshot } from "../types";
 
 function timeoutError(message: string) {
   const error = new Error(message);
@@ -13,7 +13,7 @@ export function mergeResults(items: MediaItem[]): MediaItem[] {
     const id = getStableMediaId(item);
     const existing = groups.get(id);
     if (!existing) {
-      groups.set(id, { ...item, genreIds: [...item.genreIds], genres: [...item.genres], sources: [...item.sources], languageClaims: [...(item.languageClaims ?? [])], playbackSources: [...(item.playbackSources ?? [])] });
+      groups.set(id, { ...item, genreIds: [...item.genreIds], genres: [...item.genres], sources: [...item.sources], languageClaims: [...(item.languageClaims ?? [])], playbackSources: [...(item.playbackSources ?? [])], libraryVariants: [...(item.libraryVariants ?? [])] });
       continue;
     }
     const sources = [...new Set([...existing.sources, ...item.sources])];
@@ -22,6 +22,11 @@ export function mergeResults(items: MediaItem[]): MediaItem[] {
     const sourceCandidates = new Map<string, PlaybackSource>();
     for (const candidate of [...(existing.playbackSources ?? []), ...(item.playbackSources ?? [])]) {
       if (!sourceCandidates.has(candidate.url)) sourceCandidates.set(candidate.url, candidate);
+    }
+    const libraryVariants = new Map<string, LibraryVariant>();
+    for (const variant of [...(existing.libraryVariants ?? []), ...(item.libraryVariants ?? [])]) {
+      const variantKey = variant.providerId + "|" + variant.itemId;
+      if (!libraryVariants.has(variantKey)) libraryVariants.set(variantKey, variant);
     }
     const claims = new Map<string, LanguageClaim>();
     for (const claim of [...(existing.languageClaims ?? []), ...(item.languageClaims ?? [])]) {
@@ -45,6 +50,7 @@ export function mergeResults(items: MediaItem[]): MediaItem[] {
       id: existing.id || item.id,
       libraryItemId: existing.libraryItemId || item.libraryItemId,
       libraryItemType: existing.libraryItemType || item.libraryItemType,
+      libraryVariants: [...libraryVariants.values()],
       episodeNumber: existing.episodeNumber ?? item.episodeNumber,
       seasonNumber: existing.seasonNumber ?? item.seasonNumber,
       externalIds: { ...(item.externalIds ?? {}), ...(existing.externalIds ?? {}) },
