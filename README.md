@@ -66,11 +66,16 @@ The application should do the coordination internally. Users search once; 7xCine
 
 ## Current research references
 
-- [MovieBox-TUI](https://github.com/mesamirh/MovieBox-Tui) — Rust/TUI project with a library target and documented provider abstractions.
+- [MovieBox-TUI](https://github.com/mesamirh/MovieBox-Tui) — Rust/TUI project with provider abstractions; useful reference, not a finished mobile app.
+- [NuvioMobile](https://github.com/NuvioMedia/NuvioMobile) — Kotlin/Compose + Media3 + addon-based app; strongest existing-app base candidate to test, GPL-3.0.
+- [Lumora](https://github.com/LumoraPlayer/Lumora) — multi-source grouping reference only; current licence/author constraints rule it out as a rebrand base.
+- [AIOStreams](https://github.com/Viren070/AIOStreams) — Stremio addon aggregation-pipeline reference, AGPL-3.0; not a complete consumer app.
 - [FlixQuest](https://github.com/flixquest/flixquest) — Flutter Android/Android TV application; useful for mobile UX and player architecture research.
 - [CloudStream](https://github.com/recloudstream/cloudstream) — Android application with an extension-oriented provider model.
 - [TMDB-Embed-API](https://github.com/Inside4ndroid/TMDB-Embed-API) — Node.js multi-provider aggregation example; backend behaviour and source suitability require review.
 - [Stremio Addon SDK](https://github.com/Stremio/stremio-addon-sdk) — reference for a standardised catalogue/stream/subtitle integration protocol.
+- [Official Sources](https://github.com/user-griffin/official-sources) — reference for official watch destinations that link out instead of proxying video.
+- [Watchmode](https://api.watchmode.com/) — optional official-availability metadata API, not a playback source; pricing/region/terms need review.
 - [iptv-org/iptv](https://github.com/iptv-org/iptv) — separate candidate source of publicly listed live-TV streams; each stream's authorisation and availability must be checked.
 
 See the [research register](docs/RESEARCH_REGISTER.md) for the evidence and caveats. A repository being public, an endpoint responding, or a provider appearing in documentation does **not** by itself establish that it is reliable, authorised, or appropriate to integrate.
