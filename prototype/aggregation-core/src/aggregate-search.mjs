@@ -115,6 +115,8 @@ function normaliseRecord(provider, record) {
     providerItemId,
     providerPriority: Number.isFinite(provider.priority) ? provider.priority : 100,
     title,
+    alternateTitles: [],
+    identityConflict: false,
     normalisedTitle: normaliseTitle(title),
     mediaType,
     year,
@@ -127,7 +129,46 @@ function normaliseRecord(provider, record) {
   };
 }
 
+function dedupeProviderRecords(records) {
+  const bySourceId = new Map();
+
+  for (const record of records) {
+    const existing = bySourceId.get(record.sourceId);
+    if (!existing) {
+      bySourceId.set(record.sourceId, record);
+      continue;
+    }
+
+    const knownYearsConflict = existing.year !== null && record.year !== null && existing.year !== record.year;
+    const episodeCoordinatesConflict = existing.mediaType === "episode"
+      && record.mediaType === "episode"
+      && (existing.seasonNumber !== record.seasonNumber || existing.episodeNumber !== record.episodeNumber);
+    let idConflict = false;
+    for (const [namespace, value] of Object.entries(record.externalIds)) {
+      if (existing.externalIds[namespace] && existing.externalIds[namespace] !== value) {
+        idConflict = true;
+      } else if (!existing.externalIds[namespace]) {
+        existing.externalIds[namespace] = value;
+      }
+    }
+
+    if (existing.mediaType !== record.mediaType || knownYearsConflict || episodeCoordinatesConflict || idConflict) {
+      existing.identityConflict = true;
+      existing.year = null;
+    }
+    if (record.title !== existing.title && !existing.alternateTitles.includes(record.title)) {
+      existing.alternateTitles.push(record.title);
+    }
+    existing.languageClaims = dedupeClaims([...existing.languageClaims, ...record.languageClaims]);
+    existing.posterUrl ||= record.posterUrl;
+    existing.description ||= record.description;
+  }
+
+  return [...bySourceId.values()];
+}
+
 function providerRecordMatches(left, right) {
+  if (left.identityConflict || right.identityConflict) return null;
   if (left.mediaType !== right.mediaType) return null;
   if (left.mediaType === "episode") {
     if (!canonicalEpisodeCoordinates(left) || !canonicalEpisodeCoordinates(right)) return null;
@@ -264,7 +305,7 @@ function dedupeClaims(claims) {
 function makeLogicalTitle(group) {
   const sources = [...group.sources].sort(compareSources);
   const first = sources[0];
-  const titles = [...new Set(sources.map(source => source.title))];
+  const titles = [...new Set(sources.flatMap(source => [source.title, ...(source.alternateTitles || [])]))];
   const years = [...new Set(sources.map(source => source.year).filter(Number.isInteger))];
   const ids = {};
 
@@ -297,6 +338,8 @@ function makeLogicalTitle(group) {
       providerId: source.providerId,
       providerItemId: source.providerItemId,
       title: source.title,
+      alternateTitles: source.alternateTitles || [],
+      identityConflict: source.identityConflict === true,
       mediaType: source.mediaType,
       year: source.year,
       externalIds: source.externalIds,
@@ -397,7 +440,7 @@ async function searchOneProvider(provider, query, timeoutMs) {
     const items = Array.isArray(response) ? response : response?.items;
     if (!Array.isArray(items)) throw new TypeError("Provider returned an invalid result list");
 
-    const normalized = items.map(item => normaliseRecord(provider, item));
+    const normalized = dedupeProviderRecords(items.map(item => normaliseRecord(provider, item)));
     return {
       records: normalized,
       status: {
