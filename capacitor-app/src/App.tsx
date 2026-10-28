@@ -35,6 +35,7 @@ export default function App() {
   const [trendingBusy, setTrendingBusy] = useState(false);
   const [playTarget, setPlayTarget] = useState<MediaItem | null>(null);
   const [playUrl, setPlayUrl] = useState("");
+  const [playerLoaded, setPlayerLoaded] = useState(false);
   const [playerError, setPlayerError] = useState("");
   const [genreFilter, setGenreFilter] = useState("all");
   const [kindFilter, setKindFilter] = useState<"all" | "movie" | "tv">("all");
@@ -117,13 +118,14 @@ export default function App() {
       setApiRevision((value) => value + 1); setSearchMessage("");
     } catch (error) { setSettingsMessage(error instanceof Error ? error.message : "Settings could not be saved."); }
   };
-  const startPlayback = (item: MediaItem) => { setPlayTarget(item); setPlayUrl(""); setPlayerError(""); };
+  const startPlayback = (item: MediaItem) => { setPlayTarget(item); setPlayUrl(""); setPlayerLoaded(false); setPlayerError(""); };
   const validatePlaybackUrl = () => {
     let parsed: URL;
     try { parsed = new URL(playUrl.trim()); } catch { setPlayerError("Enter a complete media URL beginning with https:// or http://."); return; }
     if (!["https:", "http:"].includes(parsed.protocol)) { setPlayerError("Only HTTP(S) media URLs are supported."); return; }
     if (parsed.username || parsed.password) { setPlayerError("URLs containing embedded credentials are blocked for your safety."); return; }
     setPlayerError("");
+    setPlayerLoaded(true);
   };
 
   return <div className="app-shell">
@@ -218,8 +220,8 @@ export default function App() {
 
     {playTarget && <div className="modal-backdrop player-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setPlayTarget(null); }}><section className="player-modal" role="dialog" aria-modal="true" aria-label={"Player for " + playTarget.title}>
       <div className="player-top"><div><div className="section-kicker">7XCINEMA PLAYER</div><h2>{playTarget.title}</h2></div><button className="modal-close inline-close" onClick={() => setPlayTarget(null)} aria-label="Close player">×</button></div>
-      {!playUrl || playerError ? <div className="player-entry"><div className="player-entry-icon">▶</div><h3>Bring your own authorised source.</h3><p>This catalogue can discover titles and official watch destinations. It does not invent or resolve third-party stream links.</p><label className="field-label" htmlFor="media-url">Direct media URL</label><input id="media-url" className="settings-input" inputMode="url" placeholder="https://example.com/your-authorised-video.mp4" value={playUrl} onChange={(event) => { setPlayUrl(event.target.value); setPlayerError(""); }} /><p className="field-help">Use an HTTP(S) direct media URL you have permission to access. The device browser player supports compatible formats; some HLS/DASH and protected streams need a native player integration.</p>{playerError && <div className="player-error">{playerError}</div>}<button className="button button-primary" onClick={validatePlaybackUrl}>Load media <span>→</span></button></div>
-        : <div className="video-stage"><video key={playUrl} src={playUrl} controls autoPlay playsInline preload="metadata" onError={() => setPlayerError("This URL could not be played. Check the link, permissions, format, and device support.")} /><div className="video-actions"><button className="button button-ghost" onClick={() => { setPlayUrl(""); setPlayerError(""); }}>Change URL</button><span>Direct source · no source resolution</span></div>{playerError && <div className="player-error">{playerError}</div>}</div>}
+      {!playerLoaded || !playUrl || playerError ? <div className="player-entry"><div className="player-entry-icon">▶</div><h3>Bring your own authorised source.</h3><p>This catalogue can discover titles and official watch destinations. It does not invent or resolve third-party stream links.</p><label className="field-label" htmlFor="media-url">Direct media URL</label><input id="media-url" className="settings-input" inputMode="url" placeholder="https://example.com/your-authorised-video.mp4" value={playUrl} onChange={(event) => { setPlayUrl(event.target.value); setPlayerError(""); setPlayerLoaded(false); }} /><p className="field-help">Use an HTTP(S) direct media URL you have permission to access. The device browser player supports compatible formats; some HLS/DASH and protected streams need a native player integration.</p>{playerError && <div className="player-error">{playerError}</div>}<button className="button button-primary" onClick={validatePlaybackUrl}>Load media <span>→</span></button></div>
+        : <div className="video-stage"><video key={playUrl} src={playUrl} controls autoPlay playsInline preload="metadata" onError={() => setPlayerError("This URL could not be played. Check the link, permissions, format, and device support.")} /><div className="video-actions"><button className="button button-ghost" onClick={() => { setPlayUrl(""); setPlayerLoaded(false); setPlayerError(""); }}>Change URL</button><span>Direct source · no source resolution</span></div>{playerError && <div className="player-error">{playerError}</div>}</div>}
     </section></div>}
   </div>;
 }
