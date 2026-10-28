@@ -18,7 +18,8 @@ This roadmap sequences work by reducing the biggest risks early. Dates and effor
 **Goal:** Choose a technically sound foundation and eligible integrations.
 
 - [x] Inspect initial MovieBox-TUI provider contract, service dispatch, models, Cargo manifest, and Android/Termux delivery model.
-- Inspect MovieBox-TUI dependency graph and confirm local fork divergence.
+- [x] Compare the renamed MovieBox-TUI fork with upstream main: identical at commit 7b47958867f992fda91ed5315375c6137b1d2ebf, with no ahead/behind commits or changed files. Recheck if either branch moves.
+- Inspect the dependency graph and decide whether a separate provider-core extraction is feasible.
 - Inspect FlixQuest's UI/player structure.
 - [x] Inspect TMDB-Embed-API's advertised registry/aggregation model and record its security/source-eligibility concerns.
 - Inspect selected aggregation logic and security boundaries only as needed for architectural research.
