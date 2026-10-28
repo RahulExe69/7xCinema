@@ -6,7 +6,7 @@
 
 The application should do the coordination internally. Users search once; 7xCinema gathers results from enabled integrations, reconciles duplicates carefully, preserves source provenance, combines verified language information, and offers the best compatible playback options it can establish.
 
-> **Project status:** Research and prototype stage. A JavaScript reference core and a Kotlin/JVM aggregation/fan-out prototype are implemented and tested with synthetic providers; Android UI and live integrations are not yet implemented. Framework choices remain provisional until the Android feasibility gate is passed.
+> **Project status:** Research/prototype stage. JavaScript and Kotlin/JVM aggregation cores are tested, and a Kotlin/Compose + Media3 Android demo builds as a debug APK in CI. The search adapters are synthetic; source resolution and physical-device playback validation remain open.
 
 ## Vision
 
@@ -61,12 +61,12 @@ The application should do the coordination internally. Users search once; 7xCine
 | Product vision | Documented |
 | Provider candidates | Multi-pass architecture audit, provider matrix and summary; eligibility/runtime verification ongoing |
 | Existing Rust provider foundation | Provider traits and service dispatcher inspected; native-provider search is single-provider, so universal aggregation is new work |
-| Android/UI framework | Fresh Kotlin/Compose + Media3 is the preferred Android-first spike; Capacitor remains a comparison candidate; no app stack has passed the device gate |
-| Universal search engine | JavaScript reference plus Kotlin/JVM fan-out prototype pass synthetic-provider tests; live provider adapters and UI integration remain open |
+| Android/UI framework | Kotlin/Compose + Media3 Android slice is implemented and builds in CI; physical-device playback checks and a time-boxed Capacitor comparison remain open |
+| Universal search engine | JavaScript and Kotlin/JVM reference/fan-out tests pass; the Android demo UI is integrated with synthetic adapters; live provider adapters remain open |
 | Cross-provider deduplication | Prototype groups by shared IDs with a conservative ID-less title/year fallback; broader evaluation remains open |
 | Language aggregation | Prototype preserves source-scoped claims and distinguishes provider claims from player-verified tracks |
-| Playback and fallback | Planned; no app-level playback path validated |
-| Automated tests / CI | JavaScript and Kotlin/JVM prototype suites run in GitHub Actions; Android application build/device playback not established |
+| Playback and fallback | Media3 player surface, playback/error states, and actual-track inspection/selection controls compile; no authorised real-media session has been device-verified |
+| Automated tests / CI | Shared JS/Kotlin fixtures pass; GitHub Actions built and uploaded the debug APK in [run 40670343817](https://github.com/RahulExe69/7xCinema/actions/runs/40670343817); device playback validation remains open |
 
 ## Current research references
 
