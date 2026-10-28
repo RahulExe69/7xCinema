@@ -7,6 +7,8 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
@@ -19,6 +21,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import androidx.annotation.Nullable;
+import androidx.media3.common.AudioAttributes;
 import androidx.media3.common.C;
 import androidx.media3.common.Format;
 import androidx.media3.common.MediaItem;
@@ -40,6 +43,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public final class NativePlayerActivity extends Activity {
     public static final String EXTRA_URL = "com.sevenxcinema.app.MEDIA_URL";
@@ -47,6 +55,7 @@ public final class NativePlayerActivity extends Activity {
     public static final String EXTRA_FALLBACK_URLS = "com.sevenxcinema.app.MEDIA_FALLBACK_URLS";
     public static final String EXTRA_HEADERS = "com.sevenxcinema.app.MEDIA_HEADERS";
     public static final String EXTRA_START_POSITION_MS = "com.sevenxcinema.app.MEDIA_START_POSITION_MS";
+    public static final String EXTRA_PROGRESS_URL = "com.sevenxcinema.app.MEDIA_PROGRESS_URL";
 
     private static final int BACKGROUND = Color.rgb(8, 10, 16);
     private static final int SURFACE = Color.rgb(22, 26, 37);
@@ -59,9 +68,16 @@ public final class NativePlayerActivity extends Activity {
     private TextView statusView;
     private String mediaUrl;
     private String mediaTitle;
+    private String progressUrl;
     private long resumePositionMs = 0L;
     private final ArrayList<String> sourceUrls = new ArrayList<>();
     private final Map<String, String> requestHeaders = new LinkedHashMap<>();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final ExecutorService progressExecutor = Executors.newSingleThreadExecutor(r -> {
+        Thread thread = new Thread(r, "7xCinema-JellyfinProgress");
+        thread.setDaemon(true);
+        return thread;
+    });
     private int currentSourceIndex = 0;
     private boolean resumeAfterPause;
 
@@ -76,6 +92,8 @@ public final class NativePlayerActivity extends Activity {
             finish();
             return;
         }
+        String requestedProgressUrl = getIntent().getStringExtra(EXTRA_PROGRESS_URL);
+        progressUrl = isSafeProgressUrl(mediaUrl, requestedProgressUrl) ? requestedProgressUrl : null;
         sourceUrls.add(mediaUrl);
         ArrayList<String> fallbackUrls = getIntent().getStringArrayListExtra(EXTRA_FALLBACK_URLS);
         if (fallbackUrls != null) {
@@ -105,6 +123,7 @@ public final class NativePlayerActivity extends Activity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(createLayout());
         initializePlayer();
+        if (progressUrl != null) mainHandler.postDelayed(progressReporter, 15_000L);
     }
 
     private View createLayout() {
@@ -203,6 +222,10 @@ public final class NativePlayerActivity extends Activity {
         DefaultDataSource.Factory dataSourceFactory = new DefaultDataSource.Factory(this, httpFactory);
         DefaultMediaSourceFactory mediaSourceFactory = new DefaultMediaSourceFactory(dataSourceFactory);
         player = new ExoPlayer.Builder(this).setMediaSourceFactory(mediaSourceFactory).build();
+        player.setAudioAttributes(new AudioAttributes.Builder()
+                .setUsage(C.USAGE_MEDIA)
+                .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+                .build(), true);
         playerView.setPlayer(player);
         player.addListener(new Player.Listener() {
             @Override
@@ -266,6 +289,69 @@ public final class NativePlayerActivity extends Activity {
             }
         }
         return item.build();
+    }
+
+    private final Runnable progressReporter = new Runnable() {
+        @Override
+        public void run() {
+            if (player == null || progressUrl == null || isFinishing()) return;
+            final long positionTicks = Math.max(0L, player.getCurrentPosition()) * 10_000L;
+            final boolean paused = !player.isPlaying();
+            progressExecutor.execute(() -> postProgress(positionTicks, paused));
+            mainHandler.postDelayed(this, 15_000L);
+        }
+    };
+
+    private void postProgress(long positionTicks, boolean paused) {
+        HttpURLConnection connection = null;
+        try {
+            String separator = progressUrl.contains("?") ? "&" : "?";
+            URL url = new URL(progressUrl + separator
+                    + "positionTicks=" + positionTicks
+                    + "&isPaused=" + paused
+                    + "&isMuted=false"
+                    + "&playMethod=DirectPlay");
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setConnectTimeout(5_000);
+            connection.setReadTimeout(5_000);
+            connection.setDoOutput(true);
+            connection.setFixedLengthStreamingMode(0);
+            connection.setRequestProperty("Accept", "application/json");
+            String authorization = requestHeaders.get("Authorization");
+            if (authorization != null && !authorization.isEmpty()) {
+                connection.setRequestProperty("Authorization", authorization);
+            }
+            String embyToken = requestHeaders.get("X-Emby-Token");
+            if (embyToken != null && !embyToken.isEmpty()) {
+                connection.setRequestProperty("X-Emby-Token", embyToken);
+            }
+            connection.getResponseCode();
+        } catch (Exception ignored) {
+            // Playback must continue if the personal server is temporarily offline.
+        } finally {
+            if (connection != null) connection.disconnect();
+        }
+    }
+
+    private boolean isSafeProgressUrl(String streamValue, String reportValue) {
+        if (reportValue == null || reportValue.trim().isEmpty()) return false;
+        try {
+            URI stream = new URI(streamValue);
+            URI report = new URI(reportValue);
+            if (!isSafeMediaUrl(report) || report.getRawQuery() != null || report.getRawFragment() != null) return false;
+            if (!stream.getScheme().equalsIgnoreCase(report.getScheme())
+                    || !stream.getHost().equalsIgnoreCase(report.getHost())) return false;
+            int streamPort = stream.getPort() >= 0 ? stream.getPort()
+                    : (stream.getScheme().equalsIgnoreCase("https") ? 443 : 80);
+            int reportPort = report.getPort() >= 0 ? report.getPort()
+                    : (report.getScheme().equalsIgnoreCase("https") ? 443 : 80);
+            if (streamPort != reportPort) return false;
+            String path = report.getPath();
+            return path != null && path.matches(".*/Users/[A-Za-z0-9_-]{1,80}/PlayingItems/[A-Za-z0-9_-]{1,80}/Progress");
+        } catch (Exception error) {
+            return false;
+        }
     }
 
     private static final class TrackOption {
@@ -422,6 +508,12 @@ public final class NativePlayerActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        mainHandler.removeCallbacks(progressReporter);
+        if (player != null && progressUrl != null) {
+            long finalPositionTicks = Math.max(0L, player.getCurrentPosition()) * 10_000L;
+            progressExecutor.execute(() -> postProgress(finalPositionTicks, true));
+        }
+        progressExecutor.shutdown();
         if (playerView != null) playerView.setPlayer(null);
         if (player != null) {
             player.release();
