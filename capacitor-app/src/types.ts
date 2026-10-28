@@ -1,0 +1,55 @@
+export type MediaKind = "movie" | "tv";
+export type AppPage = "home" | "search" | "movies" | "series" | "watchlist" | "settings";
+
+export interface MediaItem {
+  id: string;
+  tmdbId?: number;
+  kind: MediaKind;
+  title: string;
+  originalTitle: string;
+  year?: number;
+  overview: string;
+  posterPath?: string;
+  backdropPath?: string;
+  rating?: number;
+  voteCount?: number;
+  originalLanguage?: string;
+  genreIds: number[];
+  genres: string[];
+  runtimeMinutes?: number;
+  seasonCount?: number;
+  sources: string[];
+}
+
+export interface SearchProvider {
+  id: string;
+  label: string;
+  search(query: string, signal: AbortSignal): Promise<MediaItem[]>;
+}
+
+export interface ProviderReport {
+  providerId: string;
+  label: string;
+  state: "loading" | "success" | "empty" | "error" | "timeout";
+  count: number;
+  message?: string;
+}
+
+export interface SearchSnapshot {
+  results: MediaItem[];
+  providers: ProviderReport[];
+}
+
+export interface WatchProvider {
+  providerId: number;
+  name: string;
+  logoPath?: string;
+  link?: string;
+  bucket: "flatrate" | "free" | "ads" | "rent" | "buy";
+}
+
+export interface WatchProviderResponse {
+  link?: string;
+  country: string;
+  providers: WatchProvider[];
+}
