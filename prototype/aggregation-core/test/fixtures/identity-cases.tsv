@@ -1,0 +1,23 @@
+# Shared JavaScript/Kotlin aggregation fixtures, version 1.
+# Record: R|caseId|providerId|itemId|title|mediaType|year|externalIds(namespace=value;...)|season|episode|languageCode|language|claimKind|claimEvidence
+# Expect: E|caseId|groupCount|groupSizes(csv)|matchConfidence(csv)|canonicalIds(csv)|years(csv)|sourceIdentityConflict(csv)
+# Languages: L|caseId|claimSummary(csv) with each claim encoded languageCode:kind. Records are synthetic and contain no URLs.
+R|shared-id-language|english|en-1|Dune: Part Two|movie|2024|imdb=tt15239678||||en|English|reported|provider-metadata
+R|shared-id-language|hindi|hi-1|Dune Part Two Hindi Dub|movie|2024|imdb=tt15239678||||hi|Hindi|dubbed-version|provider-metadata
+R|shared-id-language|subtitle-index|bn-1|Dune Part Two|movie|2024|imdb=tt15239678||||bn|Bengali|subtitle|subtitle-api
+E|shared-id-language|1|3|strong|imdb:tt15239678|2024|false,false,false
+L|shared-id-language|bn:subtitle,en:reported,hi:dubbed-version
+R|title-year-fallback|a|arrival-a|Arrival|movie|2016|||||||
+R|title-year-fallback|b|arrival-b| Arrival! |movie|2016|||||||
+E|title-year-fallback|1|2|fallback-title-year|title:movie:arrival:2016|2016|false,false
+R|conflicting-ids|a|arrival-a|Arrival|movie|2016|imdb=tt1111111||||||
+R|conflicting-ids|b|arrival-b|Arrival|movie|2016|imdb=tt2222222||||||
+E|conflicting-ids|2|1,1|single-source,single-source|imdb:tt1111111,imdb:tt2222222|2016,2016|false,false
+R|episode-coordinates|a|episode-1|Pilot|episode|2024|imdb=ttep1|1|1||||
+R|episode-coordinates|b|episode-1-alt|Episode One|episode|2024|imdb=ttep1|1|1||||
+R|episode-coordinates|c|episode-2|Pilot|episode|2024|imdb=ttep2|1|2||||
+E|episode-coordinates|2|2,1|strong,single-source|imdb:ttep1,imdb:ttep2|2024,2024|false,false,false
+R|source-year-conflict|a|same|Example Film|movie|2020|imdb=tt9999999||||||
+R|source-year-conflict|a|same|Example Film|movie|2021|imdb=tt9999999||||||
+R|source-year-conflict|a|same|Example Film|movie|2020|imdb=tt9999999||||||
+E|source-year-conflict|1|1|single-source|imdb:tt9999999|null|true
