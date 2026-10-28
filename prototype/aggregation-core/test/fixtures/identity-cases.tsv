@@ -2,9 +2,9 @@
 # Record: R|caseId|providerId|itemId|title|mediaType|year|externalIds(namespace=value;...)|season|episode|languageCode|language|claimKind|claimEvidence
 # Expect: E|caseId|groupCount|groupSizes(csv)|matchConfidence(csv)|canonicalIds(csv)|years(csv)|sourceIdentityConflict(csv)
 # Languages: L|caseId|claimSummary(csv) with each claim encoded languageCode:kind. Records are synthetic and contain no URLs.
-R|shared-id-language|english|en-1|Dune: Part Two|movie|2024|imdb=tt15239678||||en|English|reported|provider-metadata
-R|shared-id-language|hindi|hi-1|Dune Part Two Hindi Dub|movie|2024|imdb=tt15239678||||hi|Hindi|dubbed-version|provider-metadata
-R|shared-id-language|subtitle-index|bn-1|Dune Part Two|movie|2024|imdb=tt15239678||||bn|Bengali|subtitle|subtitle-api
+R|shared-id-language|english|en-1|Dune: Part Two|movie|2024|imdb=tt15239678|||en|English|reported|provider-metadata
+R|shared-id-language|hindi|hi-1|Dune Part Two Hindi Dub|movie|2024|imdb=tt15239678|||hi|Hindi|dubbed-version|provider-metadata
+R|shared-id-language|subtitle-index|bn-1|Dune Part Two|movie|2024|imdb=tt15239678|||bn|Bengali|subtitle|subtitle-api
 E|shared-id-language|1|3|strong|imdb:tt15239678|2024|false,false,false
 L|shared-id-language|bn:subtitle,en:reported,hi:dubbed-version
 R|title-year-fallback|a|arrival-a|Arrival|movie|2016|||||||
