@@ -23,12 +23,14 @@ describe("Jellyfin personal-library adapter", () => {
       ProductionYear: 2022, Overview: "Library description", CommunityRating: 7.9,
       Genres: ["Drama", "Mystery"], RunTimeTicks: 5_400_000_000,
       ProviderIds: { Tmdb: "27205", Imdb: "tt1375666" },
+      UserData: { PlaybackPositionTicks: 1_250_000_000, Played: false },
     });
     expect(movie).toMatchObject({
       id: "jellyfin:movie-123", libraryItemId: "movie-123",
       kind: "movie", title: "My Film", year: 2022,
       tmdbId: 27205, runtimeMinutes: 9, sources: ["jellyfin-library"],
       genres: ["Drama", "Mystery"],
+      resumePositionMs: 125_000,
     });
     const series = mapJellyfinItem({
       Id: "series-456", Type: "Series", Name: "My Series",
