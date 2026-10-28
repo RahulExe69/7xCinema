@@ -53,6 +53,8 @@ public final class MobileBackendPlugin extends Plugin {
                 call.resolve(result);
             } catch (Exception error) {
                 call.reject("Could not start the on-device provider service.", error);
+            } catch (LinkageError error) {
+                call.reject("The bundled MovieBox-TUI native engine could not start.");
             }
         });
     }
