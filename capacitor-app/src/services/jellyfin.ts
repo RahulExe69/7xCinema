@@ -310,10 +310,11 @@ export async function fetchJellyfinEpisodes(
 export function buildJellyfinPlayback(
   session: JellyfinSession,
   itemId: string,
-): { url: string; headers: Record<string, string> } {
+): { url: string; headers: Record<string, string>; progressUrl: string } {
   if (!itemId.trim() || /[\r\n]/.test(itemId)) throw new Error("Invalid Jellyfin item identifier.");
   return {
     url: makeApiUrl(session.baseUrl, "Videos/" + itemId + "/stream", { static: "true" }),
+    progressUrl: makeApiUrl(session.baseUrl, "Users/" + session.userId + "/PlayingItems/" + itemId + "/Progress"),
     headers: { Authorization: buildJellyfinAuthorization(session.token) },
   };
 }
