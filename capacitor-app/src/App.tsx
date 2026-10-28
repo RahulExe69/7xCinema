@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { Browser } from "@capacitor/browser";
+import { isNativePlayerAvailable, NativePlayer } from "./native-player";
 import { backdropUrl, getStableMediaId, languageNames, posterUrl, starterCatalogue } from "./catalogue";
 import { createOfflineProvider, searchEveryProvider } from "./core/search";
 import { createTmdbSearchProvider, fetchTrending, fetchWatchProviders, getTmdbKey, hasTmdbKey, setTmdbKey } from "./services/tmdb";
@@ -119,12 +120,21 @@ export default function App() {
     } catch (error) { setSettingsMessage(error instanceof Error ? error.message : "Settings could not be saved."); }
   };
   const startPlayback = (item: MediaItem) => { setPlayTarget(item); setPlayUrl(""); setPlayerLoaded(false); setPlayerError(""); };
-  const validatePlaybackUrl = () => {
+  const validatePlaybackUrl = async () => {
     let parsed: URL;
     try { parsed = new URL(playUrl.trim()); } catch { setPlayerError("Enter a complete media URL beginning with https:// or http://."); return; }
     if (!["https:", "http:"].includes(parsed.protocol)) { setPlayerError("Only HTTP(S) media URLs are supported."); return; }
-    if (parsed.username || parsed.password) { setPlayerError("URLs containing embedded credentials are blocked for your safety."); return; }
+    if (!parsed.hostname || parsed.username || parsed.password) { setPlayerError("Use a valid HTTP(S) URL without embedded credentials."); return; }
     setPlayerError("");
+    if (isNativePlayerAvailable()) {
+      try {
+        await NativePlayer.play({ url: parsed.toString(), title: playTarget?.title ?? "7xCinema" });
+        setPlayTarget(null);
+      } catch (error) {
+        setPlayerError(error instanceof Error ? error.message : "The native player could not open this source.");
+      }
+      return;
+    }
     setPlayerLoaded(true);
   };
 
@@ -194,7 +204,7 @@ export default function App() {
             <p className="field-help">Availability varies by country and subscription. TMDB reports provider destinations; it does not guarantee your account can play a title.</p><div className="settings-actions"><button className="button button-primary" onClick={saveSettings}>Save settings <span>→</span></button><button className="button button-ghost" onClick={() => { setApiKeyDraft(""); setSettingsMessage(""); }}>Clear key</button></div>{settingsMessage && <p className="settings-feedback">{settingsMessage}</p>}
           </div>
           <div className="settings-card"><div className="settings-card-heading"><span className="settings-card-icon">♡</span><div><h2>My List</h2><p>{watchlist.length} saved {watchlist.length === 1 ? "title" : "titles"} on this device.</p></div></div><button className="button button-ghost danger-button" disabled={!watchlist.length} onClick={() => { setWatchlist([]); localStorage.removeItem("7xcinema.watchlist"); }}>Clear saved list</button></div>
-          <div className="settings-card"><div className="settings-card-heading"><span className="settings-card-icon">ⓘ</span><div><h2>About this build</h2><p>7xCinema 0.2.0 · React + TypeScript + Capacitor</p></div></div><p className="about-copy">The offline starter catalogue works without an account. Live search and watch-provider availability require your TMDB API key. In-app playback accepts a direct HTTP(S) media URL you are authorised to access and compatible with the device’s video player. Live third-party stream providers are not configured in this build.</p></div>
+          <div className="settings-card"><div className="settings-card-heading"><span className="settings-card-icon">ⓘ</span><div><h2>About this build</h2><p>7xCinema 0.2.0 · React + TypeScript + Capacitor</p></div></div><p className="about-copy">The offline starter catalogue works without an account. Live search and watch-provider availability require your TMDB API key. Android playback uses a native Media3 player with actual audio/subtitle track selection; the web preview uses HTML5 video. Playback accepts a direct HTTP(S) media URL you are authorised to access. No third-party playback source resolver is configured in this build.</p></div>
         </section>}
         <footer className="app-footer"><span>7XCINEMA <b>·</b> DISCOVER MORE, SCROLL LESS.</span><span>METADATA IS NOT A PLAYABLE SOURCE. <b>✳</b></span></footer>
       </div>
@@ -220,7 +230,7 @@ export default function App() {
 
     {playTarget && <div className="modal-backdrop player-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setPlayTarget(null); }}><section className="player-modal" role="dialog" aria-modal="true" aria-label={"Player for " + playTarget.title}>
       <div className="player-top"><div><div className="section-kicker">7XCINEMA PLAYER</div><h2>{playTarget.title}</h2></div><button className="modal-close inline-close" onClick={() => setPlayTarget(null)} aria-label="Close player">×</button></div>
-      {!playerLoaded || !playUrl || playerError ? <div className="player-entry"><div className="player-entry-icon">▶</div><h3>Bring your own authorised source.</h3><p>This catalogue can discover titles and official watch destinations. It does not invent or resolve third-party stream links.</p><label className="field-label" htmlFor="media-url">Direct media URL</label><input id="media-url" className="settings-input" inputMode="url" placeholder="https://example.com/your-authorised-video.mp4" value={playUrl} onChange={(event) => { setPlayUrl(event.target.value); setPlayerError(""); setPlayerLoaded(false); }} /><p className="field-help">Use an HTTP(S) direct media URL you have permission to access. The device browser player supports compatible formats; some HLS/DASH and protected streams need a native player integration.</p>{playerError && <div className="player-error">{playerError}</div>}<button className="button button-primary" onClick={validatePlaybackUrl}>Load media <span>→</span></button></div>
+      {!playerLoaded || !playUrl || playerError ? <div className="player-entry"><div className="player-entry-icon">▶</div><h3>Bring your own authorised source.</h3><p>This catalogue discovers titles and official destinations; it never invents stream links. Android opens the native Media3 player, while the web preview uses the browser player.</p><label className="field-label" htmlFor="media-url">Direct media URL</label><input id="media-url" className="settings-input" inputMode="url" placeholder="https://example.com/your-authorised-video.mp4" value={playUrl} onChange={(event) => { setPlayUrl(event.target.value); setPlayerError(""); setPlayerLoaded(false); }} /><p className="field-help">Use an HTTP(S) media URL you have permission to access. Android Media3 supports compatible direct, HLS, and DASH streams and reports its actual audio/subtitle tracks. DRM-protected streams and provider-specific authentication are not bypassed.</p>{playerError && <div className="player-error">{playerError}</div>}<button className="button button-primary" onClick={validatePlaybackUrl}>Load media <span>→</span></button></div>
         : <div className="video-stage"><video key={playUrl} src={playUrl} controls autoPlay playsInline preload="metadata" onError={() => setPlayerError("This URL could not be played. Check the link, permissions, format, and device support.")} /><div className="video-actions"><button className="button button-ghost" onClick={() => { setPlayUrl(""); setPlayerLoaded(false); setPlayerError(""); }}>Change URL</button><span>Direct source · no source resolution</span></div>{playerError && <div className="player-error">{playerError}</div>}</div>}
     </section></div>}
   </div>;
