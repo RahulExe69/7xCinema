@@ -18,7 +18,7 @@ The project needs a fast mobile-first UI iteration loop and a shared web-compati
 - **Live catalogue integration:** optional TMDB v3 API key stored on device; build-time `VITE_TMDB_API_KEY` is also supported but is public in the bundle.
 - **First direct-media integration:** Internet Archive metadata search limited to uploader-declared Public Domain Mark/CC0 items with compatible MP4 files. The app links the user to the item's licence and detail page; these uploader claims still need verification.
 - **Official availability:** TMDB watch-provider endpoint filtered to a user-selected region. Provider records link to TMDB's reported availability page, rather than inventing a direct streaming URL.
-- **Playback (current MVP):** local native AndroidX Media3 player bridge for user-supplied direct HTTP(S) URLs, with play/pause/seek and track selection based on actual prepared-player audio/subtitle groups; the web preview uses HTML5 video. URL schemes and embedded credentials are validated on both sides.
+- **Playback (current MVP):** watch-first source selection adapted from the 7xAnime player flow. A real direct HTTP(S) URL returned by an adapter opens automatically through the native AndroidX Media3 bridge; web preview uses HTML5 video. If no direct URL exists, the chooser presents TMDB-reported official destinations and a listed official trailer, with manual URL input hidden under Advanced. URL schemes and embedded credentials are validated.
 - **Build verification:** GitHub Actions installs JS dependencies, tests search orchestration, builds the web bundle, generates a fresh Capacitor Android project, builds the debug APK, and uploads an artifact.
 
 ## Deliberate safety and correctness rules
