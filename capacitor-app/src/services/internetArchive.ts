@@ -62,7 +62,8 @@ export function isExplicitOpenLicense(value: unknown): boolean {
   });
 }
 
-export function chooseArchiveMp4(files: ArchiveFile[]): ArchiveFile | undefined {
+export function chooseArchiveMp4Candidates(files: ArchiveFile[], limit = 3): ArchiveFile[] {
+  const safeLimit = Number.isInteger(limit) ? Math.max(1, Math.min(limit, 8)) : 3;
   return files
     .filter((file) => {
       if (!file.name || file.name.startsWith("__ia_thumb") || file.name.includes("/__ia_thumb")) return false;
@@ -72,7 +73,12 @@ export function chooseArchiveMp4(files: ArchiveFile[]): ArchiveFile | undefined 
       const format = (file.format ?? "").toLowerCase();
       return !format || /mpeg\s*-?4|h\.?264|video/i.test(format);
     })
-    .sort((left, right) => Number(right.size ?? 0) - Number(left.size ?? 0))[0];
+    .sort((left, right) => (Number(right.size ?? 0) || 0) - (Number(left.size ?? 0) || 0))
+    .slice(0, safeLimit);
+}
+
+export function chooseArchiveMp4(files: ArchiveFile[]): ArchiveFile | undefined {
+  return chooseArchiveMp4Candidates(files, 1)[0];
 }
 
 async function archiveJson<T>(url: string, signal: AbortSignal): Promise<T> {
@@ -114,14 +120,24 @@ async function resolveArchiveDocument(
     : licenseValue;
   if (!licenseUrl || !isExplicitOpenLicense(licenseUrl)) return null;
 
-  const file = chooseArchiveMp4(record.files ?? []);
-  if (!file?.name) return null;
+  const files = chooseArchiveMp4Candidates(record.files ?? [], 4);
+  if (!files.length) return null;
   const title = firstText(metadata.title) || firstText(doc.title);
   if (!title) return null;
   const year = cleanYear(metadata.year ?? metadata.date ?? doc.year);
   const description = firstText(metadata.description) || firstText(doc.description);
   const creator = firstText(metadata.creator) || firstText(doc.creator);
   const safeId = encodeURIComponent(identifier);
+  const itemPageUrl = `${API}/details/${safeId}`;
+  const playbackSources = files.map((file, index) => ({
+    id: `archive:${identifier}:${index}:${file.name}`,
+    providerId: PROVIDER_ID,
+    label: `Internet Archive · ${file.name}`,
+    url: `${API}/download/${safeId}/${encodePath(file.name!)}`,
+    type: "mp4" as const,
+    itemPageUrl,
+    licenseUrl,
+  }));
 
   return {
     id: `archive:${identifier}`,
@@ -131,8 +147,9 @@ async function resolveArchiveDocument(
     year,
     overview: description,
     imageUrl: `${API}/services/img/${safeId}`,
-    playableUrl: `${API}/download/${safeId}/${encodePath(file.name)}`,
-    itemPageUrl: `${API}/details/${safeId}`,
+    playableUrl: playbackSources[0].url,
+    playbackSources,
+    itemPageUrl,
     licenseUrl,
     creator: creator || undefined,
     genreIds: [],
