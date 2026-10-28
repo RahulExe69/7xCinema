@@ -295,7 +295,15 @@ public final class NativePlayerActivity extends Activity {
         @Override
         public void run() {
             if (player == null || progressUrl == null || isFinishing()) return;
+            if (player.getPlaybackState() != Player.STATE_READY) {
+                mainHandler.postDelayed(this, 15_000L);
+                return;
+            }
             final long positionTicks = Math.max(0L, player.getCurrentPosition()) * 10_000L;
+            if (positionTicks <= 0L) {
+                mainHandler.postDelayed(this, 15_000L);
+                return;
+            }
             final boolean paused = !player.isPlaying();
             progressExecutor.execute(() -> postProgress(positionTicks, paused));
             mainHandler.postDelayed(this, 15_000L);
@@ -509,8 +517,10 @@ public final class NativePlayerActivity extends Activity {
     @Override
     protected void onDestroy() {
         mainHandler.removeCallbacks(progressReporter);
-        if (player != null && progressUrl != null) {
-            long finalPositionTicks = Math.max(0L, player.getCurrentPosition()) * 10_000L;
+        if (player != null && progressUrl != null
+                && player.getPlaybackState() == Player.STATE_READY
+                && player.getCurrentPosition() > 0L) {
+            long finalPositionTicks = player.getCurrentPosition() * 10_000L;
             progressExecutor.execute(() -> postProgress(finalPositionTicks, true));
         }
         progressExecutor.shutdown();
