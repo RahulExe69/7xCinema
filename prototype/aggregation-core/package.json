@@ -1,0 +1,13 @@
+{
+  "name": "@7xcinema/universal-search-core-prototype",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Framework-neutral proof of concept for multi-provider catalogue search and conservative title grouping.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
