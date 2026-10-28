@@ -37,6 +37,8 @@ The application should do the coordination internally. Users search once; 7xCine
 - [Search and deduplication](docs/SEARCH_AND_DEDUPLICATION.md) — matching, merging, and avoiding false matches.
 - [Playback](docs/PLAYBACK.md) — source ranking, playback states, retries, and error handling.
 - [Research register](docs/RESEARCH_REGISTER.md) — candidate repositories, evidence, unknowns, and next investigations.
+- [Technical audit](docs/TECHNICAL_AUDIT.md) — code-level findings on the core candidates and existing provider model.
+- [Framework comparison](docs/FRAMEWORK_COMPARISON.md) — React/Capacitor, Flutter, native Kotlin, Rust reuse, and backend trade-offs.
 - [Roadmap](docs/ROADMAP.md) — staged plan from research to a testable application.
 - [Decision log](docs/DECISIONS.md) — recorded decisions and choices that still require evidence.
 - [Security and privacy](docs/SECURITY.md) — provider trust boundaries, secrets, network safety, and data minimisation.
@@ -49,9 +51,9 @@ The application should do the coordination internally. Users search once; 7xCine
 | Area | Current status |
 |---|---|
 | Product vision | Documented |
-| Provider candidates | Initial shortlist; further verification required |
-| Existing Rust provider foundation | Public repository and provider documentation inspected; suitability not yet proven |
-| Android/UI framework | Open research question |
+| Provider candidates | Initial shortlist and code audit; runtime and eligibility verification ongoing |
+| Existing Rust provider foundation | Provider traits and service dispatcher inspected; native-provider search is single-provider, so universal aggregation is new work |
+| Android/UI framework | Provisional comparison recommends a React/Capacitor + native Media3 spike; not final |
 | Universal search engine | Planned; not implemented here yet |
 | Cross-provider deduplication | Planned |
 | Language aggregation | Planned |
