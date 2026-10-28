@@ -4,6 +4,7 @@ import {
   buildJellyfinAuthorization,
   buildJellyfinPlayback,
   fetchJellyfinLibrary,
+  fetchJellyfinResumeItems,
   mapJellyfinItem,
   normalizeJellyfinBaseUrl,
 } from "./jellyfin";
@@ -88,6 +89,26 @@ describe("Jellyfin personal-library adapter", () => {
     expect(requestedUrl).toContain("IncludeItemTypes=Movie%2CSeries");
     expect(authorization).toContain('Token="0123456789abcdef0123456789abcdef"');
     expect(items.map((item) => item.title)).toEqual(["Library Film", "Library Show"]);
+  });
+
+  it("loads only resumable movies and episodes for Continue Watching", async () => {
+    let requestedUrl = "";
+    const fakeFetch = (async (input: RequestInfo | URL) => {
+      requestedUrl = String(input);
+      return new Response(JSON.stringify({ Items: [
+        { Id: "movie-resume", Type: "Movie", Name: "Resume Film", UserData: { PlaybackPositionTicks: 900_000_000, Played: false } },
+        { Id: "episode-resume", Type: "Episode", Name: "Next Episode", ParentIndexNumber: 2, IndexNumber: 4, UserData: { PlaybackPositionTicks: 600_000_000, Played: false } },
+        { Id: "played-movie", Type: "Movie", Name: "Finished Film", UserData: { PlaybackPositionTicks: 900_000_000, Played: true } },
+        { Id: "no-position", Type: "Movie", Name: "New Film", UserData: { PlaybackPositionTicks: 0, Played: false } },
+      ] }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }) as typeof fetch;
+    const items = await fetchJellyfinResumeItems({
+      baseUrl: "https://media.example.net", token: "0123456789abcdef0123456789abcdef", userId: "user-1", username: "Rahul",
+    }, undefined, 40, fakeFetch);
+    expect(requestedUrl).toContain("Filters=IsResumable");
+    expect(requestedUrl).toContain("IncludeItemTypes=Movie%2CEpisode");
+    expect(items.map((item) => item.title)).toEqual(["Resume Film", "Next Episode"]);
+    expect(items[1]).toMatchObject({ libraryItemType: "episode", seasonNumber: 2, episodeNumber: 4, resumePositionMs: 60_000 });
   });
 
   it("creates a stream URL without embedding the session token", () => {
