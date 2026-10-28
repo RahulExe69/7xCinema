@@ -1,5 +1,5 @@
 import { genreNames } from "../catalogue";
-import type { MediaItem, MediaKind, SearchProvider, WatchProvider, WatchProviderResponse } from "../types";
+import type { MediaItem, MediaKind, SearchProvider, WatchProviderResponse } from "../types";
 
 const API_ROOT = "https://api.themoviedb.org/3";
 const IMAGE_ROOT = "https://image.tmdb.org/t/p";
