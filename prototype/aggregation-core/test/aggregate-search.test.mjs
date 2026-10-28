@@ -169,6 +169,26 @@ test("deduplicates repeated source items from the same provider and keeps their 
   assert.equal(result.providerStatuses[0].resultCount, 1);
 });
 
+test("a conflicting duplicate source stays identity-conflicted and cannot regain a year", async () => {
+  const provider = baseProvider({
+    id: "conflicted-source",
+    async search() {
+      return [
+        movie({ providerItemId: "same", title: "Example Film", year: 2020, externalIds: { imdb: "tt1234567" } }),
+        movie({ providerItemId: "same", title: "Example Film", year: 2021, externalIds: { imdb: "tt1234567" } }),
+        movie({ providerItemId: "same", title: "Example Film", year: 2020, externalIds: { imdb: "tt1234567" } }),
+      ];
+    },
+  });
+
+  const result = await aggregateSearch("example", [provider], { timeoutMs: 500 });
+  assert.equal(result.results.length, 1);
+  assert.equal(result.results[0].sources.length, 1);
+  assert.equal(result.results[0].sources[0].identityConflict, true);
+  assert.equal(result.results[0].sources[0].year, null);
+  assert.equal(result.results[0].year, null);
+});
+
 test("emits progressive partial results before a slow provider finishes", async () => {
   const events = [];
   const fast = baseProvider({
