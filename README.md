@@ -6,7 +6,7 @@
 
 The application should do the coordination internally. Users search once; 7xCinema gathers results from enabled integrations, reconciles duplicates carefully, preserves source provenance, combines verified language information, and offers the best compatible playback options it can establish.
 
-> **Project status:** Planning and research. This repository is being established as the product's source of truth before implementation begins. The architecture and technology choices described in the documents are proposals unless explicitly marked as verified.
+> **Project status:** Research and prototype stage. A framework-neutral search core is implemented and tested; the Android app foundation and live integrations are not yet implemented. Framework choices remain provisional until the Android feasibility gate is passed.
 
 ## Vision
 
@@ -43,6 +43,7 @@ The application should do the coordination internally. Users search once; 7xCine
 - [Technical audit](docs/TECHNICAL_AUDIT.md) — code-level findings on the core candidates and existing provider model.
 - [Framework comparison](docs/FRAMEWORK_COMPARISON.md) — React/Capacitor, native Kotlin, Flutter, Rust reuse, and backend trade-offs.
 - [Base repository comparison](docs/BASE_REPOSITORY_COMPARISON.md) — whether to adapt NuvioMobile or build a fresh 7xCinema app.
+- [Android feasibility gate](docs/ANDROID_FEASIBILITY_GATE.md) — verified Nuvio search/player observations, candidate trade-offs, and the end-to-end acceptance gate.
 - [Roadmap](docs/ROADMAP.md) — staged plan from research to a testable application.
 - [Decision log](docs/DECISIONS.md) — recorded decisions and choices that still require evidence.
 - [Security and privacy](docs/SECURITY.md) — provider trust boundaries, secrets, network safety, and data minimisation.
@@ -58,17 +59,17 @@ The application should do the coordination internally. Users search once; 7xCine
 | Product vision | Documented |
 | Provider candidates | Multi-pass architecture audit, provider matrix and summary; eligibility/runtime verification ongoing |
 | Existing Rust provider foundation | Provider traits and service dispatcher inspected; native-provider search is single-provider, so universal aggregation is new work |
-| Android/UI framework | Native Kotlin/Compose + Media3 and React/Capacitor + native player both under comparison |
+| Android/UI framework | Fresh Kotlin/Compose + Media3 is the preferred Android-first spike; Capacitor remains a comparison candidate; no app stack has passed the device gate |
 | Universal search engine | Framework-neutral prototype implemented; live provider adapters and UI integration remain open |
 | Cross-provider deduplication | Prototype groups by shared IDs with a conservative ID-less title/year fallback; broader evaluation remains open |
 | Language aggregation | Prototype preserves source-scoped claims and distinguishes provider claims from player-verified tracks |
-| Playback and fallback | Planned; per-provider behaviour unverified |
+| Playback and fallback | Planned; no app-level playback path validated |
 | Automated tests / CI | Prototype tests run in GitHub Actions; application-level CI/build not established |
 
 ## Current research references
 
 - [MovieBox-TUI](https://github.com/mesamirh/MovieBox-Tui) — Rust/TUI project with provider abstractions; useful reference, not a finished mobile app.
-- [NuvioMobile](https://github.com/NuvioMedia/NuvioMobile) — Kotlin/Compose + Media3 + addon-based app; strongest existing-app base candidate to test, GPL-3.0.
+- [NuvioMobile](https://github.com/NuvioMedia/NuvioMobile) — Kotlin/Compose + Media3 + addon-based app; useful architecture/player reference. Current search is concurrent but section-oriented; GPL-3.0 must be considered before reusing code.
 - [Lumora](https://github.com/LumoraPlayer/Lumora) — multi-source grouping reference only; current licence/author constraints rule it out as a rebrand base.
 - [AIOStreams](https://github.com/Viren070/AIOStreams) — Stremio addon aggregation-pipeline reference, AGPL-3.0; not a complete consumer app.
 - [FlixQuest](https://github.com/flixquest/flixquest) — Flutter Android/Android TV application; useful for mobile UX and player architecture research.
@@ -85,16 +86,15 @@ See the [research register](docs/RESEARCH_REGISTER.md) for the evidence and cave
 
 ## Before implementation
 
-The framework-neutral search prototype now passes its automated tests. The next milestone is a research-backed app-base decision and a small Android/player proof of concept:
+The framework-neutral search prototype passes its automated tests. The Android feasibility gate now specifies the smallest end-to-end proof needed before committing to the long-term app base:
 
-1. inspect candidate repositories and their licences;
-2. document each candidate provider's capabilities and constraints;
-3. decide on the app framework and provider execution model using evidence;
-4. build one authorised, testable provider path end-to-end;
-5. validate one-search aggregation, deduplication, and language provenance;
-6. validate actual playback separately from search success.
+1. port or reuse the search contract with parity fixtures;
+2. build a search screen, unified result, source picker, and player surface;
+3. verify real prepared-player audio/subtitle tracks using permitted test media;
+4. demonstrate timeout/error isolation and a reproducible debug APK build;
+5. select the app foundation based on the spike, then add eligible providers one at a time.
 
-No app framework or backend stack is finalised by this planning document.
+No app framework or backend stack is finalised yet. See [Android feasibility gate](docs/ANDROID_FEASIBILITY_GATE.md).
 
 ## Responsible use
 

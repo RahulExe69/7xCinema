@@ -22,7 +22,7 @@ This roadmap sequences work by reducing the biggest risks early. Dates and effor
 - [x] Inspect initial MovieBox-TUI provider contract, service dispatch, models, Cargo manifest, and Android/Termux delivery model.
 - [x] Compare the renamed MovieBox-TUI fork with upstream main: identical at commit 7b47958867f992fda91ed5315375c6137b1d2ebf, with no ahead/behind commits or changed files. Recheck if either branch moves.
 - Inspect the dependency graph and decide whether a separate provider-core extraction is feasible.
-- [x] Inspect the NuvioMobile search fan-out, per-catalogue result model, playback capability checks, Media3/MPV path and GPL-3.0 status.
+- [x] Inspect NuvioMobile's actual search repository and Android player source: concurrent addon/server loaders emit partial results into per-catalogue sections; Media3 ExoPlayer and libmpv fallback are already implemented; GPL-3.0 is declared.
 - [x] Add a base-repository comparison for Nuvio adaptation versus a fresh app.
 - [x] Inspect Lumora, AIOStreams and Official Sources as source-aggregation/official-destination references.
 - Inspect FlixQuest's UI/player structure.
@@ -41,14 +41,17 @@ This roadmap sequences work by reducing the biggest risks early. Dates and effor
 ## Phase 2 — Technical feasibility spike
 **Goal:** Prove the difficult pieces before investing in a large app.
 
-- Compare NuvioMobile adaptation, a fresh native Kotlin/Compose + Media3 app, and a fresh React/Capacitor + native Media3 path against the same acceptance tests.
+- [x] Document Nuvio source findings, candidate trade-offs, licensing notes, and the shared end-to-end acceptance gate in ANDROID_FEASIBILITY_GATE.md.
+- [ ] Build a small fresh Kotlin/Compose + Media3 vertical slice as the preferred Android-first spike; keep React/Capacitor as a timed comparison candidate.
+- [ ] Compare the fresh native slice with a minimal React/Capacitor + native Media3 bridge against the same fixture-driven acceptance tests before final stack selection.
 - If the Nuvio spike is not selected, establish whether reusable Rust components compile and run in the intended Android environment.
 - Demonstrate UI-to-provider request and typed result mapping.
 - Demonstrate playback of a permitted test asset through the intended player.
 - Prove that the chosen approach can expose player errors and actual audio/subtitle tracks where supported.
 - [x] Implement a framework-neutral prototype for bounded multi-provider catalogue search, progressive partial results, conservative title grouping and source-scoped language claims using synthetic providers.
 - [x] Add deterministic tests for eligibility gating, concurrency, timeouts, partial results, errors vs empty results, title matching, episode coordinates, duplicate source rows, and player-observed tracks.
-- [x] Confirm the prototype test workflow passes on main commit dcd413a7816218b08fdfebc2ee3e32b56c6c1156.
+- [x] Confirm the original prototype test workflow passed on main commit dcd413a7816218b08fdfebc2ee3e32b56c6c1156.
+- [x] Fix a duplicate-source identity-conflict edge case and add a regression test; PR #2 merged to main after GitHub Actions passed (merge commit ceac6430c9ba32173a7afffd4808741380dc0a63).
 - Record a decision and rationale in the decision log after the Android/player and app-base comparison.
 
 **Exit gate:** A repeatable proof of concept runs on Android and confirms the chosen stack and provider-execution model. The framework-neutral aggregation slice passes CI, but the Android/player portion remains open.
@@ -61,6 +64,7 @@ This roadmap sequences work by reducing the biggest risks early. Dates and effor
 - [x] Add deterministic synthetic-provider tests and a passing CI workflow.
 - [ ] Decide production language/runtime after the app-base comparison; retain or port the prototype only if the final stack benefits from it.
 - [ ] Add user cancellation, cache expiry, typed provider diagnostics, ranking policy and broader adversarial/matching fixtures.
+- [x] Add regression coverage preventing a conflicted source from regaining a year from a later duplicate row.
 - [ ] Validate metadata conflict handling and stable identity behaviour on a curated cross-provider title set.
 - [ ] Connect the chosen app UI/player to the domain layer.
 
