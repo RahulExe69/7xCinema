@@ -305,7 +305,7 @@ export default function App() {
       setApiRevision((value) => value + 1); setSearchMessage("");
     } catch (error) { setSettingsMessage(error instanceof Error ? error.message : "Settings could not be saved."); }
   };
-  const openMediaSource = async (item: MediaItem, rawUrl: string, fallbackUrls: string[] = []) => {
+  const openMediaSource = async (item: MediaItem, rawUrl: string, fallbackUrls: string[] = [], sourceHeaders?: Record<string, string>) => {
     const candidates = [rawUrl, ...fallbackUrls];
     const intent = getPlaybackIntent({
       playableUrl: rawUrl,
@@ -331,17 +331,26 @@ export default function App() {
     setShowAdvancedSource(false);
     if (isNativePlayerAvailable()) {
       try {
-        await NativePlayer.play({ url: intent.url, fallbackUrls: intent.fallbackUrls, title: item.title });
+        await NativePlayer.play({ url: intent.url, fallbackUrls: intent.fallbackUrls, headers: sourceHeaders, title: item.title });
         setPlayTarget(null);
       } catch (error) {
         setPlayerError(error instanceof Error ? error.message : "The native player could not open this source.");
       }
       return;
     }
+    if (sourceHeaders && Object.keys(sourceHeaders).length > 0) {
+      setPlayerError("Authenticated personal-library playback requires the native Android Media3 player. Open this library from the Android app.");
+      return;
+    }
     setPlayerLoaded(true);
   };
 
   const startPlayback = (item: MediaItem) => {
+    if (item.libraryItemType === "series" && item.libraryItemId) {
+      setPlayTarget(null);
+      setSelected(item);
+      return;
+    }
     setPlayTarget(item);
     setPlayUrl("");
     setPlaybackQueue([]);
@@ -349,6 +358,15 @@ export default function App() {
     setPlayerLoaded(false);
     setPlayerError("");
     setShowAdvancedSource(false);
+    if (item.libraryItemId && jellyfinSession && (item.libraryItemType === "movie" || item.libraryItemType === "episode")) {
+      try {
+        const source = buildJellyfinPlayback(jellyfinSession, item.libraryItemId);
+        void openMediaSource(item, source.url, [], source.headers);
+      } catch (error) {
+        setPlayerError(error instanceof Error ? error.message : "Could not open this Jellyfin item.");
+      }
+      return;
+    }
     const intent = getPlaybackIntent(item);
     if (intent.type === "direct") {
       // Adapter-supplied URLs open immediately; remaining candidates are tried
