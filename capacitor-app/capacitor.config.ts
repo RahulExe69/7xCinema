@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: "7xCinema",
   webDir: "dist",
   android: {
-    allowMixedContent: false,
+    allowMixedContent: true,
     backgroundColor: "#080a10",
   },
   plugins: {
