@@ -102,9 +102,10 @@ test("one search queries multiple eligible providers and merges the same title w
   assert.ok(languages.has("bn:subtitle"));
 
   // A catalogue/provider claim cannot manufacture a selectable embedded track.
-  const providerClaim = title.languageClaims.find(claim => claim.languageCode === "en");
+  const providerClaim = title.languageClaims.find(claim =>
+    claim.languageCode === "en" && claim.reportedKind === "embedded-audio");
+  assert.ok(providerClaim);
   assert.equal(providerClaim.selectable, false);
-  assert.equal(providerClaim.reportedKind, "embedded-audio");
 
   const updatedTitle = addVerifiedPlayerTracks(title, title.sources[0].id, [
     { type: "audio", languageCode: "en", language: "English" },
