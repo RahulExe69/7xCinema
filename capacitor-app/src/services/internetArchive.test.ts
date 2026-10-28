@@ -22,6 +22,8 @@ describe("Internet Archive open-license gate", () => {
       { name: "thumb.mp4", format: "MPEG4", size: "2000" },
       { name: "movie.mp4", format: "MPEG4", size: "9000" },
       { name: "movie-720p.mp4", format: "MPEG4", size: "20000" },
+      { name: "../outside.mp4", format: "MPEG4", size: "999999" },
+      { name: "folder/../outside.mp4", format: "MPEG4", size: "888888" },
       { name: "movie.avi", format: "AVI", size: "30000" },
     ]);
     expect(file?.name).toBe("movie-720p.mp4");
