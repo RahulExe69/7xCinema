@@ -15,7 +15,8 @@ The project needs a fast mobile-first UI iteration loop and a shared web-compati
 - **Android container:** Capacitor 8.
 - **Search orchestration:** dependency-light TypeScript provider interface with bounded per-provider timeouts, progressive result publication, provider-level error reporting, conservative ID-based deduplication, and source provenance.
 - **Local data:** offline starter catalogue and device-local My List.
-- **Live metadata:** optional TMDB v3 API key stored on device; build-time `VITE_TMDB_API_KEY` is also supported but is public in the bundle.
+- **Live catalogue integration:** optional TMDB v3 API key stored on device; build-time `VITE_TMDB_API_KEY` is also supported but is public in the bundle.
+- **First direct-media integration:** Internet Archive metadata search limited to uploader-declared Public Domain Mark/CC0 items with compatible MP4 files. The app links the user to the item's licence and detail page; these uploader claims still need verification.
 - **Official availability:** TMDB watch-provider endpoint filtered to a user-selected region. Provider records link to TMDB's reported availability page, rather than inventing a direct streaming URL.
 - **Playback (current MVP):** local native AndroidX Media3 player bridge for user-supplied direct HTTP(S) URLs, with play/pause/seek and track selection based on actual prepared-player audio/subtitle groups; the web preview uses HTML5 video. URL schemes and embedded credentials are validated on both sides.
 - **Build verification:** GitHub Actions installs JS dependencies, tests search orchestration, builds the web bundle, generates a fresh Capacitor Android project, builds the debug APK, and uploads an artifact.
@@ -63,7 +64,7 @@ The project needs a fast mobile-first UI iteration loop and a shared web-compati
 
 ## Non-goals for this migration change
 
-This change does not promise an unrestricted scraper, a library of working stream links, all-country availability accuracy, DRM handling, account sync, or a fully verified native player. Those need separate source-specific and playback tasks with repeatable tests. "Better than every competitor" is a product ambition, not a fact we can verify from a scaffold; measurable quality gates are used instead.
+This change does not promise a broad library of commercial streaming sources, all-country availability accuracy, DRM handling, account sync, or a fully verified player. Archive licence metadata is uploader-supplied and must not be treated as independently verified legal status. Those need separate source-specific and playback tasks with repeatable tests. "Better than every competitor" is a product ambition, not a fact we can verify from a scaffold; measurable quality gates are used instead.
 
 ## Rollback / coexistence
 
