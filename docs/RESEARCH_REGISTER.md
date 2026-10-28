@@ -243,3 +243,23 @@ A title may combine metadata from one integration, playable candidates from anot
 8. CloudStream and Nuvio TV: extension and TV UX references, not default bases.
 
 The framework proof of concept should now compare native Kotlin/Compose + Media3 against React/Capacitor + a native player plugin before selecting the app framework.
+
+
+## Metadata and official-availability API constraints — 2026-10-28
+
+### Watchmode
+Official references: [API overview](https://api.watchmode.com/), [pricing](https://api.watchmode.com/pricing), [ID mapping and availability](https://api.watchmode.com/use-cases/imdb-tmdb-ids).
+
+The current public pricing page says its API returns availability data, title metadata, service IDs and official links/deeplinks—not video playback. Its Developer plan lists 2,500 monthly credits, non-commercial use with attribution, availability in up to three selected countries, and no app/episode deeplinks. The current paid plans list wider regional coverage and app/episode links. Plan/pricing/features can change; re-check the provider's live terms before implementing or shipping.
+
+For 7xCinema, this could provide a separate external “Watch on official service” destination and where-to-watch layer. It must not be described as a playable stream provider. Because our target audience includes India, confirm that India is offered among supported regions for the chosen plan before relying on it. Do not assume region coverage merely because the API advertises many countries. Confirm caching, attribution, quota, intended-use category, and link verification requirements before deployment.
+
+### TMDB
+Official reference: [TMDB developer FAQ](https://developer.themoviedb.org/docs/faq).
+
+TMDB says its developer API is free for non-commercial purposes with attribution to TMDB as the source of data/images, and it requires use of the TMDB logo plus a prominent notice that the product is not endorsed or certified by TMDB; its FAQ places attribution within an About/Credits section. It directs commercial-use enquiries to its licensing contact. These requirements should be confirmed against the current terms at implementation time.
+
+For 7xCinema, TMDB remains a metadata/catalogue candidate, not a playback source. Keep the adapter replaceable and don't ship an API key in a public client if the API's requirements call for protected credentials. Before adopting, record whether the project's intended distribution/use fits the applicable terms and implement required attribution.
+
+### Official destination coverage
+Discovery coverage can improve by listing eligible official providers and externally handing off to their official apps or title pages. This is a different outcome from in-app playback and must have a distinct UI label and success metric. See [Coverage Model](COVERAGE_MODEL.md) and [Provider Matrix](PROVIDER_MATRIX.md).
