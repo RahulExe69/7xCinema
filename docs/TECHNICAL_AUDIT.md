@@ -225,3 +225,29 @@ Watchmode's current [public pricing page](https://api.watchmode.com/pricing) lis
 **Practical recommendation:** compare the TMDB Watch Providers endpoint first for a modest non-commercial prototype, then compare Watchmode if it offers meaningful coverage/link advantages. Neither should be a core video provider; both belong to the optional official-destination/availability layer. Confirm terms, country list, freshness, credits, caching and attribution before any shipped integration.
 
 Sources: [TMDB FAQ](https://developer.themoviedb.org/docs/faq), [TMDB movie watch providers](https://developer.themoviedb.org/reference/movie-watch-providers), [TMDB TV watch providers](https://developer.themoviedb.org/reference/tv-series-watch-providers), [Watchmode pricing](https://api.watchmode.com/pricing).
+
+
+## 14. Native provider capability snapshot
+
+Inspected the declared ProviderCapabilities implementations in each native provider module. These flags are source-code declarations, not proof that the corresponding feature works today.
+
+| MovieBox-TUI adapter | Search | Pagination | Series | Subtitles | Homepage |
+|---|---:|---:|---:|---:|---:|
+| MovieBox | Yes | Yes | Yes | Yes | Yes |
+| 4KHDHub | Yes | No | Yes | Yes | No |
+| Dramachi | Yes | Yes | Yes | No | No |
+| CircleFTP | Yes | No | Yes | No | No |
+| DhakaFlix | Yes | No | Yes | No | No |
+| Stremio Addons | Yes | No | Yes | Yes | No |
+
+Source modules: [MovieBox](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/moviebox/mod.rs), [4KHDHub](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/fourkhdhub/mod.rs), [Dramachi](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/dramachi/mod.rs), [CircleFTP](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/bdix/circleftp/mod.rs), [DhakaFlix](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/bdix/dhakaflix/mod.rs), [Addons](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/addons/mod.rs).
+
+The current five-boolean capability model is too coarse for 7xCinema's product. It does not explicitly declare:
+- movie vs series vs season/episode listing support;
+- audio track discovery vs separate dubbed-version support;
+- supported subtitle types/languages or subtitle search;
+- stream resolution and actual playback transport formats;
+- official availability/link-out, metadata-only, personal library, or live-TV roles;
+- identifier namespace constraints, region requirements, or playback-verification state.
+
+7xCinema should replace the coarse booleans with explicit capabilities and evidence. Unknown should remain unknown instead of defaulting to “supported.” A declared capability should be tested before being promoted to verified status.
