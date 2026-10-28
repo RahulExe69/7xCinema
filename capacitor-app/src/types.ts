@@ -15,6 +15,11 @@ export interface LanguageClaim {
 }
 export type AppPage = "home" | "search" | "movies" | "series" | "watchlist" | "settings";
 
+export interface ProviderMediaRef {
+  provider: string;
+  value: string;
+}
+
 export interface LibraryVariant {
   providerId: string;
   itemId: string;
@@ -43,6 +48,8 @@ export interface MediaItem {
   libraryItemId?: string;
   libraryItemType?: JellyfinItemType;
   libraryVariants?: LibraryVariant[];
+  /** Provider-specific IDs returned by the native MovieBox-TUI aggregation engine. */
+  providerItems?: ProviderMediaRef[];
   episodeNumber?: number;
   seasonNumber?: number;
   resumePositionMs?: number;
@@ -74,6 +81,8 @@ export interface SearchProvider {
   id: string;
   label: string;
   search(query: string, signal: AbortSignal): Promise<MediaItem[]>;
+  /** Per-provider override for integrations that legitimately need longer network fan-out. */
+  timeoutMs?: number;
 }
 
 export interface ProviderReport {
