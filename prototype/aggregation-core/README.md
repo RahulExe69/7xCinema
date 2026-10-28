@@ -9,8 +9,8 @@ This is a deliberately small, dependency-free prototype to validate 7xCinema's m
 - Provider errors and empty results are distinct; one failure does not erase successful results.
 - Results can be emitted progressively as providers finish.
 - Canonical titles group by shared external ID first, with exact normalised title + year as a narrow fallback.
-- Conflicting IDs, different media types, different years, and different episode coordinates prevent unsafe grouping.
-- Each provider/item source remains attached to the logical title.
+- Conflicting external IDs and media types prevent grouping; different years disable title/year fallback matching, and episodes require matching season/episode coordinates.
+- Each provider/item source remains attached to the logical title, and duplicate rows for the same provider item collapse into one source while retaining language claims.
 - Language claims preserve source provenance and distinct kinds: reported claim, separate dubbed version, subtitle, and real embedded audio track.
 - Provider/catalogue metadata cannot certify a selectable embedded track. Only a separate observation from the prepared player can do so.
 
