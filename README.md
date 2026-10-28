@@ -76,6 +76,8 @@ The application should do the coordination internally. Users search once; 7xCine
 - [Stremio Addon SDK](https://github.com/Stremio/stremio-addon-sdk) — reference for a standardised catalogue/stream/subtitle integration protocol.
 - [Official Sources](https://github.com/user-griffin/official-sources) — reference for official watch destinations that link out instead of proxying video.
 - [Watchmode](https://api.watchmode.com/) — optional official-availability metadata API, not a playback source; pricing/region/terms need review.
+- [OpenSubtitles.com API](https://ai.opensubtitles.com/api-docs) — candidate for subtitle search; use the current REST API, not the retired legacy endpoint.
+- [Wyzie Subs](https://docs.wyzie.io/subs/intro) — alternative subtitle API candidate subject to its terms and quota.
 - [iptv-org/iptv](https://github.com/iptv-org/iptv) — separate candidate source of publicly listed live-TV streams; each stream's authorisation and availability must be checked.
 
 See the [research register](docs/RESEARCH_REGISTER.md) for the evidence and caveats. A repository being public, an endpoint responding, or a provider appearing in documentation does **not** by itself establish that it is reliable, authorised, or appropriate to integrate.
