@@ -4,7 +4,6 @@ const config: CapacitorConfig = {
   appId: "com.sevenxcinema.app",
   appName: "7xCinema",
   webDir: "dist",
-  bundledWebRuntime: false,
   android: {
     allowMixedContent: false,
     backgroundColor: "#080a10",
