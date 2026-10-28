@@ -170,3 +170,33 @@ export async function fetchWatchProviders(
   });
   return { country: country.toUpperCase(), link: entry.link, providers };
 }
+
+interface TmdbVideoRecord {
+  key?: string;
+  site?: string;
+  type?: string;
+  official?: boolean;
+  name?: string;
+  published_at?: string;
+}
+interface TmdbVideosResponse { results?: TmdbVideoRecord[]; }
+
+/** Returns a real YouTube trailer URL only when the catalogue exposes one. */
+export async function fetchOfficialTrailer(item: MediaItem, signal?: AbortSignal): Promise<string | null> {
+  if (!item.tmdbId) return null;
+  const response = await tmdbRequest<TmdbVideosResponse>(`/${item.kind}/${item.tmdbId}/videos`, {
+    language: "en-US",
+  }, signal);
+  const videos = (response.results ?? []).filter((video) =>
+    video.site?.toLocaleLowerCase("en") === "youtube"
+    && Boolean(video.key)
+    && /^[a-zA-Z0-9_-]{6,20}$/.test(video.key ?? "")
+    && (video.type?.toLocaleLowerCase("en") === "trailer" || video.type?.toLocaleLowerCase("en") === "teaser")
+  );
+  videos.sort((a, b) =>
+    Number(Boolean(b.official)) - Number(Boolean(a.official))
+    || Number(b.type?.toLocaleLowerCase("en") === "trailer") - Number(a.type?.toLocaleLowerCase("en") === "trailer")
+    || (b.published_at ?? "").localeCompare(a.published_at ?? "")
+  );
+  return videos[0]?.key ? `https://www.youtube.com/watch?v=${encodeURIComponent(videos[0].key)}` : null;
+}
