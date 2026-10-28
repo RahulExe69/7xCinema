@@ -3,6 +3,7 @@ package com.sevenxcinema.app;
 import android.content.Intent;
 import android.net.Uri;
 
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -11,6 +12,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 
 @CapacitorPlugin(name = "SevenXCinemaPlayer")
 public final class Media3PlayerPlugin extends Plugin {
@@ -32,13 +34,26 @@ public final class Media3PlayerPlugin extends Plugin {
             return;
         }
 
-        String scheme = parsed.getScheme();
-        if (parsed.getHost() == null
-                || scheme == null
-                || !(scheme.equalsIgnoreCase("https") || scheme.equalsIgnoreCase("http"))
-                || parsed.getUserInfo() != null) {
+        if (!isSafeMediaUrl(parsed)) {
             call.reject("Only HTTP(S) media URLs without embedded credentials are supported.");
             return;
+        }
+
+        ArrayList<String> fallbackUrls = new ArrayList<>();
+        JSArray fallbackArray = call.getArray("fallbackUrls");
+        if (fallbackArray != null) {
+            for (int index = 0; index < fallbackArray.length() && fallbackUrls.size() < 7; index++) {
+                try {
+                    String candidate = fallbackArray.getString(index);
+                    URI fallbackUri = new URI(candidate);
+                    if (isSafeMediaUrl(fallbackUri) && !fallbackUri.toASCIIString().equals(parsed.toASCIIString())
+                            && !fallbackUrls.contains(fallbackUri.toASCIIString())) {
+                        fallbackUrls.add(fallbackUri.toASCIIString());
+                    }
+                } catch (Exception ignored) {
+                    // Skip malformed fallback candidates; never block the valid primary source.
+                }
+            }
         }
 
         getActivity().runOnUiThread(() -> {
@@ -46,6 +61,7 @@ public final class Media3PlayerPlugin extends Plugin {
                 Intent intent = new Intent(getActivity(), NativePlayerActivity.class);
                 intent.putExtra(NativePlayerActivity.EXTRA_URL, parsed.toASCIIString());
                 intent.putExtra(NativePlayerActivity.EXTRA_TITLE, title == null ? "7xCinema" : title);
+                intent.putStringArrayListExtra(NativePlayerActivity.EXTRA_FALLBACK_URLS, fallbackUrls);
                 getActivity().startActivity(intent);
 
                 JSObject result = new JSObject();
@@ -56,5 +72,13 @@ public final class Media3PlayerPlugin extends Plugin {
                 call.reject("Could not open the native player.", error);
             }
         });
+    }
+
+    private static boolean isSafeMediaUrl(URI uri) {
+        String scheme = uri.getScheme();
+        return uri.getHost() != null
+                && scheme != null
+                && (scheme.equalsIgnoreCase("https") || scheme.equalsIgnoreCase("http"))
+                && uri.getUserInfo() == null;
     }
 }
