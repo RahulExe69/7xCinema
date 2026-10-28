@@ -152,10 +152,13 @@ function providerRecordMatches(left, right) {
   if (hasConflict) return null;
   if (sharesIdentifier) return "shared-external-id";
 
-  // Exact title + year is a deliberately narrow fallback. Title-only matching
-  // is too risky for remakes, translated titles, and same-name releases.
-  if (
-    left.normalisedTitle
+  // Exact title + year is only used when neither record has external IDs.
+  // Otherwise an ID-less alias could bridge two records whose IMDb/TMDb IDs
+  // disagree, causing a transitive false merge. This is intentionally conservative.
+  const leftHasIds = Object.keys(left.externalIds).length > 0;
+  const rightHasIds = Object.keys(right.externalIds).length > 0;
+  if (!leftHasIds && !rightHasIds
+    && left.normalisedTitle
     && left.normalisedTitle === right.normalisedTitle
     && left.year !== null
     && left.year === right.year
@@ -446,6 +449,10 @@ function makeSnapshot(records, statuses, completedProviders, totalProviders, pha
 export async function aggregateSearch(query, providers, options = {}) {
   if (typeof query !== "string" || !query.trim()) throw new TypeError("Search query must not be blank");
   if (!Array.isArray(providers)) throw new TypeError("Providers must be an array");
+  const providerIds = providers.map(provider => provider?.id).filter(id => typeof id === "string" && id.trim());
+  if (new Set(providerIds).size !== providerIds.length) {
+    throw new TypeError("Provider IDs must be unique within one search");
+  }
 
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const concurrency = options.concurrency ?? DEFAULT_CONCURRENCY;
