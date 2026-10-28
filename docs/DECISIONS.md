@@ -127,3 +127,11 @@ Statuses: **Accepted**, **Proposed**, **Open**, **Superseded**.
 - **Trade-offs:** Nuvio's GPL-3.0 licence may impose obligations on a distributed derivative; it is also a large, active project with a user-configured addon model. A fresh app gives cleaner UX/control but requires more player, lifecycle and native bridge work.
 - **Required evidence:** Clean build, license/dependency review, ability to configure approved sources by default, universal title grouping/language provenance, actual test playback/track selection, build/release complexity, and amount of invasive refactor.
 - **Relationship to D-015:** Framework comparison now includes the choice of app base as well as the language/UI framework. No base has been selected.
+
+
+## D-019 — Keep the aggregation proof-of-concept independent from the app framework
+- **Status:** Accepted for prototype; production architecture remains open
+- **Decision:** Maintain the first universal-search slice as a dependency-free prototype under prototype/aggregation-core. Do not treat its JavaScript runtime as the final app/domain runtime until the Nuvio/native/Capacitor comparison is complete.
+- **Evidence:** The prototype searches all explicitly eligible test adapters with bounded concurrency, per-provider timeouts, progressive partial results, distinct empty/error outcomes, conservative ID/title-year matching, source provenance, same-provider duplicate-row collapse, and source-scoped language claims. Player-selectable embedded tracks are added only from an explicit player observation. GitHub Actions tests passed on the merged main commit dcd413a7816218b08fdfebc2ee3e32b56c6c1156.
+- **Limitations:** All providers are synthetic. No live third-party playback source, Android UI, video player, source resolution, pagination, cache policy or production security adapter has been integrated.
+- **Next gate:** Compare NuvioMobile adaptation with fresh native Kotlin/Compose + Media3 and React/Capacitor + native Media3 using the same vertical-slice tests. Reuse or port this core only if the chosen path warrants it.
