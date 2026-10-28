@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Browser } from "@capacitor/browser";
 import { isNativePlayerAvailable, NativePlayer } from "./native-player";
 import { backdropUrl, getStableMediaId, languageNames, posterUrl, starterCatalogue } from "./catalogue";
@@ -40,6 +40,7 @@ export default function App() {
   const [playerError, setPlayerError] = useState("");
   const [genreFilter, setGenreFilter] = useState("all");
   const [kindFilter, setKindFilter] = useState<"all" | "movie" | "tv">("all");
+  const activeSearchId = useRef(0);
   const tmdbEnabled = hasTmdbKey();
 
   useEffect(() => {
@@ -70,20 +71,25 @@ export default function App() {
   const runSearch = useCallback(async (rawQuery = query) => {
     const clean = rawQuery.trim();
     if (!clean) { setSearchMessage("Enter a title, genre, or year to search the catalogue."); setPage("search"); return; }
+    const searchId = ++activeSearchId.current;
     setQuery(clean); setPage("search"); setSelected(null); setSearching(true); setSearchMessage(""); setResults([]);
     const providers = [createOfflineProvider()];
     if (hasTmdbKey()) providers.push(createTmdbSearchProvider());
     try {
       const snapshot = await searchEveryProvider(clean, providers, (partial) => {
+        if (activeSearchId.current !== searchId) return;
         setResults(partial.results); setReports(partial.providers);
       }, 6000);
+      if (activeSearchId.current !== searchId) return;
       setResults(snapshot.results); setReports(snapshot.providers);
       if (!snapshot.results.length) setSearchMessage(hasTmdbKey()
         ? "No matches found. Try the original title or a shorter query."
         : "No match in the offline starter catalogue. Add a TMDB API key in Settings for live catalogue search.");
     } catch (error) {
-      setSearchMessage(error instanceof Error ? error.message : "Search failed. Please try again.");
-    } finally { setSearching(false); }
+      if (activeSearchId.current === searchId) setSearchMessage(error instanceof Error ? error.message : "Search failed. Please try again.");
+    } finally {
+      if (activeSearchId.current === searchId) setSearching(false);
+    }
   }, [query]);
 
   const toggleWatchlist = useCallback((item: MediaItem) => {
@@ -225,7 +231,7 @@ export default function App() {
         {!tmdbEnabled ? <div className="watch-message">Connect your TMDB API key in Settings to look up reported official streaming, rental, and purchase destinations for your region.</div>
           : watchLoading ? <div className="inline-loading"><span className="spinner" /> Checking reported availability…</div>
           : watchError ? <div className="watch-message">{watchError}</div>
-          : watchData && watchData.providers.length ? <><div className="watch-providers">{watchData.providers.map((provider) => <button key={provider.providerId + "-" + provider.bucket} className="watch-provider" onClick={() => void openOfficialDestination(watchData.link)} title={"Open the official availability page for " + provider.name}>{provider.logoPath ? <img src={provider.logoPath} alt="" /> : <span className="provider-initial">{provider.name.slice(0,1)}</span>}<strong>{provider.name}</strong><small>{provider.bucket === "flatrate" ? "Subscription" : provider.bucket === "free" ? "Free" : provider.bucket === "ads" ? "With ads" : provider.bucket === "rent" ? "Rent" : "Buy"}</small></button>)}</div>{watchData.link && <button className="text-action availability-link" onClick={() => void openOfficialDestination(watchData.link)}>View all reported options on TMDB <span>↗</span></button>}<p className="availability-note">Availability is provided by TMDB and may change. Confirm region, subscription, language, and playback on the destination service.</p></>
+          : watchData && watchData.providers.length ? <><div className="watch-providers">{watchData.providers.map((provider) => <div key={provider.providerId + "-" + provider.bucket} className="watch-provider" title={"Reported availability: " + provider.name}>{provider.logoPath ? <img src={provider.logoPath} alt="" /> : <span className="provider-initial">{provider.name.slice(0,1)}</span>}<strong>{provider.name}</strong><small>{provider.bucket === "flatrate" ? "Subscription" : provider.bucket === "free" ? "Free" : provider.bucket === "ads" ? "With ads" : provider.bucket === "rent" ? "Rent" : "Buy"}</small></div>)}</div>{watchData.link && <button className="text-action availability-link" onClick={() => void openOfficialDestination(watchData.link)}>View all reported options on TMDB <span>↗</span></button>}<p className="availability-note">Provider names are availability metadata, not guaranteed direct links. Use TMDB's regional listing to confirm access and open the service.</p></>
           : <div className="watch-message">TMDB has no provider data for this title in {region}. This does not prove that the title is unavailable everywhere.</div>}
       </div>
     </section></div>}
