@@ -147,7 +147,7 @@ export async function movieboxApiRequest<T>(path: string, init: RequestInit = {}
   return payload as T;
 }
 
-function toMediaItem(row: MovieboxCatalogEntry): MediaItem {
+export function mapMovieboxCatalogEntry(row: MovieboxCatalogEntry): MediaItem {
   const sourceRefs = row.sources?.length ? row.sources : [row.id];
   const languages = [...new Set((row.languages ?? []).map((value) => value.trim()).filter(Boolean))];
   const languageClaims = languages.map((language) => ({
@@ -186,7 +186,7 @@ export function createMovieboxTuiProvider(): SearchProvider {
         signal,
       });
       if (!Array.isArray(rows)) throw new Error("MovieBox-TUI returned an invalid catalogue response.");
-      return rows.map(toMediaItem);
+      return rows.map(mapMovieboxCatalogEntry);
     },
   };
 }
