@@ -38,7 +38,22 @@ References:
 - [TMDB-Embed-API](https://github.com/Inside4ndroid/TMDB-Embed-API)
 - [iptv-org/iptv](https://github.com/iptv-org/iptv)
 
-## 2. Candidate scoring rules
+## 2. Declared capabilities in the existing MovieBox-TUI code
+
+These values are read from provider source code on 2026-10-28. They are declarations, not live verification.
+
+| Adapter | Search | Pagination | Series | Subtitles | Homepage |
+|---|---|---|---|---|---|
+| MovieBox | Yes | Yes | Yes | Yes | Yes |
+| 4KHDHub | Yes | No | Yes | Yes | No |
+| Dramachi | Yes | Yes | Yes | No | No |
+| CircleFTP | Yes | No | Yes | No | No |
+| DhakaFlix | Yes | No | Yes | No | No |
+| Stremio Addons | Yes | No | Yes | Yes | No |
+
+These flags do not advertise audio-track discovery, separate dubbed versions, actual stream-resolution success, playback format compatibility, official destinations, or rights eligibility. 7xCinema needs a richer contract with evidence and verification status. Sources: [MovieBox](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/moviebox/mod.rs), [4KHDHub](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/fourkhdhub/mod.rs), [Dramachi](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/dramachi/mod.rs), [CircleFTP](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/bdix/circleftp/mod.rs), [DhakaFlix](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/bdix/dhakaflix/mod.rs), [Addons](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/addons/mod.rs).
+
+## 3. Candidate scoring rules
 
 Do not assign scores just because a README advertises a feature. Score a provider only after collecting evidence. Use “Unknown” when not measured.
 
@@ -55,7 +70,7 @@ Do not assign scores just because a README advertises a feature. Score a provide
 | Maintenance | Code activity, issue handling, release history, test coverage, ownership |
 | Integration cost | Dependencies, runtime/language, Android packaging, licensing and operations |
 
-## 3. Provider status vocabulary
+## 4. Provider status vocabulary
 
 - **Discovered:** candidate identified; no functionality implied.
 - **Code-inspected:** source and documented interface reviewed.
@@ -68,7 +83,7 @@ Do not assign scores just because a README advertises a feature. Score a provide
 
 One label cannot substitute for another. Search verification does not imply playback verification.
 
-## 4. Immediate priorities
+## 5. Immediate priorities
 
 1. Keep fake/test providers as the first aggregation-engine test target.
 2. Inspect the local fork's divergence from upstream before choosing any code to reuse.
