@@ -553,6 +553,26 @@ export default function App() {
           {selected.sources.length > 0 && <div className="catalogue-provenance"><span>CATALOGUE MATCHES</span><div>{selected.sources.map((source) => <span key={source}>{catalogueSourceLabel(source)}</span>)}</div></div>}
           {selected.itemPageUrl && selected.licenseUrl && <div className="open-license-note"><strong>Uploader-marked open-license media</strong><p>This item's metadata declares {selected.licenseUrl.includes("/zero/1.0") ? "CC0 1.0" : "Public Domain Mark 1.0"}. The label is an uploader claim, not an independent legal verification.</p><div className="open-license-links"><button className="text-action" onClick={() => void openOfficialDestination(selected.itemPageUrl)}>Review archive item ↗</button><button className="text-action" onClick={() => void openOfficialDestination(selected.licenseUrl)}>Review licence ↗</button></div>{selected.creator && <p>Creator/uploader metadata: {selected.creator}</p>}</div>}
           {(selected.languageClaims?.length ?? 0) > 0 && <section className="language-evidence" aria-label="Language evidence"><div className="section-kicker">LANGUAGE EVIDENCE</div><div className="language-claim-list">{selected.languageClaims?.map((claim) => <div className={"language-claim " + (claim.selectable && claim.evidence === "player-probe" ? "verified" : "reported")} key={[claim.sourceId, claim.languageCode, claim.kind, claim.evidence, claim.reportedKind].join(":")}><strong>{claim.language}</strong><small>{languageClaimLabel(claim)} · {catalogueSourceLabel(claim.sourceId)}</small></div>)}</div><p className="language-evidence-note">Reported metadata is not proof that a particular stream contains this track. Selectable audio and subtitles are confirmed only by the prepared player.</p></section>}
+          {(selected.libraryVariants?.length ?? 0) > 1 && <section className="library-variants" aria-label="Available library versions">
+            <div className="section-kicker">MULTIPLE COPIES IN YOUR LIBRARY</div><h3>Choose a version</h3>
+            <div className="library-variant-list">{selected.libraryVariants?.map((variant) => <button className="library-variant-row" key={variant.providerId + ":" + variant.itemId} onClick={() => {
+              const versionItem: MediaItem = {
+                ...selected,
+                id: "jellyfin:" + variant.itemId,
+                title: variant.title || selected.title,
+                year: variant.year ?? selected.year,
+                libraryItemId: variant.itemId,
+                libraryItemType: variant.itemType,
+                resumePositionMs: variant.resumePositionMs,
+              };
+              startPlayback(versionItem);
+            }}>
+              <span className="library-variant-icon">{variant.itemType === "series" ? "▤" : variant.itemType === "episode" ? "▷" : "▶"}</span>
+              <span className="library-variant-copy"><strong>{variant.title || selected.title}</strong><small>{variant.year ?? selected.year ?? "Year unknown"} · {variant.itemType === "series" ? "Series" : variant.itemType === "episode" ? "Episode" : "Movie"}{variant.language ? " · " + variant.language : ""}{variant.resumePositionMs && variant.resumePositionMs > 30_000 ? " · Resume available" : ""}</small></span>
+              <span className="library-variant-play">▶</span>
+            </button>)}</div>
+            <p className="language-evidence-note">These are separate files/items from your connected library. Audio and subtitle tracks are verified by the player after playback starts.</p>
+          </section>}
           {selected.libraryItemType === "series" && <section className="library-episodes" aria-label="Jellyfin series episodes">
             <div className="section-kicker">YOUR JELLYFIN LIBRARY</div><h3>Episodes</h3>
             {!jellyfinSession ? <div className="watch-message">Reconnect your Jellyfin library in Settings to browse seasons and play episodes.</div>
