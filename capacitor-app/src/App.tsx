@@ -5,6 +5,7 @@ import { Capacitor } from "@capacitor/core";
 import { isNativePlayerAvailable, NativePlayer } from "./native-player";
 import { backdropUrl, getStableMediaId, languageNames, posterUrl, starterCatalogue } from "./catalogue";
 import { createOfflineProvider, searchEveryProvider } from "./core/search";
+import { getPlaybackIntent } from "./core/playback";
 import { createInternetArchiveProvider } from "./services/internetArchive";
 import { createTmdbSearchProvider, fetchTrending, fetchWatchProviders, fetchOfficialTrailer, getTmdbKey, hasTmdbKey, setTmdbKey } from "./services/tmdb";
 import type { AppPage, MediaItem, ProviderReport, WatchProviderResponse } from "./types";
@@ -44,6 +45,7 @@ export default function App() {
   const [playUrl, setPlayUrl] = useState("");
   const [playerLoaded, setPlayerLoaded] = useState(false);
   const [playerError, setPlayerError] = useState("");
+  const [showAdvancedSource, setShowAdvancedSource] = useState(false);
   const [genreFilter, setGenreFilter] = useState("all");
   const [kindFilter, setKindFilter] = useState<"all" | "movie" | "tv">("all");
   const activeSearchId = useRef(0);
@@ -178,16 +180,20 @@ export default function App() {
       setApiRevision((value) => value + 1); setSearchMessage("");
     } catch (error) { setSettingsMessage(error instanceof Error ? error.message : "Settings could not be saved."); }
   };
-  const startPlayback = (item: MediaItem) => { setPlayTarget(item); setPlayUrl(item.playableUrl ?? ""); setPlayerLoaded(false); setPlayerError(""); };
-  const validatePlaybackUrl = async () => {
-    let parsed: URL;
-    try { parsed = new URL(playUrl.trim()); } catch { setPlayerError("Enter a complete media URL beginning with https:// or http://."); return; }
-    if (!["https:", "http:"].includes(parsed.protocol)) { setPlayerError("Only HTTP(S) media URLs are supported."); return; }
-    if (!parsed.hostname || parsed.username || parsed.password) { setPlayerError("Use a valid HTTP(S) URL without embedded credentials."); return; }
+  const openMediaSource = async (item: MediaItem, rawUrl: string) => {
+    const intent = getPlaybackIntent({ playableUrl: rawUrl });
+    if (intent.type !== "direct") {
+      setPlayerError("That source did not provide a valid HTTP(S) media URL.");
+      return;
+    }
+    setPlayTarget(item);
+    setPlayUrl(intent.url);
+    setPlayerLoaded(false);
     setPlayerError("");
+    setShowAdvancedSource(false);
     if (isNativePlayerAvailable()) {
       try {
-        await NativePlayer.play({ url: parsed.toString(), title: playTarget?.title ?? "7xCinema" });
+        await NativePlayer.play({ url: intent.url, title: item.title });
         setPlayTarget(null);
       } catch (error) {
         setPlayerError(error instanceof Error ? error.message : "The native player could not open this source.");
@@ -195,6 +201,25 @@ export default function App() {
       return;
     }
     setPlayerLoaded(true);
+  };
+
+  const startPlayback = (item: MediaItem) => {
+    setPlayTarget(item);
+    setPlayUrl("");
+    setPlayerLoaded(false);
+    setPlayerError("");
+    setShowAdvancedSource(false);
+    const intent = getPlaybackIntent(item);
+    if (intent.type === "direct") {
+      // A source returned by an actual adapter goes straight to playback.
+      // Only titles with no playable source land on the source chooser.
+      void openMediaSource(item, intent.url);
+    }
+  };
+
+  const validatePlaybackUrl = async () => {
+    if (!playTarget) return;
+    await openMediaSource(playTarget, playUrl);
   };
 
   return <div className="app-shell">
@@ -278,7 +303,7 @@ export default function App() {
           {selected.sources.length > 0 && <div className="catalogue-provenance"><span>CATALOGUE MATCHES</span><div>{selected.sources.map((source) => <span key={source}>{catalogueSourceLabel(source)}</span>)}</div></div>}
           {selected.itemPageUrl && selected.licenseUrl && <div className="open-license-note"><strong>Uploader-marked open-license media</strong><p>This item's metadata declares {selected.licenseUrl.includes("/zero/1.0") ? "CC0 1.0" : "Public Domain Mark 1.0"}. The label is an uploader claim, not an independent legal verification.</p><div className="open-license-links"><button className="text-action" onClick={() => void openOfficialDestination(selected.itemPageUrl)}>Review archive item ↗</button><button className="text-action" onClick={() => void openOfficialDestination(selected.licenseUrl)}>Review licence ↗</button></div>{selected.creator && <p>Creator/uploader metadata: {selected.creator}</p>}</div>}
           {(selected.languageClaims?.length ?? 0) > 0 && <section className="language-evidence" aria-label="Language evidence"><div className="section-kicker">LANGUAGE EVIDENCE</div><div className="language-claim-list">{selected.languageClaims?.map((claim) => <div className={"language-claim " + (claim.selectable && claim.evidence === "player-probe" ? "verified" : "reported")} key={[claim.sourceId, claim.languageCode, claim.kind, claim.evidence, claim.reportedKind].join(":")}><strong>{claim.language}</strong><small>{languageClaimLabel(claim)} · {catalogueSourceLabel(claim.sourceId)}</small></div>)}</div><p className="language-evidence-note">Reported metadata is not proof that a particular stream contains this track. Selectable audio and subtitles are confirmed only by the prepared player.</p></section>}
-          <div className="detail-actions"><button className="button button-primary" onClick={() => startPlayback(selected)}>▶ &nbsp;Open player</button><button className={"button " + (isSaved(selected) ? "button-saved" : "button-secondary")} onClick={() => toggleWatchlist(selected)}>{isSaved(selected) ? "✓ In My List" : "＋ Add to My List"}</button>{trailerUrl && <button className="button button-secondary" onClick={() => void openOfficialDestination(trailerUrl)}>Watch official trailer ↗</button>}</div>
+          <div className="detail-actions"><button className="button button-primary" onClick={() => startPlayback(selected)}>{getPlaybackIntent(selected).type === "direct" ? "▶  Play now" : "▷  Where to watch"}</button><button className={"button " + (isSaved(selected) ? "button-saved" : "button-secondary")} onClick={() => toggleWatchlist(selected)}>{isSaved(selected) ? "✓ In My List" : "＋ Add to My List"}</button>{trailerUrl && <button className="button button-secondary" onClick={() => void openOfficialDestination(trailerUrl)}>Watch official trailer ↗</button>}</div>
           {trailerLoading && <p className="field-help">Checking for an official trailer…</p>}
           {trailerMessage && tmdbEnabled && <p className="field-help">{trailerMessage}</p>}
         </div>
@@ -293,9 +318,25 @@ export default function App() {
     </section></div>}
 
     {playTarget && <div className="modal-backdrop player-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setPlayTarget(null); }}><section className="player-modal" role="dialog" aria-modal="true" aria-label={"Player for " + playTarget.title}>
-      <div className="player-top"><div><div className="section-kicker">7XCINEMA PLAYER</div><h2>{playTarget.title}</h2></div><button className="modal-close inline-close" onClick={() => setPlayTarget(null)} aria-label="Close player">×</button></div>
-      {!playerLoaded || !playUrl || playerError ? <div className="player-entry"><div className="player-entry-icon">▶</div><h3>{playTarget.playableUrl ? "Open-license archive video" : "Bring your own authorised source."}</h3><p>{playTarget.playableUrl ? "The archive item has a direct media file. Check its uploader-declared licence on the item page before relying on it; 7xCinema does not independently verify copyright ownership." : "This catalogue discovers titles and official destinations; it never invents stream links. Android opens the native Media3 player, while the web preview uses the browser player."}</p><label className="field-label" htmlFor="media-url">Direct media URL</label><input id="media-url" className="settings-input" inputMode="url" placeholder="https://example.com/your-authorised-video.mp4" value={playUrl} onChange={(event) => { setPlayUrl(event.target.value); setPlayerError(""); setPlayerLoaded(false); }} /><p className="field-help">Use an HTTP(S) media URL you have permission to access. Android Media3 supports compatible direct, HLS, and DASH streams and reports its actual audio/subtitle tracks. DRM-protected streams and provider-specific authentication are not bypassed.</p>{playerError && <div className="player-error">{playerError}</div>}<button className="button button-primary" onClick={validatePlaybackUrl}>Load media <span>→</span></button></div>
-        : <div className="video-stage"><video key={playUrl} src={playUrl} controls autoPlay playsInline preload="metadata" onError={() => setPlayerError("This URL could not be played. Check the link, permissions, format, and device support.")} /><div className="video-actions"><button className="button button-ghost" onClick={() => { setPlayUrl(""); setPlayerLoaded(false); setPlayerError(""); }}>Change URL</button><span>Direct source · no source resolution</span></div>{playerError && <div className="player-error">{playerError}</div>}</div>}
+      <div className="player-top"><div><div className="section-kicker">{playerLoaded && playUrl ? "7XCINEMA PLAYER" : "7XCINEMA WATCH"}</div><h2>{playTarget.title}</h2></div><button className="modal-close inline-close" onClick={() => setPlayTarget(null)} aria-label="Close player">×</button></div>
+      {!playerLoaded || !playUrl || playerError ? <div className="player-entry">
+        <div className="player-entry-icon">{getPlaybackIntent(playTarget).type === "direct" ? "↻" : "↗"}</div>
+        {getPlaybackIntent(playTarget).type === "direct" && playerError
+          ? <><h3>That source didn’t start.</h3><p>Try the original source page, or choose another authorised destination. We won’t pretend a metadata result is a working stream.</p><button className="button button-primary" onClick={() => void openMediaSource(playTarget, playTarget.playableUrl ?? "")}>Retry source <span>→</span></button></>
+          : <><h3>Choose how to watch.</h3><p className="source-choice-note">7xCinema checks the available playback information first. When a real media source is present, it opens automatically. Otherwise, choose an official destination or trailer below.</p></>}
+        {watchLoading && <div className="inline-loading"><span className="spinner" /> Checking official watch options…</div>}
+        {watchError && <div className="watch-message">{watchError}</div>}
+        {watchData?.providers?.length ? <div className="source-provider-list"><div className="field-label">REPORTED IN {watchData.country}</div><div className="source-provider-chips">{watchData.providers.map((provider) => <span key={provider.providerId + "-" + provider.bucket}>{provider.name}<small>{provider.bucket === "flatrate" ? "Subscription" : provider.bucket === "free" ? "Free" : provider.bucket === "ads" ? "With ads" : provider.bucket === "rent" ? "Rent" : "Buy"}</small></span>)}</div></div> : null}
+        {watchData?.link && <button className="button button-primary source-action-button" onClick={() => void openOfficialDestination(watchData.link)}>Open official watch options ({watchData.country}) <span>↗</span></button>}
+        {trailerUrl && <button className="button button-secondary source-action-button" onClick={() => void openOfficialDestination(trailerUrl)}>Watch official trailer <span>↗</span></button>}
+        {playTarget.itemPageUrl && <button className="button button-secondary source-action-button" onClick={() => void openOfficialDestination(playTarget.itemPageUrl)}>Open original source page <span>↗</span></button>}
+        {playTarget.licenseUrl && <button className="button button-ghost source-action-button" onClick={() => void openOfficialDestination(playTarget.licenseUrl)}>Review licence <span>↗</span></button>}
+        {!watchData?.link && !trailerUrl && !playTarget.itemPageUrl && !playTarget.playableUrl && <p className="watch-message">{tmdbEnabled ? "No direct playback source or official destination was returned for this title. It may need another catalogue/provider integration." : "Connect TMDB in Settings to discover official viewing options. Direct playback only appears when a source adapter returns a compatible media URL."}</p>}
+        {playerError && <div className="player-error">{playerError}</div>}
+        <div className="advanced-source-toggle"><button className="text-action" onClick={() => setShowAdvancedSource((value) => !value)}>{showAdvancedSource ? "Hide advanced source entry" : "Advanced · enter a direct media URL manually"} <span>{showAdvancedSource ? "−" : "+"}</span></button></div>
+        {showAdvancedSource && <div className="advanced-source-panel"><label className="field-label" htmlFor="media-url">Direct media URL (advanced fallback)</label><input id="media-url" className="settings-input" inputMode="url" autoComplete="off" placeholder="https://example.com/authorised-video.mp4" value={playUrl} onChange={(event) => { setPlayUrl(event.target.value); setPlayerError(""); setPlayerLoaded(false); }} /><p className="field-help">For a source you are authorised to access. HTTP(S) only; URLs containing credentials are rejected. Protected streams and provider restrictions are not bypassed.</p><button className="button button-secondary" onClick={validatePlaybackUrl}>Load manual source <span>→</span></button></div>}
+      </div>
+        : <div className="video-stage"><video key={playUrl} src={playUrl} controls autoPlay playsInline preload="metadata" onError={() => setPlayerError("This URL could not be played. Check the link, permissions, format, and device support.")} /><div className="video-actions"><button className="button button-ghost" onClick={() => { setPlayUrl(""); setPlayerLoaded(false); setPlayerError(""); setShowAdvancedSource(true); }}>Change source</button><span>Direct source · native Media3 on Android</span></div>{playerError && <div className="player-error">{playerError}</div>}</div>}
     </section></div>}
   </div>;
 }
