@@ -347,7 +347,7 @@ public final class NativePlayerActivity extends Activity {
         try {
             URI stream = new URI(streamValue);
             URI report = new URI(reportValue);
-            if (!isSafeMediaUrl(report) || report.getRawQuery() != null || report.getRawFragment() != null) return false;
+            if (!isSafeMediaUrl(reportValue) || report.getRawQuery() != null || report.getRawFragment() != null) return false;
             if (!stream.getScheme().equalsIgnoreCase(report.getScheme())
                     || !stream.getHost().equalsIgnoreCase(report.getHost())) return false;
             int streamPort = stream.getPort() >= 0 ? stream.getPort()
