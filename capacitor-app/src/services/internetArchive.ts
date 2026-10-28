@@ -66,6 +66,8 @@ export function chooseArchiveMp4(files: ArchiveFile[]): ArchiveFile | undefined 
   return files
     .filter((file) => {
       if (!file.name || file.name.startsWith("__ia_thumb") || file.name.includes("/__ia_thumb")) return false;
+      const pathSegments = file.name.split("/");
+      if (pathSegments.some((segment) => !segment || segment === "." || segment === ".." || segment.includes("\\"))) return false;
       if (!/\.mp4$/i.test(file.name) || /(?:sample|preview|thumbnail|thumb)\.mp4$/i.test(file.name)) return false;
       const format = (file.format ?? "").toLowerCase();
       return !format || /mpeg\s*-?4|h\.?264|video/i.test(format);
