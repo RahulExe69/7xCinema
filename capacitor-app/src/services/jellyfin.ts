@@ -247,7 +247,7 @@ export async function searchJellyfin(
       IncludeItemTypes: "Movie,Series",
       Recursive: "true",
       Limit: "40",
-      Fields: "Overview,ProductionYear,CommunityRating,Genres,RunTimeTicks,OriginalTitle,ChildCount,ProviderIds",
+      Fields: "Overview,ProductionYear,CommunityRating,Genres,RunTimeTicks,OriginalTitle,ChildCount,ProviderIds,UserData",
       EnableTotalRecordCount: "false",
     },
   );
