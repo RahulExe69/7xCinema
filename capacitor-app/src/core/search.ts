@@ -1,5 +1,5 @@
 import { getStableMediaId, starterCatalogue } from "../catalogue";
-import type { MediaItem, ProviderReport, SearchProvider, SearchSnapshot } from "../types";
+import type { LanguageClaim, MediaItem, ProviderReport, SearchProvider, SearchSnapshot } from "../types";
 
 function timeoutError(message: string) {
   const error = new Error(message);
@@ -13,12 +13,25 @@ export function mergeResults(items: MediaItem[]): MediaItem[] {
     const id = getStableMediaId(item);
     const existing = groups.get(id);
     if (!existing) {
-      groups.set(id, { ...item, genreIds: [...item.genreIds], genres: [...item.genres], sources: [...item.sources] });
+      groups.set(id, { ...item, genreIds: [...item.genreIds], genres: [...item.genres], sources: [...item.sources], languageClaims: [...(item.languageClaims ?? [])] });
       continue;
     }
     const sources = [...new Set([...existing.sources, ...item.sources])];
     const genreIds = [...new Set([...existing.genreIds, ...item.genreIds])];
     const genres = [...new Set([...existing.genres, ...item.genres])];
+    const claims = new Map<string, LanguageClaim>();
+    for (const claim of [...(existing.languageClaims ?? []), ...(item.languageClaims ?? [])]) {
+      const claimKey = [
+        claim.sourceId,
+        claim.languageCode ?? claim.language.toLocaleLowerCase("en"),
+        claim.kind,
+        claim.evidence,
+        claim.reportedKind ?? "",
+        claim.releaseName ?? "",
+        String(claim.selectable),
+      ].join("|");
+      if (!claims.has(claimKey)) claims.set(claimKey, claim);
+    }
     groups.set(id, {
       ...existing,
       ...item,
@@ -35,6 +48,7 @@ export function mergeResults(items: MediaItem[]): MediaItem[] {
       seasonCount: existing.seasonCount ?? item.seasonCount,
       genres,
       genreIds,
+      languageClaims: [...claims.values()],
       sources,
     });
   }
