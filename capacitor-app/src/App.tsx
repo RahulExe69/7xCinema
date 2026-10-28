@@ -216,6 +216,8 @@ export default function App() {
       <div className="detail-content"><div className="detail-poster-wrap">{selected.posterPath ? <img className="detail-poster" src={posterUrl(selected.posterPath)} alt={selected.title + " poster"} /> : <div className="poster-missing">7x</div>}</div>
         <div className="detail-info"><div className="section-kicker">{kindLabel(selected)} · {selected.year ?? "Year unknown"}</div><h2>{selected.title}</h2><div className="detail-facts"><span className="rating-star">★</span><strong>{ratingLabel(selected)}</strong><span>{selected.kind === "movie" ? (selected.runtimeMinutes ? selected.runtimeMinutes + " min" : "Feature film") : (selected.seasonCount ? selected.seasonCount + " seasons" : "Series")}</span><span className="fact-divider">|</span><span>{selected.originalLanguage ? languageNames[selected.originalLanguage] ?? selected.originalLanguage.toUpperCase() : "Original language unknown"}</span></div>
           <p className="detail-overview">{selected.overview || "No synopsis is available for this title yet."}</p><div className="genre-tags">{selected.genres.map((genre) => <span key={genre}>{genre}</span>)}</div>
+          {selected.sources.length > 0 && <div className="catalogue-provenance"><span>CATALOGUE MATCHES</span><div>{selected.sources.map((source) => <span key={source}>{catalogueSourceLabel(source)}</span>)}</div></div>}
+          {(selected.languageClaims?.length ?? 0) > 0 && <section className="language-evidence" aria-label="Language evidence"><div className="section-kicker">LANGUAGE EVIDENCE</div><div className="language-claim-list">{selected.languageClaims?.map((claim) => <div className={"language-claim " + (claim.selectable && claim.evidence === "player-probe" ? "verified" : "reported")} key={[claim.sourceId, claim.languageCode, claim.kind, claim.evidence, claim.reportedKind].join(":")}><strong>{claim.language}</strong><small>{languageClaimLabel(claim)} · {catalogueSourceLabel(claim.sourceId)}</small></div>)}</div><p className="language-evidence-note">Reported metadata is not proof that a particular stream contains this track. Selectable audio and subtitles are confirmed only by the prepared player.</p></section>}
           <div className="detail-actions"><button className="button button-primary" onClick={() => startPlayback(selected)}>▶ &nbsp;Open player</button><button className={"button " + (isSaved(selected) ? "button-saved" : "button-secondary")} onClick={() => toggleWatchlist(selected)}>{isSaved(selected) ? "✓ In My List" : "＋ Add to My List"}</button></div>
         </div>
       </div>
@@ -236,12 +238,26 @@ export default function App() {
   </div>;
 }
 
+function catalogueSourceLabel(sourceId: string): string {
+  if (sourceId === "offline-catalogue") return "Offline catalogue";
+  if (sourceId === "tmdb" || sourceId.startsWith("tmdb:")) return "TMDB";
+  return sourceId.split("::")[0] || sourceId;
+}
+function languageClaimLabel(claim: import("./types").LanguageClaim): string {
+  if (claim.selectable && claim.evidence === "player-probe" && claim.kind === "embedded-audio") return "Verified audio track";
+  if (claim.selectable && claim.evidence === "player-probe" && claim.kind === "subtitle") return "Verified subtitle track";
+  if (claim.kind === "embedded-audio") return "Reported audio claim · not verified";
+  if (claim.kind === "dubbed-version") return "Dubbed version reported";
+  if (claim.kind === "subtitle") return "Subtitle reported";
+  return "Original-language metadata";
+}
+
 function MediaGrid({ items, onSelect, isSaved, onToggleSave }: { items: MediaItem[]; onSelect: (item: MediaItem) => void; isSaved: (item: MediaItem) => boolean; onToggleSave: (item: MediaItem) => void }) {
   return <div className="media-grid">{items.map((item) => <article className="media-card" key={getStableMediaId(item)}>
     <button className="poster-button" onClick={() => onSelect(item)} aria-label={"View details for " + item.title}>
       {item.posterPath ? <img className="poster-image" src={posterUrl(item.posterPath)} alt={item.title + " poster"} loading="lazy" /> : <div className="poster-missing">7x<span>CINEMA</span></div>}
       <span className="poster-kind">{kindLabel(item)}</span><span className="poster-rating"><i>★</i> {ratingLabel(item)}</span><span className="poster-hover"><i>↗</i><small>VIEW DETAILS</small></span>
     </button>
-    <div className="media-card-info"><button className="media-title" onClick={() => onSelect(item)}>{item.title}</button><div className="media-subline"><span>{item.year ?? "Year unknown"}</span><i /><span>{item.genres[0] ?? (item.kind === "movie" ? "Film" : "Series")}</span></div><button className={"save-small " + (isSaved(item) ? "is-saved" : "")} onClick={() => onToggleSave(item)} aria-label={isSaved(item) ? "Remove " + item.title + " from My List" : "Save " + item.title + " to My List"}>{isSaved(item) ? "✓" : "+"}</button></div>
+    <div className="media-card-info"><button className="media-title" onClick={() => onSelect(item)}>{item.title}</button><div className="media-subline"><span>{item.year ?? "Year unknown"}</span><i /><span>{item.sources.length > 1 ? item.sources.length + " catalogues" : (item.genres[0] ?? (item.kind === "movie" ? "Film" : "Series"))}</span></div><button className={"save-small " + (isSaved(item) ? "is-saved" : "")} onClick={() => onToggleSave(item)} aria-label={isSaved(item) ? "Remove " + item.title + " from My List" : "Save " + item.title + " to My List"}>{isSaved(item) ? "✓" : "+"}</button></div>
   </article>)}</div>;
 }
