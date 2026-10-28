@@ -20,6 +20,22 @@ describe("universal search core", () => {
     expect(merged[0].genres).toEqual(["Sci-Fi", "Adventure"]);
   });
 
+  it("keeps distinct playable source candidates when duplicate catalogue records merge", () => {
+    const firstUrl = "https://media.example.org/primary.mp4";
+    const fallbackUrl = "https://media.example.org/fallback.mp4";
+    const merged = mergeResults([
+      item({ sources: ["alpha"], playbackSources: [
+        { id: "primary-a", providerId: "alpha", label: "Primary", url: firstUrl, type: "mp4" },
+      ] }),
+      item({ sources: ["beta"], playbackSources: [
+        { id: "primary-b", providerId: "beta", label: "Duplicate primary", url: firstUrl, type: "mp4" },
+        { id: "fallback-b", providerId: "beta", label: "Fallback", url: fallbackUrl, type: "mp4" },
+      ] }),
+    ]);
+    expect(merged).toHaveLength(1);
+    expect(merged[0].playbackSources?.map((source) => source.url)).toEqual([firstUrl, fallbackUrl]);
+  });
+
   it("merges language claims without erasing per-provider provenance", () => {
     const merged = mergeResults([
       item({ sources: ["alpha"], languageClaims: [
