@@ -147,6 +147,17 @@ export async function movieboxApiRequest<T>(path: string, init: RequestInit = {}
   return payload as T;
 }
 
+function stableMovieboxTitleId(row: MovieboxCatalogEntry): string {
+  const normalizedTitle = row.title
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+  const identity = normalizedTitle || row.id.value;
+  return `moviebox-tui:${row.media_type}:${encodeURIComponent(identity)}:${row.year?.trim() || "unknown"}`;
+}
+
 export function mapMovieboxCatalogEntry(row: MovieboxCatalogEntry): MediaItem {
   const sourceRefs = row.sources?.length ? row.sources : [row.id];
   const languages = [...new Set((row.languages ?? []).map((value) => value.trim()).filter(Boolean))];
@@ -158,7 +169,7 @@ export function mapMovieboxCatalogEntry(row: MovieboxCatalogEntry): MediaItem {
     selectable: false,
   }));
   return {
-    id: "moviebox-tui:" + row.id.provider + ":" + row.id.value,
+    id: stableMovieboxTitleId(row),
     kind: row.media_type === "series" ? "tv" : "movie",
     title: row.title,
     originalTitle: row.title,
