@@ -48,7 +48,10 @@
 **Files:** `capacitor-app/src/App.tsx`, `capacitor-app/src/styles.css`.
 
 - [x] Add one-tap Watch controls and source chooser using official destinations/trailers.
-- [ ] Validate home, search, movies, series, My List, settings, detail modal, watch-provider destination, web player fallback, and native Media3 player.
+- [x] Add Jellyfin personal library connection, session restoration/clearing, library browse, season/episode selection, and resume queue.
+- [x] Pass source-supplied headers to Media3 without adding credentials to URLs.
+- [x] Report Jellyfin playback progress through a validated same-origin endpoint.
+- [ ] Validate home, search, movies, series, My List, settings, detail modal, watch-provider destination, web player fallback, and native Media3 player on a physical device.
 - [x] Verify a valid adapter-supplied URL is passed straight to the player without a manual paste/load step.
 - [x] Hide manual URL entry behind Advanced when there is no direct source.
 - [ ] Verify keyboard-only focus, reduced-motion preference, mobile bottom navigation, and narrow viewport layout.
@@ -91,3 +94,16 @@
 - [ ] Confirm the newest CI run and APK build on the final commit.
 - [ ] Test on Rahul's Android device with one open-license archive item, an official-watch-only title, and an invalid URL.
 
+
+
+### Task 7: Jellyfin personal-library integration
+
+**Files:** `capacitor-app/src/services/jellyfin.ts`, `capacitor-app/src/services/jellyfin.test.ts`, `capacitor-app/src/services/jellyfinSession.ts`, `capacitor-app/src/App.tsx`, native Media3 player bridge/activity.
+
+- [x] Add server URL normalization, password authentication, session token validation, and platform secure storage.
+- [x] Add parallel catalogue search and no-query library browsing.
+- [x] Add season/episode retrieval and an episode selection screen.
+- [x] Read saved resume positions for movies and episodes.
+- [x] Pass authenticated stream headers and resume position to Media3 without putting tokens in URLs.
+- [x] Add native periodic progress reports to Jellyfin, scoped to same-origin URLs, with network failures isolated from media playback.
+- [ ] Test login, browsing, direct play, resume, pause, and progress on a real Jellyfin server and physical Android device.
