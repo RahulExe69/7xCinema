@@ -87,3 +87,10 @@ Run the same minimal feasibility test against the shortlisted base approaches:
 7. compare build effort, source-model fit, licence obligations and maintainability.
 
 Only after this gate should the repository move from planning into the first application implementation. Keep the exact decision and evidence in the decision log.
+
+
+## Subtitle coverage research
+
+Subtitle availability is being treated as a separate capability from dubbed audio and in-app playback. The current OpenSubtitles.com REST API is the primary subtitle API candidate to evaluate; the legacy OpenSubtitles.org XML-RPC API received a shutdown/migration notice in January 2026, so we should not inherit old integrations. Wyzie Subs is an alternate key-based API whose current terms and quota must be reviewed before adoption.
+
+Neither subtitle API provides movie audio dubs. Every subtitle needs a title/episode/version match and format/encoding validation. See [Multilingual model](MULTILINGUAL.md), [Provider matrix](PROVIDER_MATRIX.md), and [Research register](RESEARCH_REGISTER.md) for evidence and constraints.
