@@ -15,6 +15,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import androidx.annotation.Nullable;
 import androidx.media3.common.C;
 import androidx.media3.common.Format;
@@ -25,6 +28,9 @@ import androidx.media3.common.Player;
 import androidx.media3.common.TrackSelectionOverride;
 import androidx.media3.common.Tracks;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
+import androidx.media3.datasource.DefaultDataSource;
+import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.ui.AspectRatioFrameLayout;
 import androidx.media3.ui.PlayerView;
 
@@ -32,11 +38,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public final class NativePlayerActivity extends Activity {
     public static final String EXTRA_URL = "com.sevenxcinema.app.MEDIA_URL";
     public static final String EXTRA_TITLE = "com.sevenxcinema.app.MEDIA_TITLE";
     public static final String EXTRA_FALLBACK_URLS = "com.sevenxcinema.app.MEDIA_FALLBACK_URLS";
+    public static final String EXTRA_HEADERS = "com.sevenxcinema.app.MEDIA_HEADERS";
 
     private static final int BACKGROUND = Color.rgb(8, 10, 16);
     private static final int SURFACE = Color.rgb(22, 26, 37);
@@ -50,6 +59,7 @@ public final class NativePlayerActivity extends Activity {
     private String mediaUrl;
     private String mediaTitle;
     private final ArrayList<String> sourceUrls = new ArrayList<>();
+    private final Map<String, String> requestHeaders = new LinkedHashMap<>();
     private int currentSourceIndex = 0;
     private boolean resumeAfterPause;
 
@@ -69,6 +79,21 @@ public final class NativePlayerActivity extends Activity {
             for (String candidate : fallbackUrls) {
                 if (sourceUrls.size() >= 8) break;
                 if (isSafeMediaUrl(candidate) && !sourceUrls.contains(candidate)) sourceUrls.add(candidate);
+            }
+        }
+        String rawHeaders = getIntent().getStringExtra(EXTRA_HEADERS);
+        if (rawHeaders != null) {
+            try {
+                JSONObject headers = new JSONObject(rawHeaders);
+                for (String allowed : new String[] {"Authorization", "X-Emby-Token"}) {
+                    String value = headers.optString(allowed, "");
+                    if (!value.isEmpty() && value.length() <= 4096
+                            && value.indexOf('\r') < 0 && value.indexOf('\n') < 0) {
+                        requestHeaders.put(allowed, value);
+                    }
+                }
+            } catch (JSONException ignored) {
+                // Invalid header metadata is discarded rather than logged.
             }
         }
 
@@ -170,7 +195,11 @@ public final class NativePlayerActivity extends Activity {
     }
 
     private void initializePlayer() {
-        player = new ExoPlayer.Builder(this).build();
+        DefaultHttpDataSource.Factory httpFactory = new DefaultHttpDataSource.Factory();
+        if (!requestHeaders.isEmpty()) httpFactory.setDefaultRequestProperties(requestHeaders);
+        DefaultDataSource.Factory dataSourceFactory = new DefaultDataSource.Factory(this, httpFactory);
+        DefaultMediaSourceFactory mediaSourceFactory = new DefaultMediaSourceFactory(dataSourceFactory);
+        player = new ExoPlayer.Builder(this).setMediaSourceFactory(mediaSourceFactory).build();
         playerView.setPlayer(player);
         player.addListener(new Player.Listener() {
             @Override
