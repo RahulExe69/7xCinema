@@ -73,3 +73,28 @@ Statuses: **Accepted**, **Proposed**, **Open**, **Superseded**.
 - How should provider capability and health data be exposed to users?
 - What is the minimum viable player capable of handling required transports and selectable audio/subtitle tracks?
 - Which persistence features belong in the first user-facing release?
+
+
+## D-011 — Audit the provider core before reusing the TUI crate
+- **Status:** Accepted
+- **Decision:** Treat MovieBox-TUI as a reference and possible source of isolated provider/domain modules, not a direct Android app dependency.
+- **Evidence:** The inspected service dispatches search by a single ProviderKind and its UI search call passes the currently selected provider. The library exports the TUI module alongside service/provider modules, and its documented Android usage is Termux with an external player.
+- **Implication:** 7xCinema needs a distinct universal-search coordinator. Validate whether a clean provider-core extraction is viable before consuming the complete crate.
+
+## D-012 — Prototype React/Capacitor plus a native Media3 boundary first
+- **Status:** Proposed
+- **Decision:** Use React + TypeScript + Capacitor as the first framework feasibility spike, with a small Kotlin/Media3 integration for supported media playback and real audio/subtitle-track events.
+- **Reason:** It balances web-first UI iteration with access to Android's native player APIs and avoids committing to a large third-party app fork.
+- **Conditions:** This is not final until the proof-of-concept gates in FRAMEWORK_COMPARISON.md pass. Compare Flutter/native Kotlin if player bridging, native lifecycle, or network access becomes too costly.
+
+## D-013 — Third-party source permission is a provider gate
+- **Status:** Accepted
+- **Decision:** Do not integrate a provider because its repository is public, its API responds, or another project lists it. Require source/terms/rights/security review and repeatable behaviour tests before enabling it.
+- **Reason:** A code licence does not grant rights to every upstream service or media returned by an adapter.
+- **Implication:** TMDB-Embed-API is currently architecture-reference-only; individual stream resolvers are not approved for reuse.
+
+## D-014 — Use media track selection only for real media tracks
+- **Status:** Accepted
+- **Decision:** The player's audio/subtitle menu reflects tracks discovered from the actual prepared media and track capabilities. A separate dubbed version is a separate playback candidate.
+- **Reason:** Title-level language aggregation can combine options from multiple sources but cannot manufacture an embedded track.
+- **Implication:** Language-source mapping and source provenance are mandatory in domain models and tests.
