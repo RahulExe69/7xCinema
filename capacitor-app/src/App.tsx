@@ -364,7 +364,7 @@ export default function App() {
     setShowAdvancedSource(false);
     if (isNativePlayerAvailable()) {
       try {
-        await NativePlayer.play({ url: intent.url, fallbackUrls: intent.fallbackUrls, headers: sourceHeaders, title: item.title });
+        await NativePlayer.play({ url: intent.url, fallbackUrls: intent.fallbackUrls, headers: sourceHeaders, startPositionMs: item.resumePositionMs, title: item.title });
         setPlayTarget(null);
       } catch (error) {
         setPlayerError(error instanceof Error ? error.message : "The native player could not open this source.");
@@ -558,7 +558,7 @@ export default function App() {
                 </button>)}</div>
               </>}
           </section>}
-          <div className="detail-actions"><button className="button button-primary" onClick={() => startPlayback(selected)}>{selected.libraryItemId ? (selected.libraryItemType === "series" ? "▷  Browse episodes" : "▶  Play from library") : (getPlaybackIntent(selected).type === "direct" ? "▶  Play now" : "▷  Where to watch")}</button><button className={"button " + (isSaved(selected) ? "button-saved" : "button-secondary")} onClick={() => toggleWatchlist(selected)}>{isSaved(selected) ? "✓ In My List" : "＋ Add to My List"}</button>{trailerUrl && <button className="button button-secondary" onClick={() => void openOfficialDestination(trailerUrl)}>Watch official trailer ↗</button>}</div>
+          <div className="detail-actions"><button className="button button-primary" onClick={() => startPlayback(selected)}>{selected.libraryItemId ? (selected.libraryItemType === "series" ? "▷  Browse episodes" : (selected.resumePositionMs && selected.resumePositionMs > 30_000 ? "▶  Resume from library" : "▶  Play from library")) : (getPlaybackIntent(selected).type === "direct" ? "▶  Play now" : "▷  Where to watch")}</button><button className={"button " + (isSaved(selected) ? "button-saved" : "button-secondary")} onClick={() => toggleWatchlist(selected)}>{isSaved(selected) ? "✓ In My List" : "＋ Add to My List"}</button>{trailerUrl && <button className="button button-secondary" onClick={() => void openOfficialDestination(trailerUrl)}>Watch official trailer ↗</button>}</div>
           {trailerLoading && <p className="field-help">Checking for an official trailer…</p>}
           {trailerMessage && tmdbEnabled && <p className="field-help">{trailerMessage}</p>}
         </div>
@@ -617,7 +617,7 @@ function MediaGrid({ items, onSelect, onWatch, isSaved, onToggleSave }: { items:
       {item.imageUrl || item.posterPath ? <img className="poster-image" src={item.imageUrl ?? posterUrl(item.posterPath)} alt={item.title + " poster"} loading="lazy" /> : <div className="poster-missing">7x<span>CINEMA</span></div>}
       <span className="poster-kind">{kindLabel(item)}</span><span className="poster-rating"><i>★</i> {ratingLabel(item)}</span><span className="poster-hover"><i>↗</i><small>VIEW DETAILS</small></span>
     </button>
-    <button className="poster-watch-action" onClick={() => onWatch(item)} aria-label={item.libraryItemId ? (item.libraryItemType === "series" ? "Browse episodes for " + item.title : "Play " + item.title + " from your library") : (getPlaybackIntent(item).type === "direct" ? "Play " + item.title : "Find where to watch " + item.title)}>{item.libraryItemId ? (item.libraryItemType === "series" ? "▷ Episodes" : "▶ Play from library") : (getPlaybackIntent(item).type === "direct" ? "▶ Play now" : "▷ Watch")}</button>
+    <button className="poster-watch-action" onClick={() => onWatch(item)} aria-label={item.libraryItemId ? (item.libraryItemType === "series" ? "Browse episodes for " + item.title : "Play " + item.title + " from your library") : (getPlaybackIntent(item).type === "direct" ? "Play " + item.title : "Find where to watch " + item.title)}>{item.libraryItemId ? (item.libraryItemType === "series" ? "▷ Episodes" : (item.resumePositionMs && item.resumePositionMs > 30_000 ? "▶ Resume" : "▶ Play from library")) : (getPlaybackIntent(item).type === "direct" ? "▶ Play now" : "▷ Watch")}</button>
     <div className="media-card-info"><button className="media-title" onClick={() => onSelect(item)}>{item.title}</button><div className="media-subline"><span>{item.year ?? "Year unknown"}</span><i /><span>{item.sources.length > 1 ? item.sources.length + " catalogues" : (item.genres[0] ?? (item.kind === "movie" ? "Film" : "Series"))}</span></div><button className={"save-small " + (isSaved(item) ? "is-saved" : "")} onClick={() => onToggleSave(item)} aria-label={isSaved(item) ? "Remove " + item.title + " from My List" : "Save " + item.title + " to My List"}>{isSaved(item) ? "✓" : "+"}</button></div>
   </article>)}</div>;
 }
