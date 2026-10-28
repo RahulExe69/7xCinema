@@ -36,6 +36,7 @@ import java.util.Locale;
 public final class NativePlayerActivity extends Activity {
     public static final String EXTRA_URL = "com.sevenxcinema.app.MEDIA_URL";
     public static final String EXTRA_TITLE = "com.sevenxcinema.app.MEDIA_TITLE";
+    public static final String EXTRA_FALLBACK_URLS = "com.sevenxcinema.app.MEDIA_FALLBACK_URLS";
 
     private static final int BACKGROUND = Color.rgb(8, 10, 16);
     private static final int SURFACE = Color.rgb(22, 26, 37);
@@ -48,6 +49,8 @@ public final class NativePlayerActivity extends Activity {
     private TextView statusView;
     private String mediaUrl;
     private String mediaTitle;
+    private final ArrayList<String> sourceUrls = new ArrayList<>();
+    private int currentSourceIndex = 0;
     private boolean resumeAfterPause;
 
     @Override
@@ -59,6 +62,14 @@ public final class NativePlayerActivity extends Activity {
             Toast.makeText(this, "The media URL is not valid.", Toast.LENGTH_LONG).show();
             finish();
             return;
+        }
+        sourceUrls.add(mediaUrl);
+        ArrayList<String> fallbackUrls = getIntent().getStringArrayListExtra(EXTRA_FALLBACK_URLS);
+        if (fallbackUrls != null) {
+            for (String candidate : fallbackUrls) {
+                if (sourceUrls.size() >= 8) break;
+                if (isSafeMediaUrl(candidate) && !sourceUrls.contains(candidate)) sourceUrls.add(candidate);
+            }
         }
 
         getWindow().setStatusBarColor(BACKGROUND);
@@ -182,15 +193,34 @@ public final class NativePlayerActivity extends Activity {
 
             @Override
             public void onPlayerError(PlaybackException error) {
+                if (currentSourceIndex + 1 < sourceUrls.size()) {
+                    currentSourceIndex++;
+                    if (statusView != null) {
+                        statusView.setText("Source failed · trying option "
+                                + (currentSourceIndex + 1) + " of " + sourceUrls.size());
+                    }
+                    prepareSourceAtIndex(currentSourceIndex);
+                    return;
+                }
                 if (statusView != null) {
-                    statusView.setText("Playback error · " + error.getErrorCodeName());
+                    statusView.setText("All available sources failed · " + error.getErrorCodeName());
                 }
                 Toast.makeText(NativePlayerActivity.this,
-                        "This source could not be played on this device.", Toast.LENGTH_LONG).show();
+                        "All supplied source options failed on this device.", Toast.LENGTH_LONG).show();
             }
         });
+        prepareSourceAtIndex(0);
+    }
 
-        Uri uri = Uri.parse(mediaUrl);
+    private void prepareSourceAtIndex(int index) {
+        if (player == null || index < 0 || index >= sourceUrls.size()) return;
+        player.setMediaItem(buildMediaItem(sourceUrls.get(index)));
+        player.setPlayWhenReady(true);
+        player.prepare();
+    }
+
+    private MediaItem buildMediaItem(String value) {
+        Uri uri = Uri.parse(value);
         MediaItem.Builder item = new MediaItem.Builder().setUri(uri);
         String path = uri.getPath();
         if (path != null) {
@@ -203,9 +233,7 @@ public final class NativePlayerActivity extends Activity {
                 item.setMimeType(MimeTypes.APPLICATION_SS);
             }
         }
-        player.setMediaItem(item.build());
-        player.setPlayWhenReady(true);
-        player.prepare();
+        return item.build();
     }
 
     private static final class TrackOption {
