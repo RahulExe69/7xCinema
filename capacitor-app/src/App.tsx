@@ -727,7 +727,7 @@ export default function App() {
         <div className="player-entry-icon">{getPlaybackIntent(playTarget).type === "direct" ? "↻" : "↗"}</div>
         {getPlaybackIntent(playTarget).type === "direct" && playerError
           ? <><h3>That source didn’t start.</h3><p>Try the original source page, or choose another authorised destination. We won’t pretend a metadata result is a working stream.</p><button className="button button-primary" onClick={() => startPlayback(playTarget)}>Retry source <span>→</span></button></>
-          : <><h3>Choose how to watch.</h3><p className="source-choice-note">7xCinema checks the available playback information first. When a real media source is present, it opens automatically. Otherwise, choose an official destination or trailer below.</p></>}
+          : <><h3>{playTarget.providerItems?.length ? "Choose a source to play." : "Choose how to watch."}</h3><p className="source-choice-note">{playTarget.providerItems?.length ? "MovieBox-TUI checks the configured streaming providers, combines matching releases, and keeps source identity so the selected version can be resolved correctly." : "7xCinema checks the available playback information first. When a real media source is present, it opens automatically. Otherwise, choose an official destination or trailer below."}</p></>}
         {playTarget.providerItems?.length ? <section className="moviebox-source-panel">
           <div className="moviebox-panel-heading"><span className="section-kicker">MOVIEBOX-TUI · MULTI-SOURCE ENGINE</span><strong>{movieboxDetails ? "Choose an episode" : movieboxPlayback ? "Choose a release" : "Checking available sources"}</strong></div>
           <p className="field-help">Sources are searched across enabled providers. Titles are merged for browsing, while each provider-specific ID is retained for playback.</p>
@@ -777,9 +777,20 @@ function catalogueSourceLabel(sourceId: string): string {
   if (sourceId === "offline-catalogue") return "Offline catalogue";
   if (sourceId === "tmdb" || sourceId.startsWith("tmdb:")) return "TMDB";
   if (sourceId === "internet-archive-open-license") return "Internet Archive · open-license";
+  const providerLabels: Record<string, string> = {
+    moviebox: "MovieBox",
+    fourkhdhub: "4KHDHub",
+    dramachi: "Dramachi",
+    bdix_circleftp: "CircleFTP · BDIX",
+    bdix_dhakaflix: "DhakaFlix · BDIX",
+    addons: "Community add-ons",
+  };
+  if (providerLabels[sourceId]) return providerLabels[sourceId];
+  if (sourceId.startsWith("moviebox-tui:")) return "MovieBox-TUI";
   return sourceId.split("::")[0] || sourceId;
 }
 function languageClaimLabel(claim: import("./types").LanguageClaim): string {
+  if (claim.kind === "reported" && claim.evidence === "provider-metadata") return "Reported language · source metadata";
   if (claim.selectable && claim.evidence === "player-probe" && claim.kind === "embedded-audio") return "Verified audio track";
   if (claim.selectable && claim.evidence === "player-probe" && claim.kind === "subtitle") return "Verified subtitle track";
   if (claim.kind === "embedded-audio") return "Reported audio claim · not verified";
@@ -794,7 +805,7 @@ function MediaGrid({ items, onSelect, onWatch, isSaved, onToggleSave }: { items:
       {item.imageUrl || item.posterPath ? <img className="poster-image" src={item.imageUrl ?? posterUrl(item.posterPath)} alt={item.title + " poster"} loading="lazy" /> : <div className="poster-missing">7x<span>CINEMA</span></div>}
       <span className="poster-kind">{kindLabel(item)}</span><span className="poster-rating"><i>★</i> {ratingLabel(item)}</span><span className="poster-hover"><i>↗</i><small>VIEW DETAILS</small></span>
     </button>
-    <button className="poster-watch-action" onClick={() => (item.libraryVariants?.length ?? 0) > 1 ? onSelect(item) : onWatch(item)} aria-label={(item.libraryVariants?.length ?? 0) > 1 ? "Choose a version of " + item.title : item.libraryItemId ? (item.libraryItemType === "series" ? "Browse episodes for " + item.title : "Play " + item.title + " from your library") : (getPlaybackIntent(item).type === "direct" ? "Play " + item.title : "Find where to watch " + item.title)}>{(item.libraryVariants?.length ?? 0) > 1 ? "▷ Choose version" : item.libraryItemId ? (item.libraryItemType === "series" ? "▷ Episodes" : (item.resumePositionMs && item.resumePositionMs > 30_000 ? "▶ Resume" : "▶ Play from library")) : (getPlaybackIntent(item).type === "direct" ? "▶ Play now" : "▷ Watch")}</button>
+    <button className="poster-watch-action" onClick={() => (item.libraryVariants?.length ?? 0) > 1 ? onSelect(item) : onWatch(item)} aria-label={(item.libraryVariants?.length ?? 0) > 1 ? "Choose a version of " + item.title : item.libraryItemId ? (item.libraryItemType === "series" ? "Browse episodes for " + item.title : "Play " + item.title + " from your library") : (getPlaybackIntent(item).type === "direct" ? "Play " + item.title : "Find where to watch " + item.title)}>{(item.libraryVariants?.length ?? 0) > 1 ? "▷ Choose version" : item.providerItems?.length ? "▶ Choose source" : item.libraryItemId ? (item.libraryItemType === "series" ? "▷ Episodes" : (item.resumePositionMs && item.resumePositionMs > 30_000 ? "▶ Resume" : "▶ Play from library")) : (getPlaybackIntent(item).type === "direct" ? "▶ Play now" : "▷ Watch")}</button>
     <div className="media-card-info"><button className="media-title" onClick={() => onSelect(item)}>{item.title}</button><div className="media-subline"><span>{item.year ?? "Year unknown"}</span><i /><span>{(item.libraryVariants?.length ?? 0) > 1 ? item.libraryVariants?.length + " library versions" : item.sources.length > 1 ? item.sources.length + " catalogues" : (item.genres[0] ?? (item.kind === "movie" ? "Film" : "Series"))}</span></div><button className={"save-small " + (isSaved(item) ? "is-saved" : "")} onClick={() => onToggleSave(item)} aria-label={isSaved(item) ? "Remove " + item.title + " from My List" : "Save " + item.title + " to My List"}>{isSaved(item) ? "✓" : "+"}</button></div>
   </article>)}</div>;
 }
