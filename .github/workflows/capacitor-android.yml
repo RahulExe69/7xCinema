@@ -93,6 +93,23 @@ jobs:
       - name: Install JavaScript dependencies
         run: npm install --no-audit --no-fund
 
+      - name: Bundle MovieBox-TUI licence notices with app assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          LICENSE_DIR="public/licenses/Moviebox-Tui"
+          mkdir -p "$LICENSE_DIR"
+          cp ../third_party/Moviebox-Tui/LICENSE-MIT "$LICENSE_DIR/LICENSE-MIT"
+          cp ../third_party/Moviebox-Tui/LICENSE-APACHE "$LICENSE_DIR/LICENSE-APACHE"
+          cat > "$LICENSE_DIR/NOTICE.txt" <<'EOF'
+          Moviebox-Tui Rust provider engine
+          Source: https://github.com/RahulExe69/Moviebox-Tui
+          Pinned source revision: 2cc3390cd526d36e5864f15ba5243dc3dde46e4e
+          Upstream package: moviebox-tui 0.1.27
+          Upstream license: MIT OR Apache-2.0 (full texts adjacent)
+          This component is bundled separately from 7xCinema's own code.
+          EOF
+
       - name: Test aggregation and provider orchestration
         run: npm test
 
