@@ -69,10 +69,12 @@ MovieBox-TUI remains a potential source of isolated provider/domain concepts; it
 | Candidate repository audit | Initial code-level pass completed; full per-repo review remains |
 | Provider/source eligibility | Not yet cleared; candidate documentation is not approval |
 | Framework/base choice | Fresh Kotlin/Compose + Media3 has a compiling Android slice; final architecture remains provisional pending physical-device playback and a time-boxed Capacitor comparison |
-| JavaScript universal-search reference | Implemented under prototype/aggregation-core; GitHub Actions passed on main commit dcd413a7816218b08fdfebc2ee3e32b56c6c1156 |\n| Kotlin/JVM aggregation + provider fan-out | Implemented under prototype/kotlin-aggregation-core, including identity grouping, provenance, bounded concurrency, progressive snapshots, eligibility gating and timeout/error isolation; both CI jobs passed before merge commit 7b63e1c9e79997bc02dded55a5e779554f8f31bb |
+| JavaScript universal-search reference | Implemented under prototype/aggregation-core; GitHub Actions passed on main commit dcd413a7816218b08fdfebc2ee3e32b56c6c1156 |
+| Kotlin/JVM aggregation + provider fan-out | Implemented under prototype/kotlin-aggregation-core, including identity grouping, provenance, bounded concurrency, progressive snapshots, eligibility gating and timeout/error isolation; both CI jobs passed before merge commit 7b63e1c9e79997bc02dded55a5e779554f8f31bb |
 | Cross-provider title deduplication | Prototype tested with synthetic fixtures; production matching policy and wider evaluation remain open |
 | Language/source aggregation | Kotlin/JVM prototype preserves per-source claims and requires player-observed evidence for selectable tracks; UI can show claims without treating them as verified audio |
-| Android UI/player shell | Compose search/source-selection screen and Media3 player probe implemented; CI builds a debug APK. Source resolution and physical-device checks remain open |\n| Playback integration and fallback | Player controls, error reporting and actual-track inspection/selection are implemented in the probe; no real media playback on device or source resolver has been verified |
+| Android UI/player shell | Compose search/source-selection screen and Media3 player probe implemented; CI builds a debug APK. Source resolution and physical-device checks remain open |
+| Playback integration and fallback | Player controls, error reporting and actual-track inspection/selection are implemented in the probe; no real media playback on device or source resolver has been verified |
 | Prototype tests / CI | Shared identity fixtures pass in the JavaScript and Kotlin/JVM suites; Android debug APK build and artifact upload passed in GitHub Actions run [40670343817](https://github.com/RahulExe69/7xCinema/actions/runs/40670343817). Device playback remains unverified |
 
 ## Next milestone
