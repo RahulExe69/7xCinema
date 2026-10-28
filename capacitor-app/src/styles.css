@@ -38,3 +38,8 @@
   .source-action-button{font-size:10px;min-height:42px}
   .advanced-source-panel{padding:12px}
 }
+
+
+.poster-watch-action{position:absolute;z-index:4;left:50%;bottom:13px;transform:translate(-50%,7px);opacity:0;white-space:nowrap;min-height:34px;padding:0 13px;display:inline-flex;align-items:center;justify-content:center;gap:7px;background:rgba(9,12,18,.88);border:1px solid rgba(139,255,207,.48);border-radius:9px;color:var(--mint);font-size:9px;font-weight:800;box-shadow:0 5px 18px rgba(0,0,0,.24);backdrop-filter:blur(10px);transition:opacity .18s,transform .18s}
+.media-card:hover .poster-watch-action,.media-card:focus-within .poster-watch-action{opacity:1;transform:translate(-50%,0)}
+@media(max-width:640px){.poster-watch-action{opacity:1;transform:translate(-50%,0);bottom:9px;min-height:30px;padding:0 10px;font-size:8px;background:rgba(9,12,18,.84)}}
