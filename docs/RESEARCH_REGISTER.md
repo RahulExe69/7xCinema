@@ -168,3 +168,78 @@ Reference: [resource documentation](https://github.com/Stremio/stremio-addon-sdk
 3. Build aggregation tests with fake providers before depending on any live third-party source.
 4. Prioritise official/documented and otherwise explicitly authorised sources. Treat public code, an HTTP response, a README claim, or an encrypted endpoint as insufficient evidence of permission or stability.
 5. Keep TMDB metadata adoption conditional on intended use, terms, attribution, and any commercial licensing needs.
+
+
+## Second-pass candidates — 2026-10-28
+
+These are architectural research references, not pre-approved sources or dependencies.
+
+### 7. Lumora — closest source-merging design; do not fork or rebrand
+- Link: https://github.com/LumoraPlayer/Lumora
+- Observed: Native Kotlin Android app whose README describes combining multiple configured Xtream Codes, M3U/M3U8, Stalker Portal, Jellyfin, Silo, Plex, plugins, and Stremio addons into one interface. It describes a Find & Play flow.
+- Code-level clue: Channel.kt comments explain that details and playback URL construction differ by source, so one global provider field is insufficient when many sources coexist. ContentGrouping.kt shows explicit title normalisation/grouping and quality/source tag handling.
+- License/constraints: Current LICENSE is PolyForm Noncommercial 1.0.0; it says that replaces MIT for versions after v4.4 but is not retroactive for earlier versions obtained under MIT. README explicitly requests no renaming, rebranding, reskinning, or identity replacement. The repo description says “parked”.
+- Value: Learn how to represent multiple sources per logical title, preserve source identity, handle duplicate catalogue entries, and rank equivalent channel/source options.
+- Decision: High-value architecture reference only. Do not fork/rebrand it or copy current-licensed code without a specific reviewed basis and respect for the author’s constraints.
+- Status: Study architecture; not a reuse base by default.
+
+### 8. Nuvio Mobile — native player/addon architecture
+- Link: https://github.com/NuvioMedia/NuvioMobile
+- Type: Kotlin Multiplatform / Compose Multiplatform; Android build documented in README.
+- License/activity: GitHub declares GPL-3.0; current branch is cmp-rewrite, with recent repository activity in October 2026.
+- Code-level evidence: PlaybackAvailabilityTest.kt tests that catalog-only or metadata-only addons do not enable playback, while a compatible stream addon does; the tests check media type and ID-prefix compatibility. PlayerEngine.android.kt integrates Android Media3/ExoPlayer and optional MPV with lifecycle and playback-state handling.
+- Value: Typed addon capabilities, player lifecycle, track handling, and contract tests.
+- Limitation: Nuvio follows “bring your own sources”, while 7xCinema aims to coordinate eligible providers internally with minimal user setup. GPL-3.0 means code reuse/derivation needs a deliberate licensing decision.
+- Status: High-value architecture reference; no automatic fork decision.
+
+### 9. Nuvio TV — native TV/addon reference
+- Link: https://github.com/NuvioMedia/NuvioTV
+- Type: Kotlin/Jetpack Compose Android TV app with Media3; GPL-3.0.
+- Value: TV navigation, addon management and native player integration if Android TV becomes a target.
+- Status: Reference only; TV is not a first-MVP requirement.
+
+### 10. Community Stremio Android — Kotlin/Compose + Rust bridge reference
+- Link: https://github.com/stremio-native/stremio-android
+- Observed: README describes an unofficial community Android client using Kotlin/Compose, Stremio core/addons, ExoPlayer/MPV and a Rust-powered local streaming component.
+- Risks: GitHub metadata did not report a recognised licence. Its last reported code push was 2026-07-23, so inspect actual LICENSE, submodule/dependency licences, build reproducibility and maintenance before any reuse.
+- Status: Architecture reference only; licensing/maintenance unresolved.
+
+### 11. Official Sources — official availability/link-out integration
+- Link: https://github.com/user-griffin/official-sources
+- Observed: MIT-licensed Stremio-compatible addon. README says it returns legitimate subscription/free, rental and purchase destinations, then opens the official provider app or HTTPS title page. It expressly does not play, download, proxy, decrypt, scrape or redistribute video; authentication and playback remain in the official service.
+- Value: A separate official-destination layer can improve discovery coverage when 7xCinema has no authorised, compatible in-app source. Clearly label it as an external hand-off, not in-app playback.
+- Risks: Depends on Watchmode; check current API-plan features, attribution, caching, rate limits and maintenance. Repository metadata showed last push 2026-08-03; compatibility needs re-verifying.
+- Status: Promising design/reference; not yet integrated.
+
+### 12. SHS-Player — player-only reference
+- Link: https://github.com/SHSLabs/SHS-Player
+- Observed: Native Kotlin/Compose multimedia app declaring MIT, with Media3/LibVLC, subtitle, local media/network and IPTV functionality.
+- Value: Playback UI and capabilities, not catalogue-wide provider aggregation.
+- Limitations: Metadata showed last push 2026-07-23 and a smaller community; verify build/dependencies/maintenance before any reuse.
+- Status: Player reference only.
+
+## Source type taxonomy
+
+Every integration must declare one or more explicit types:
+
+1. Metadata/catalogue — title identity, artwork, descriptions, ratings, credits, genres, seasons and episodes; not playable media.
+2. Playable source — an authorised candidate or resolver that may lead to in-app playback.
+3. Official availability destination — a title-level official streaming, subscription, rental, purchase or app destination; not proof of in-app playability.
+4. Personal library/server — the user’s own authorised media server; credentials must be handled securely.
+5. Interoperability adapter — a protocol such as a Stremio-compatible addon interface. The protocol is not itself a source; each addon needs review.
+6. Live-TV/IPTV catalogue — channels/EPG/live streams with separate rights, region and availability checks.
+
+A title may combine metadata from one integration, playable candidates from another, and an official destination from a third. Preserve source type and provenance for every record.
+
+## Revised research priorities
+
+1. MovieBox-TUI: inspect for provider/domain concepts and possible isolated module reuse; universal search still needs its own orchestration.
+2. Nuvio Mobile: study native Compose, Media3 and capability-aware addon/tests; GPL review needed for code reuse.
+3. Lumora: study source identity and title grouping; do not fork/rebrand current project.
+4. FlixQuest: study Flutter UI/player, noting GPL, custom player and separate scraper API.
+5. Stremio Addon SDK and compatible clients: evaluate protocol support; each addon needs independent review.
+6. Official Sources: consider a lawful official destination layer.
+7. TMDB-Embed-API: aggregation concept only until source eligibility/security are established.
+8. CloudStream and Nuvio TV: extension and TV UX references, not default bases.
+
+The framework proof of concept should now compare native Kotlin/Compose + Media3 against React/Capacitor + a native player plugin before selecting the app framework.
