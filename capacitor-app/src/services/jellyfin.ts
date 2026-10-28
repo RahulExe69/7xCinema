@@ -172,6 +172,32 @@ export async function authenticateJellyfin(
   };
 }
 
+export async function fetchJellyfinLibrary(
+  session: JellyfinSession,
+  signal?: AbortSignal,
+  limit = 60,
+  fetcher: typeof fetch = fetch,
+): Promise<MediaItem[]> {
+  const safeLimit = Number.isInteger(limit) ? Math.max(1, Math.min(limit, 150)) : 60;
+  const url = makeApiUrl(
+    session.baseUrl,
+    "Users/" + session.userId + "/Items",
+    {
+      IncludeItemTypes: "Movie,Series",
+      Recursive: "true",
+      Limit: String(safeLimit),
+      SortBy: "DateCreated",
+      SortOrder: "Descending",
+      Fields: "Overview,ProductionYear,CommunityRating,Genres,RunTimeTicks,OriginalTitle,ChildCount,ProviderIds",
+      EnableTotalRecordCount: "false",
+    },
+  );
+  const response = await requestJson<JellyfinItemsResponse>(url, session.token, { signal }, fetcher);
+  return (response.Items ?? []).flatMap((item) => {
+    try { return [mapJellyfinItem(item)]; } catch { return []; }
+  });
+}
+
 export async function searchJellyfin(
   session: JellyfinSession,
   query: string,
