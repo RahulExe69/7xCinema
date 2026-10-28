@@ -53,13 +53,8 @@ import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import com.sevenxcinema.aggregation.CatalogueItem
-import com.sevenxcinema.aggregation.ClaimEvidence
-import com.sevenxcinema.aggregation.ClaimKind
 import com.sevenxcinema.aggregation.LogicalTitle
-import com.sevenxcinema.aggregation.ProviderLanguageClaim
 import com.sevenxcinema.aggregation.ProviderSearchStatus
-import com.sevenxcinema.aggregation.SearchProvider
 import com.sevenxcinema.aggregation.SearchSnapshot
 import com.sevenxcinema.aggregation.SourceRecord
 import com.sevenxcinema.aggregation.aggregateSearch
