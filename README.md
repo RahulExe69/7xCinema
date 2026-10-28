@@ -6,7 +6,7 @@
 
 The application should do the coordination internally. Users search once; 7xCinema gathers results from enabled integrations, reconciles duplicates carefully, preserves source provenance, combines verified language information, and offers the best compatible playback options it can establish.
 
-> **Project status:** Research and prototype stage. A framework-neutral search core is implemented and tested; the Android app foundation and live integrations are not yet implemented. Framework choices remain provisional until the Android feasibility gate is passed.
+> **Project status:** Research and prototype stage. A JavaScript reference core and a Kotlin/JVM aggregation/fan-out prototype are implemented and tested with synthetic providers; Android UI and live integrations are not yet implemented. Framework choices remain provisional until the Android feasibility gate is passed.
 
 ## Vision
 
@@ -48,7 +48,8 @@ The application should do the coordination internally. Users search once; 7xCine
 - [Decision log](docs/DECISIONS.md) — recorded decisions and choices that still require evidence.
 - [Security and privacy](docs/SECURITY.md) — provider trust boundaries, secrets, network safety, and data minimisation.
 - [Testing strategy](docs/TESTING.md) — validation plan for aggregation, providers, languages, and playback.
-- [Universal search core prototype](prototype/aggregation-core/README.md) — framework-neutral implementation and automated tests using synthetic providers.
+- [Universal search core prototype](prototype/aggregation-core/README.md) — JavaScript reference implementation and automated tests using synthetic providers.
+- [Kotlin aggregation core](prototype/kotlin-aggregation-core/README.md) — Kotlin/JVM title grouping, language provenance, bounded provider fan-out, timeout isolation, and CI tests.
 - [Glossary](docs/GLOSSARY.md) — shared terminology for the project.
 - [Contributing](CONTRIBUTING.md) — workflow and quality expectations.
 
@@ -60,11 +61,11 @@ The application should do the coordination internally. Users search once; 7xCine
 | Provider candidates | Multi-pass architecture audit, provider matrix and summary; eligibility/runtime verification ongoing |
 | Existing Rust provider foundation | Provider traits and service dispatcher inspected; native-provider search is single-provider, so universal aggregation is new work |
 | Android/UI framework | Fresh Kotlin/Compose + Media3 is the preferred Android-first spike; Capacitor remains a comparison candidate; no app stack has passed the device gate |
-| Universal search engine | Framework-neutral prototype implemented; live provider adapters and UI integration remain open |
+| Universal search engine | JavaScript reference plus Kotlin/JVM fan-out prototype pass synthetic-provider tests; live provider adapters and UI integration remain open |
 | Cross-provider deduplication | Prototype groups by shared IDs with a conservative ID-less title/year fallback; broader evaluation remains open |
 | Language aggregation | Prototype preserves source-scoped claims and distinguishes provider claims from player-verified tracks |
 | Playback and fallback | Planned; no app-level playback path validated |
-| Automated tests / CI | Prototype tests run in GitHub Actions; application-level CI/build not established |
+| Automated tests / CI | JavaScript and Kotlin/JVM prototype suites run in GitHub Actions; Android application build/device playback not established |
 
 ## Current research references
 
