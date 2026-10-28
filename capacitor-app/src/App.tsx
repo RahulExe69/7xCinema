@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Browser } from "@capacitor/browser";
+import { App as CapacitorApp } from "@capacitor/app";
+import { Capacitor } from "@capacitor/core";
 import { isNativePlayerAvailable, NativePlayer } from "./native-player";
 import { backdropUrl, getStableMediaId, languageNames, posterUrl, starterCatalogue } from "./catalogue";
 import { createOfflineProvider, searchEveryProvider } from "./core/search";
@@ -45,7 +47,34 @@ export default function App() {
   const [genreFilter, setGenreFilter] = useState("all");
   const [kindFilter, setKindFilter] = useState<"all" | "movie" | "tv">("all");
   const activeSearchId = useRef(0);
+  const nativeBackState = useRef<{ page: AppPage; selected: MediaItem | null; playTarget: MediaItem | null }>({
+    page, selected, playTarget,
+  });
+  nativeBackState.current = { page, selected, playTarget };
   const tmdbEnabled = hasTmdbKey();
+
+  useEffect(() => {
+    if (Capacitor.getPlatform() !== "android") return;
+    let disposed = false;
+    let handle: { remove: () => Promise<void> } | undefined;
+    void CapacitorApp.addListener("backButton", (event) => {
+      const current = nativeBackState.current;
+      if (current.playTarget) { setPlayTarget(null); return; }
+      if (current.selected) { setSelected(null); return; }
+      if (current.page !== "home") { setPage("home"); setSearchMessage(""); return; }
+      if (event.canGoBack) { window.history.back(); return; }
+      void CapacitorApp.exitApp();
+    }).then((registered) => {
+      if (disposed) void registered.remove();
+      else handle = registered;
+    }).catch(() => {
+      // Web previews and unsupported host contexts retain normal browser navigation.
+    });
+    return () => {
+      disposed = true;
+      if (handle) void handle.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (!tmdbEnabled) { setTrending(starterCatalogue); setTrendingBusy(false); return; }
