@@ -58,6 +58,7 @@ TMDB provides catalogue metadata and reported official destinations—not stream
 - [Product vision](docs/PRODUCT_VISION.md), [requirements](docs/REQUIREMENTS.md), [architecture](docs/ARCHITECTURE.md), [provider system](docs/PROVIDER_SYSTEM.md), [coverage model](docs/COVERAGE_MODEL.md), [multilingual model](docs/MULTILINGUAL.md), [search and deduplication](docs/SEARCH_AND_DEDUPLICATION.md), and [playback](docs/PLAYBACK.md).
 - [Research summary](docs/RESEARCH_SUMMARY.md), [research register](docs/RESEARCH_REGISTER.md), [provider matrix](docs/PROVIDER_MATRIX.md), [technical audit](docs/TECHNICAL_AUDIT.md), [framework comparison](docs/FRAMEWORK_COMPARISON.md), [base repository comparison](docs/BASE_REPOSITORY_COMPARISON.md), and [Android feasibility gate](docs/ANDROID_FEASIBILITY_GATE.md).
 - [Roadmap](docs/ROADMAP.md), [decisions](docs/DECISIONS.md), [security and privacy](docs/SECURITY.md), [testing strategy](docs/TESTING.md), [glossary](docs/GLOSSARY.md), and [contribution guide](CONTRIBUTING.md).
+- [Bundled Moviebox-Tui engine attribution and licence texts](third_party/Moviebox-Tui/README.md).
 
 The repository's existing research evaluated MovieBox-TUI, NuvioMobile, AIOStreams, FlixQuest, CloudStream, Stremio add-ons, official-source directories, subtitle APIs, and metadata/availability services. Use that evidence before selecting a real integration. A public repository, a responding endpoint, or a provider name in documentation does not by itself establish that its sources are authorised, safe, stable, or appropriate to integrate.
 
