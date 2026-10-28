@@ -199,6 +199,38 @@ export async function fetchJellyfinLibrary(
   });
 }
 
+export async function fetchJellyfinResumeItems(
+  session: JellyfinSession,
+  signal?: AbortSignal,
+  limit = 40,
+  fetcher: typeof fetch = fetch,
+): Promise<MediaItem[]> {
+  const safeLimit = Number.isInteger(limit) ? Math.max(1, Math.min(limit, 100)) : 40;
+  const url = makeApiUrl(
+    session.baseUrl,
+    "Users/" + session.userId + "/Items",
+    {
+      IncludeItemTypes: "Movie,Episode",
+      Filters: "IsResumable",
+      Recursive: "true",
+      Limit: String(safeLimit),
+      SortBy: "DatePlayed",
+      SortOrder: "Descending",
+      Fields: "Overview,ProductionYear,CommunityRating,Genres,RunTimeTicks,OriginalTitle,ProviderIds,ParentIndexNumber,IndexNumber,UserData",
+      EnableTotalRecordCount: "false",
+    },
+  );
+  const response = await requestJson<JellyfinItemsResponse>(url, session.token, { signal }, fetcher);
+  return (response.Items ?? []).flatMap((item) => {
+    try {
+      const mapped = mapJellyfinItem(item);
+      return mapped.resumePositionMs && mapped.resumePositionMs > 30_000 ? [mapped] : [];
+    } catch {
+      return [];
+    }
+  });
+}
+
 export async function searchJellyfin(
   session: JellyfinSession,
   query: string,
