@@ -36,6 +36,27 @@ describe("universal search core", () => {
     expect(merged[0].playbackSources?.map((source) => source.url)).toEqual([firstUrl, fallbackUrl]);
   });
 
+  it("retains multiple Jellyfin library editions under one deduplicated title", () => {
+    const original = item({
+      id: "jellyfin:original",
+      libraryItemId: "original",
+      libraryItemType: "movie",
+      sources: ["jellyfin-library"],
+      libraryVariants: [{ providerId: "jellyfin-library", itemId: "original", itemType: "movie", title: "Film (Original Audio)", year: 2024 }],
+    });
+    const dubbed = item({
+      id: "jellyfin:dubbed",
+      libraryItemId: "dubbed",
+      libraryItemType: "movie",
+      sources: ["jellyfin-library"],
+      libraryVariants: [{ providerId: "jellyfin-library", itemId: "dubbed", itemType: "movie", title: "Film (Hindi Dub)", year: 2024, language: "Hindi" }],
+    });
+    const merged = mergeResults([original, dubbed]);
+    expect(merged).toHaveLength(1);
+    expect(merged[0].libraryVariants?.map((variant) => variant.itemId)).toEqual(["original", "dubbed"]);
+    expect(merged[0].libraryItemId).toBe("original");
+  });
+
   it("preserves a Jellyfin playback identity regardless of provider completion order", () => {
     const jellyfin = item({
       id: "jellyfin:movie-123",
