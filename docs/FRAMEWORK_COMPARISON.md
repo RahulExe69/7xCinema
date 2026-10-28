@@ -112,7 +112,7 @@ Qualitative ratings are provisional engineering judgement, not measured benchmar
 
 ## 4. Provisional recommendation
 
-**Prototype Option A first:** React + TypeScript + Capacitor for the application UI, a small native Kotlin/Media3 integration for direct supported streams and real track-selection events, and a provider-aggregation core kept independent of the UI.
+**Initial recommendation before the second-pass base-repository audit (superseded by Section 8):** React + TypeScript + Capacitor for the application UI, a small native Kotlin/Media3 integration for direct supported streams and real track-selection events, and a provider-aggregation core kept independent of the UI.
 
 Reasons:
 - It offers a practical balance of rapid UI iteration and access to actual Android media APIs.
@@ -170,3 +170,20 @@ Flutter remains a fallback if both paths fail or there is a deliberate choice to
 Nuvio Mobile/TV and CloudStream declare GPL-3.0. FlixQuest declares GPL-3.0 and uses a separately maintained custom player. Lumora's current licence is PolyForm Noncommercial 1.0.0 and it expressly prohibits rebranding; use it as architecture reference only, not as a renamed base. The community Stremio Android repository's licence was not detected in GitHub metadata and must be inspected before reuse. These constraints do not prevent an independent implementation against permitted, documented interfaces, but copying code requires a specific review.
 
 References: [Nuvio Mobile](https://github.com/NuvioMedia/NuvioMobile), [Nuvio TV](https://github.com/NuvioMedia/NuvioTV), [Lumora](https://github.com/LumoraPlayer/Lumora), [community Stremio Android](https://github.com/stremio-native/stremio-android), [Media3 track selection](https://developer.android.com/media/media3/exoplayer/track-selection).
+
+
+## 8. Latest update: compare application base as well as framework — 2026-10-28
+
+A deeper inspection of NuvioMobile's current branch found a more realistic existing-app candidate than a generic framework template. Its SearchRepository fans out searches across every enabled addon catalogue that advertises search support and configured server-library targets, emits results incrementally, and keeps per-catalogue sections. Its playback layer uses Media3/ExoPlayer and optional MPV, and capability tests prevent metadata-only addons from being treated as playable.
+
+The key mismatch remains: Nuvio's default search is still source/catalogue-section-oriented rather than the one canonical title group with all providers and languages that 7xCinema wants. It also follows a bring-your-own-sources model and declares GPL-3.0.
+
+Therefore compare three paths against equal-sized acceptance tests:
+
+1. **NuvioMobile adaptation** — build it unmodified, evaluate how approved default sources can be configured, and prototype a global deduplicating title view. Proceed only if its architecture and GPL-3.0 obligations fit the project.
+2. **Fresh native Kotlin/Compose + Media3** — own the data model, search UX, native playback lifecycle, and track selection directly.
+3. **Fresh React/TypeScript + Capacitor + native Media3 plugin** — reuse the web-first UI workflow while proving bridge lifecycle and event handling.
+
+Use the same fake-provider dataset, title grouping, language evidence, licensed test asset, actual track discovery, and startup-failure test for every path. The winner is the one that passes the requirements with the least invasive work and acceptable licence/security/maintenance cost—not automatically the newest, most popular, or easiest to clone.
+
+See [Base Repository Comparison](BASE_REPOSITORY_COMPARISON.md) for the existing-repository shortlist and acceptance gate.
