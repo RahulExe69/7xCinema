@@ -5,6 +5,7 @@ export interface NativePlayerOptions {
   title: string;
   /** Ordered, adapter-supplied fallback URLs tried after a player error. */
   fallbackUrls?: string[];
+  headers?: Record<string, string>;
 }
 
 interface NativePlayerResult {
