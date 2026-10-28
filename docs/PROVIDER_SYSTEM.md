@@ -129,3 +129,36 @@ Before adding a provider:
 7. test the authorised end-to-end path;
 8. document verification date and known limitations;
 9. enable only after review.
+
+
+## 11. Integration categories and coverage
+
+Not every integration returns playable media. Each integration must declare its category and capabilities.
+
+### Metadata/catalogue integration
+Provides title identity, artwork, descriptions, credits, ratings, genres, seasons and episodes. Metadata alone is not playable.
+
+### Playable-source integration
+Provides an authorised playback candidate or resolves one through a permitted interface. It must declare supported media types, transport formats, track/subtitle capabilities and access constraints. Search success and resolution success must be measured separately from actual playback.
+
+### Official availability/destination integration
+Reports where a title is offered through an official streaming, subscription, rental or purchase service and may provide a validated official app/page destination. It does not assert that 7xCinema can play the media internally. Claims need source, region, freshness and validated external destination.
+
+### Personal-library/server integration
+Connects to a user's own authorised media library/server. Securely handle configuration and credentials; do not assume the server is public or reachable from every device.
+
+### Interoperability adapter
+Implements a protocol such as a Stremio-compatible addon interface. The protocol is not itself a provider; each addon needs independent source eligibility, privacy, URL-safety, rate-limit, and playback checks.
+
+### Live-TV/IPTV integration
+Provides channels, EPG or live records. Keep it distinct from movie/series VOD coverage and verify the basis for using each source.
+
+## 12. Coverage reporting
+
+Maintain separate measurements:
+- **Catalogue discovery coverage:** unique titles/episodes discovered from eligible catalogue sources.
+- **Verified in-app playback coverage:** titles/episodes with at least one currently verified, permitted playback candidate.
+- **Official-destination coverage:** titles with a fresh, validated official provider destination or offer.
+- **Language coverage:** embedded audio tracks, separate dubbed versions and subtitles, reported as separate kinds of evidence.
+
+A title can have metadata and an official destination but no in-app source. The UI must say so clearly rather than presenting a broken Watch button or inventing playback support.
