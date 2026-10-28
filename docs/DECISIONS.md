@@ -118,3 +118,12 @@ Statuses: **Accepted**, **Proposed**, **Open**, **Superseded**.
 - **Decision:** Aggregated title/source records and playback candidates retain explicit provider identity; never rely on one global active provider.
 - **Reason:** Source-specific IDs, detail calls, language claims, restrictions, and playback resolution differ.
 - **Implication:** A logical title groups sources but does not erase provider-specific records. Matching must be source-aware and reversible.
+
+
+## D-018 — Evaluate NuvioMobile as an existing-app base before committing to a fresh stack
+- **Status:** Open
+- **Decision under evaluation:** Compare a NuvioMobile adaptation spike against a fresh 7xCinema app. If building fresh, compare native Kotlin/Compose + Media3 with React/Capacitor + a native Media3 plugin.
+- **Evidence:** Nuvio already has native player integrations, addon capability checks, and concurrent searches across enabled addon catalogs/server libraries. Current search presents results as separate catalogue sections rather than one global canonical-title merge, so the core product requirement still needs work.
+- **Trade-offs:** Nuvio's GPL-3.0 licence may impose obligations on a distributed derivative; it is also a large, active project with a user-configured addon model. A fresh app gives cleaner UX/control but requires more player, lifecycle and native bridge work.
+- **Required evidence:** Clean build, license/dependency review, ability to configure approved sources by default, universal title grouping/language provenance, actual test playback/track selection, build/release complexity, and amount of invasive refactor.
+- **Relationship to D-015:** Framework comparison now includes the choice of app base as well as the language/UI framework. No base has been selected.
