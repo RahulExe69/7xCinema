@@ -269,3 +269,10 @@ Discovery coverage can improve by listing eligible official providers and extern
 GitHub compare reports the renamed fork's main branch is identical to upstream main at commit 7b47958867f992fda91ed5315375c6137b1d2ebf, with zero commits ahead/behind and zero changed files. Sampled blob hashes for Cargo.toml, src/lib.rs, src/providers/mod.rs, src/providers/models.rs, src/service.rs, src/tui/app/search.rs, and docs/providers.md are identical. Therefore, do not assume the fork contains custom all-provider search changes; treat it as an upstream snapshot unless a later compare shows otherwise.
 
 Reference: [compare main branches](https://github.com/mesamirh/MovieBox-Tui/compare/main...RahulExe69:main).
+
+
+### Additional source-code reuse notes — MovieBox-TUI
+- [Addon stream aggregator](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/addons/aggregator.rs) gathers stream candidates from configured addons concurrently, uses a five-second per-addon timeout, removes duplicate entries with identical direct URLs, ranks by reported quality and returns blocked-addon information.
+- This is useful as a bounded-concurrency/dedup/ranking reference, but applies to the configured addon provider. It does not replace an all-native-provider catalogue coordinator.
+- The MovieBox adapter maps provider dub entries to subject IDs, language and labels; MediaDetails.sibling_ids includes these IDs. Treat these as alternate provider subjects/versions, not as proof of embedded selectable audio tracks.
+- Existing tests cover search-failure versus empty-result distinction, provider/query cache isolation, stale details responses, playback error cleanup, URL-scheme filtering and addon manifest/capability behaviour. Reproduce these test categories in 7xCinema's aggregation core; do not infer live-source reliability from tests alone.
