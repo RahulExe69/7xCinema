@@ -50,6 +50,7 @@ The application should do the coordination internally. Users search once; 7xCine
 - [Testing strategy](docs/TESTING.md) — validation plan for aggregation, providers, languages, and playback.
 - [Universal search core prototype](prototype/aggregation-core/README.md) — JavaScript reference implementation and automated tests using synthetic providers.
 - [Kotlin aggregation core](prototype/kotlin-aggregation-core/README.md) — Kotlin/JVM title grouping, language provenance, bounded provider fan-out, timeout isolation, and CI tests.
+- [Android app slice](android-app/README.md) — Compose search demo, source picker, Media3 playback probe, debug build instructions, and current limitations.
 - [Glossary](docs/GLOSSARY.md) — shared terminology for the project.
 - [Contributing](CONTRIBUTING.md) — workflow and quality expectations.
 
@@ -85,17 +86,15 @@ The application should do the coordination internally. Users search once; 7xCine
 
 See the [research register](docs/RESEARCH_REGISTER.md) for the evidence and caveats. A repository being public, an endpoint responding, or a provider appearing in documentation does **not** by itself establish that it is reliable, authorised, or appropriate to integrate.
 
-## Before implementation
+## Current implementation checkpoint
 
-The framework-neutral search prototype passes its automated tests. The Android feasibility gate now specifies the smallest end-to-end proof needed before committing to the long-term app base:
+The JavaScript reference core and Kotlin/JVM aggregation/fan-out core are implemented and tested with synthetic providers. Shared identity fixtures are consumed by both test suites so cross-provider grouping, canonical IDs, source conflicts, and language claims can be compared consistently.
 
-1. port or reuse the search contract with parity fixtures;
-2. build a search screen, unified result, source picker, and player surface;
-3. verify real prepared-player audio/subtitle tracks using permitted test media;
-4. demonstrate timeout/error isolation and a reproducible debug APK build;
-5. select the app foundation based on the spike, then add eligible providers one at a time.
+A first **native Android slice** now exists in [android-app](android-app/README.md): Kotlin + Jetpack Compose, three synthetic search adapters, one globally grouped title card with per-source choices, and an embedded AndroidX Media3 player screen that reports actual audio/subtitle tracks after the tester supplies an authorised HTTP(S) media URL. GitHub Actions built a debug APK successfully and uploaded it as an artifact.
 
-No app framework or backend stack is finalised yet. See [Android feasibility gate](docs/ANDROID_FEASIBILITY_GATE.md).
+**Important:** the app's search entries are mock data; provider source resolution is not connected, and no physical-device playback test has been completed. This is a feasibility slice—not a ready-to-use streaming app or release build.
+
+Next gates are to install the APK on a device, test it with an authorised media asset, verify track selection and error/lifecycle behaviour, and then implement one provider integration only after eligibility/terms review. The final app architecture still remains provisional. See [Android feasibility gate](docs/ANDROID_FEASIBILITY_GATE.md).
 
 ## Responsible use
 
