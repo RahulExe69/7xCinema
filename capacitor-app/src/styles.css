@@ -43,3 +43,22 @@
 .poster-watch-action{position:absolute;z-index:4;left:50%;bottom:13px;transform:translate(-50%,7px);opacity:0;white-space:nowrap;min-height:34px;padding:0 13px;display:inline-flex;align-items:center;justify-content:center;gap:7px;background:rgba(9,12,18,.88);border:1px solid rgba(139,255,207,.48);border-radius:9px;color:var(--mint);font-size:9px;font-weight:800;box-shadow:0 5px 18px rgba(0,0,0,.24);backdrop-filter:blur(10px);transition:opacity .18s,transform .18s}
 .media-card:hover .poster-watch-action,.media-card:focus-within .poster-watch-action{opacity:1;transform:translate(-50%,0)}
 @media(max-width:640px){.poster-watch-action{opacity:1;transform:translate(-50%,0);bottom:9px;min-height:30px;padding:0 10px;font-size:8px;background:rgba(9,12,18,.84)}}
+
+
+/* Personal Jellyfin library browser */
+.jellyfin-field-gap{margin-top:15px}
+.jellyfin-connect-button{margin-top:14px}
+.jellyfin-connected{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid rgba(139,255,207,.16);border-radius:10px;background:rgba(139,255,207,.04);margin-bottom:12px}
+.jellyfin-connected strong{display:block;font-size:11px}
+.jellyfin-connected small{display:block;font-size:9px;color:#929bad;word-break:break-all;margin-top:4px}
+.library-episodes{margin:19px 0 5px;padding:16px;background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:13px}
+.library-episodes h3{font-family:"Space Grotesk",sans-serif;font-size:16px;margin:7px 0 13px}
+.episode-list{display:grid;gap:7px;margin-top:12px;max-height:320px;overflow:auto}
+.episode-row{display:flex;align-items:center;gap:10px;min-width:0;text-align:left;padding:10px;border:1px solid rgba(255,255,255,.065);border-radius:9px;background:#171b26;transition:border-color .16s,background .16s}
+.episode-row:hover{border-color:rgba(139,255,207,.3);background:#1b222d}
+.episode-number{font-size:8px;font-weight:800;letter-spacing:.5px;color:var(--mint);background:rgba(139,255,207,.08);border:1px solid rgba(139,255,207,.13);border-radius:6px;padding:6px;flex:none}
+.episode-row-copy{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.episode-row-copy strong{font-size:10px;color:#e8eaf2}
+.episode-row-copy small{font-size:9px;color:#858ea0;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.episode-play-icon{font-size:13px;color:var(--mint);flex:none}
+@media(max-width:640px){.library-episodes{padding:12px}.episode-row{padding:8px;gap:8px}.episode-number{font-size:7px;padding:5px}.episode-row-copy strong{font-size:9px}.episode-row-copy small{font-size:8px}.jellyfin-connected small{font-size:8px}}
