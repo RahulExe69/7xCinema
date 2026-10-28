@@ -88,3 +88,13 @@ Maintain a small curated, rights-appropriate fixture set covering:
 - partial failures/timeouts.
 
 Measure both false-positive merges (unrelated items merged) and false-negative splits (same item shown more than once). False positives are especially damaging because they can make users play the wrong item.
+
+## 9. MovieBox-TUI multi-provider adapter (development branch)
+
+The Capacitor development branch wraps the existing Rust aggregation facade from [Moviebox-Tui](https://github.com/RahulExe69/Moviebox-Tui) instead of maintaining five parallel TypeScript scrapers. For a search query, its `all` mode fans out across the five enabled built-in adapters: MovieBox, 4KHDHub, Dramachi, CircleFTP (BDIX), and DhakaFlix (BDIX). The Rust layer normalizes title strings and merges records only when the normalized title, media type, and year are compatible. Each merged row retains the original `provider + media ID` references needed to request details and playback later.
+
+The provider layer also combines provider-reported language labels across matching records. These labels are evidence that a source reports a language/version; they are not proof that a particular stream has a selectable embedded audio or subtitle track. During playback discovery the Rust engine searches other enabled providers for matching titles and combines release candidates. The UI shows provider-specific release metadata and resolves the exact selected release with its original provider ID and index.
+
+This integration deliberately does not enable the optional community Stremio add-on subsystem. Add-ons have distinct configuration, privacy, licence and reliability concerns, and must be reviewed individually. Also, this backend-level aggregation does not currently canonicalize MovieBox-TUI results against unrelated TMDB or Jellyfin results solely by fuzzy title, because that would increase false-positive merges. Those catalogue groups can therefore remain separate if there is no trusted shared ID or reviewed match.
+
+Before release, keep fixtures for same-title/different-year collisions, separate cuts, translated titles, missing years, provider failures and multiple audio editions. Test both false-positive merges and missed duplicates; do not rank a merged title as playable until its release resolution and actual playback path have been verified.
