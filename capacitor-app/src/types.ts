@@ -1,4 +1,5 @@
 export type MediaKind = "movie" | "tv";
+export type JellyfinItemType = "movie" | "series" | "episode";
 export type LanguageClaimKind = "embedded-audio" | "dubbed-version" | "subtitle" | "reported";
 export type LanguageEvidence = "provider-metadata" | "filename" | "subtitle-api" | "player-probe" | "unknown";
 
@@ -27,6 +28,11 @@ export interface PlaybackSource {
 export interface MediaItem {
   id: string;
   tmdbId?: number;
+  externalIds?: Record<string, string>;
+  libraryItemId?: string;
+  libraryItemType?: JellyfinItemType;
+  episodeNumber?: number;
+  seasonNumber?: number;
   kind: MediaKind;
   title: string;
   originalTitle: string;
