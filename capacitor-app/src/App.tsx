@@ -4,11 +4,11 @@ import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 import { isNativePlayerAvailable, NativePlayer } from "./native-player";
 import { backdropUrl, getStableMediaId, languageNames, posterUrl, starterCatalogue } from "./catalogue";
-import { createOfflineProvider, searchEveryProvider } from "./core/search";
+import { createOfflineProvider, mergeResults, searchEveryProvider } from "./core/search";
 import { getPlaybackIntent } from "./core/playback";
 import { createInternetArchiveProvider } from "./services/internetArchive";
 import { createTmdbSearchProvider, fetchTrending, fetchWatchProviders, fetchOfficialTrailer, getTmdbKey, hasTmdbKey, setTmdbKey } from "./services/tmdb";
-import { authenticateJellyfin, buildJellyfinPlayback, createJellyfinSearchProvider, fetchJellyfinEpisodes, fetchJellyfinSeasons, type JellyfinEpisode, type JellyfinSeason, type JellyfinSession } from "./services/jellyfin";
+import { authenticateJellyfin, buildJellyfinPlayback, createJellyfinSearchProvider, fetchJellyfinEpisodes, fetchJellyfinLibrary, fetchJellyfinSeasons, type JellyfinEpisode, type JellyfinSeason, type JellyfinSession } from "./services/jellyfin";
 import { clearJellyfinSession, persistJellyfinSession, restoreJellyfinSession } from "./services/jellyfinSession";
 import type { AppPage, MediaItem, ProviderReport, WatchProviderResponse } from "./types";
 
@@ -61,6 +61,9 @@ export default function App() {
   const [jellyfinBusy, setJellyfinBusy] = useState(false);
   const [jellyfinMessage, setJellyfinMessage] = useState("");
   const [jellyfinChecking, setJellyfinChecking] = useState(true);
+  const [jellyfinLibrary, setJellyfinLibrary] = useState<MediaItem[]>([]);
+  const [jellyfinLibraryBusy, setJellyfinLibraryBusy] = useState(false);
+  const [jellyfinLibraryError, setJellyfinLibraryError] = useState("");
   const [jellyfinSeasons, setJellyfinSeasons] = useState<JellyfinSeason[]>([]);
   const [jellyfinSeasonId, setJellyfinSeasonId] = useState("");
   const [jellyfinEpisodes, setJellyfinEpisodes] = useState<JellyfinEpisode[]>([]);
@@ -87,6 +90,30 @@ export default function App() {
       .finally(() => { if (active) setJellyfinChecking(false); });
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    if (!jellyfinSession) {
+      setJellyfinLibrary([]);
+      setJellyfinLibraryError("");
+      setJellyfinLibraryBusy(false);
+      return;
+    }
+    const controller = new AbortController();
+    setJellyfinLibraryBusy(true);
+    setJellyfinLibraryError("");
+    fetchJellyfinLibrary(jellyfinSession, controller.signal, 100)
+      .then((items) => {
+        if (!controller.signal.aborted) {
+          setJellyfinLibrary(items);
+          if (!items.length) setJellyfinLibraryError("No movies or series were returned by this Jellyfin library.");
+        }
+      })
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) setJellyfinLibraryError(error instanceof Error ? error.message : "Could not load your Jellyfin library.");
+      })
+      .finally(() => { if (!controller.signal.aborted) setJellyfinLibraryBusy(false); });
+    return () => controller.abort();
+  }, [jellyfinSession?.baseUrl, jellyfinSession?.userId]);
 
   useEffect(() => {
     if (Capacitor.getPlatform() !== "android") return;
@@ -222,9 +249,9 @@ export default function App() {
       }, 6000);
       if (activeSearchId.current !== searchId) return;
       setResults(snapshot.results); setReports(snapshot.providers);
-      if (!snapshot.results.length) setSearchMessage(hasTmdbKey()
+      if (!snapshot.results.length) setSearchMessage(hasTmdbKey() || jellyfinSession
         ? "No matches found. Try the original title or a shorter query."
-        : "No match in the offline starter catalogue. Add a TMDB API key in Settings for live catalogue search.");
+        : "No match in the offline starter catalogue. Connect TMDB for live metadata, or connect a Jellyfin library for your own movies and series.");
     } catch (error) {
       if (activeSearchId.current === searchId) setSearchMessage(error instanceof Error ? error.message : "Search failed. Please try again.");
     } finally {
@@ -288,13 +315,19 @@ export default function App() {
   }, []);
 
   const visibleItems = useMemo(() => {
-    let items = page === "watchlist" ? watchlist : (page === "search" ? results : trending);
+    let items = page === "watchlist"
+      ? watchlist
+      : page === "search"
+        ? results
+        : (page === "movies" || page === "series")
+          ? mergeResults([...trending, ...jellyfinLibrary])
+          : trending;
     if (page === "movies") items = items.filter((item) => item.kind === "movie");
     if (page === "series") items = items.filter((item) => item.kind === "tv");
     if (kindFilter !== "all" && page !== "movies" && page !== "series") items = items.filter((item) => item.kind === kindFilter);
     if (genreFilter !== "all") items = items.filter((item) => item.genres.includes(genreFilter));
     return items;
-  }, [page, watchlist, results, trending, kindFilter, genreFilter]);
+  }, [page, watchlist, results, trending, jellyfinLibrary, kindFilter, genreFilter]);
   const hero = trending.find((item) => item.backdropPath) ?? starterCatalogue[0];
 
   const querySubmit = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); void runSearch(); };
@@ -428,6 +461,11 @@ export default function App() {
 
           {!tmdbEnabled && <div className="setup-banner"><div className="setup-icon">✳</div><div><strong>Unlock live catalogue search</strong><p>Connect a TMDB API key to search live movie/series metadata and check official streaming destinations for your region.</p></div><button onClick={() => openPage("settings")}>Set up <span>→</span></button></div>}
 
+          {jellyfinSession && <section className="section-block"><div className="section-heading"><div><div className="section-kicker">YOUR PERSONAL MEDIA SERVER</div><h2>Continue in your library <span className="heading-star">✳</span></h2><p>Recently added titles from {jellyfinSession.username}'s Jellyfin server.</p></div><button className="text-action" onClick={() => openPage("movies")}>Browse library <span>→</span></button></div>
+            {jellyfinLibraryBusy && <div className="inline-loading"><span className="spinner" /> Loading your library…</div>}
+            {jellyfinLibraryError && !jellyfinLibraryBusy && <div className="watch-message">{jellyfinLibraryError}</div>}
+            {jellyfinLibrary.length > 0 && <MediaGrid items={mergeResults(jellyfinLibrary).slice(0, 8)} onSelect={setSelected} onWatch={startPlayback} isSaved={isSaved} onToggleSave={toggleWatchlist} />}
+          </section>}
           <section className="section-block"><div className="section-heading"><div><div className="section-kicker">HAND-PICKED FOR YOUR SESSION</div><h2>{tmdbEnabled ? "Trending this week" : "Your starter collection"} <span className="heading-star">✳</span></h2><p>{tmdbEnabled ? "Freshly fetched from the live catalogue." : "A ready-to-browse collection that works even offline."}</p></div><button className="text-action" onClick={() => openPage("movies")}>Explore all <span>→</span></button></div>
             {trendingBusy && <div className="inline-loading"><span className="spinner" /> Loading trending titles…</div>}<MediaGrid items={trending.slice(0, 8)} onSelect={setSelected} onWatch={startPlayback} isSaved={isSaved} onToggleSave={toggleWatchlist} /></section>
 
