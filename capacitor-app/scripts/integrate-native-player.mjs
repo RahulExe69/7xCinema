@@ -75,7 +75,7 @@ if (!manifest.includes('android:name=".NativePlayerActivity"')) {
   manifest = manifest.replace("</application>", activity + "</application>");
 }
 if (!manifest.includes('android:usesCleartextTraffic=')) {
-  manifest = manifest.replace(/<application\\b/, '<application android:usesCleartextTraffic="true"');
+  manifest = manifest.replace("<application", '<application android:usesCleartextTraffic="true"');
 }
 await writeFile(androidManifest, manifest);
 
