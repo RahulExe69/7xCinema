@@ -735,7 +735,7 @@ export default function App() {
           {movieboxDetails?.seasons?.map((season) => <div className="moviebox-season" key={season.number}>
             <div className="moviebox-season-title">Season {season.number}</div>
             {season.episodes.map((episode) => <button className="moviebox-episode-row" key={season.number + "-" + episode.number} disabled={movieboxLoading || movieboxResolvingIndex !== null} onClick={() => {
-              if (!playTarget) return;
+              if (!playTarget || !movieboxDetails) return;
               void loadMovieboxSources(movieboxDetails.id, season.number, episode.number);
             }}>
               <span className="moviebox-episode-number">S{String(season.number).padStart(2, "0")}E{String(episode.number).padStart(2, "0")}</span>
