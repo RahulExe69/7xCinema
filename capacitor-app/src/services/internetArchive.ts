@@ -48,7 +48,7 @@ function encodePath(value: string): string {
  * item metadata. It is not a legal determination: the uploader's claim still
  * needs verification on the item page before reuse or redistribution.
  */
-export function isExplicitOpenLicense(value: unknown): value is string {
+export function isExplicitOpenLicense(value: unknown): boolean {
   const candidates = Array.isArray(value) ? value : [value];
   return candidates.some((candidate) => {
     if (typeof candidate !== "string") return false;
@@ -105,7 +105,12 @@ async function resolveArchiveDocument(
   const metadataUrl = `${API}/metadata/${encodeURIComponent(identifier)}`;
   const record = await archiveJson<ArchiveMetadata>(metadataUrl, signal);
   const metadata = record.metadata;
-  if (!metadata || !isExplicitOpenLicense(metadata.licenseurl)) return null;
+  if (!metadata) return null;
+  const licenseValue = metadata.licenseurl;
+  const licenseUrl = Array.isArray(licenseValue)
+    ? licenseValue.find(isExplicitOpenLicense)
+    : licenseValue;
+  if (!licenseUrl || !isExplicitOpenLicense(licenseUrl)) return null;
 
   const file = chooseArchiveMp4(record.files ?? []);
   if (!file?.name) return null;
@@ -114,7 +119,6 @@ async function resolveArchiveDocument(
   const year = cleanYear(metadata.year ?? metadata.date ?? doc.year);
   const description = firstText(metadata.description) || firstText(doc.description);
   const creator = firstText(metadata.creator) || firstText(doc.creator);
-  const licenseUrl = Array.isArray(metadata.licenseurl) ? metadata.licenseurl.find(isExplicitOpenLicense) : metadata.licenseurl;
   const safeId = encodeURIComponent(identifier);
 
   return {
