@@ -1,7 +1,7 @@
 # 7xCinema Research Summary
 
 **Reviewed:** 2026-10-28  
-**Status:** Planning/research stage. No application implementation or real third-party playback provider has been approved.
+**Status:** Research/prototype stage. JavaScript reference and Kotlin/JVM aggregation/fan-out prototypes are implemented and CI-tested; no Android UI or real third-party playback provider has been approved.
 
 ## The product we are building
 
@@ -22,10 +22,10 @@ The central engineering distinction is that **catalogue search, per-title playba
 ### 2. AIOStreams is the closest aggregation-pipeline reference
 AIOStreams gathers results from configured Stremio addons, then deduplicates, filters, sorts and formats them. That makes it useful to study pipeline boundaries and tests. It is a Stremio-addon aggregator rather than a complete consumer app; it declares AGPL-3.0 and its upstream source integrations need their own terms/rights/security review. Do not import bundled providers or restriction-evasion proxy behaviour blindly.
 
-### 3. NuvioMobile is the strongest existing app-base candidate to test
-It already has a Kotlin/Compose app, addon registry, parallel searches across enabled addon catalogues and user-configured server libraries, capability checks, and Android Media3/ExoPlayer with optional MPV. Its tests distinguish catalogue metadata from playback capability.
+### 3. NuvioMobile is a strong architecture/player reference, but not yet selected as the app base
+Direct source inspection of `SearchRepository.kt` confirms that Nuvio builds requests across enabled add-on catalogues and configured server search targets, launches them concurrently, and publishes incremental results. `PlayerEngine.android.kt` confirms a mature Android Media3/ExoPlayer path with optional libmpv fallback.
 
-Its gap: search results are emitted as separate catalogue sections, not globally merged into one canonical title card. Its setup is “bring your own sources” rather than an internally curated and automatically coordinated set. It declares GPL-3.0, so reuse requires an explicit distribution/licence decision.
+Its gap: search results are emitted as separate catalogue/server sections, not globally merged into one canonical title card. Its setup is “bring your own sources” rather than an internally curated and automatically coordinated set. It declares GPL-3.0, so reuse requires an explicit distribution/licence decision. The source-level findings are documented in [Android feasibility gate](ANDROID_FEASIBILITY_GATE.md).
 
 ### 4. Lumora has the closest multi-source product concept, but is not a base candidate
 It describes Find & Play across many configured source types and has source-aware grouping ideas. Its current licence is PolyForm Noncommercial 1.0.0; the project explicitly asks not to rebrand/reskin, and its repository is marked parked. Use as architecture inspiration only—do not fork/rebrand it.
@@ -69,18 +69,18 @@ MovieBox-TUI remains a potential source of isolated provider/domain concepts; it
 | Candidate repository audit | Initial code-level pass completed; full per-repo review remains |
 | Provider/source eligibility | Not yet cleared; candidate documentation is not approval |
 | Framework/base choice | Provisional preference: fresh Kotlin/Compose + Media3 for a small Android-first spike; final selection remains open until a Capacitor comparison and device proof |
-| Framework-neutral universal-search prototype | Implemented under prototype/aggregation-core; GitHub Actions passed on main commit dcd413a7816218b08fdfebc2ee3e32b56c6c1156 |
+| JavaScript universal-search reference | Implemented under prototype/aggregation-core; GitHub Actions passed on main commit dcd413a7816218b08fdfebc2ee3e32b56c6c1156 |\n| Kotlin/JVM aggregation + provider fan-out | Implemented under prototype/kotlin-aggregation-core, including identity grouping, provenance, bounded concurrency, progressive snapshots, eligibility gating and timeout/error isolation; both CI jobs passed before merge commit 7b63e1c9e79997bc02dded55a5e779554f8f31bb |
 | Cross-provider title deduplication | Prototype tested with synthetic fixtures; production matching policy and wider evaluation remain open |
 | Language/source aggregation | Prototype preserves per-source claims and separates provider-reported audio from player-observed tracks; player integration remains open |
 | Playback integration and fallback | Not started |
-| Prototype tests / CI | Node built-in tests run in GitHub Actions and passed on the merged commit; a later identity-conflict regression fix also passed CI and merged as ceac6430c9ba32173a7afffd4808741380dc0a63; full app build/release CI is not established |
+| Prototype tests / CI | JavaScript and Kotlin/JVM suites pass in GitHub Actions. The identity-conflict fix merged as ceac6430c9ba32173a7afffd4808741380dc0a63; Kotlin fan-out merged as 7b63e1c9e79997bc02dded55a5e779554f8f31bb. Android app build/device playback is not established |
 
 ## Next milestone
 
-The framework-neutral aggregation slice is implemented and tested with synthetic providers; its scope and limits are documented in [the prototype README](../prototype/aggregation-core/README.md). Direct inspection of NuvioMobile's `SearchRepository.kt` confirms concurrent addon/server requests and progressive section updates, while the Android player source confirms Media3 ExoPlayer with libmpv fallback. The important mismatch is that its search results remain grouped by catalogue/server section rather than becoming 7xCinema's single canonical-title result list. See the new [Android feasibility gate](ANDROID_FEASIBILITY_GATE.md).
+The JavaScript reference core and Kotlin/JVM aggregation/fan-out slice are now implemented and CI-tested using synthetic providers. The Kotlin module is described in [its README](../prototype/kotlin-aggregation-core/README.md); the JavaScript reference is in [the prototype README](../prototype/aggregation-core/README.md). Direct inspection of NuvioMobile's `SearchRepository.kt` confirms concurrent addon/server requests and progressive section updates, while the Android player source confirms Media3 ExoPlayer with libmpv fallback. The important mismatch is that its search results remain grouped by catalogue/server section rather than becoming 7xCinema's single canonical-title result list. See the new [Android feasibility gate](ANDROID_FEASIBILITY_GATE.md).
 
 The provisional next step is a tiny fresh Kotlin/Compose + Media3 vertical slice, with a short React/Capacitor + native-player comparison before committing to a final stack:
-1. create shared JSON fixtures based on the current search-core test cases;
+1. create shared JSON fixtures consumed by both the JavaScript and Kotlin tests so their grouping/provenance behaviour cannot drift;
 2. show one globally grouped title with multiple source options and per-source language claims;
 3. play an owned or otherwise authorised test asset, and list the tracks exposed by the prepared player;
 4. make source selection visibly transition through loading, playback, and error states;
