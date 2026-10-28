@@ -98,3 +98,23 @@ Statuses: **Accepted**, **Proposed**, **Open**, **Superseded**.
 - **Decision:** The player's audio/subtitle menu reflects tracks discovered from the actual prepared media and track capabilities. A separate dubbed version is a separate playback candidate.
 - **Reason:** Title-level language aggregation can combine options from multiple sources but cannot manufacture an embedded track.
 - **Implication:** Language-source mapping and source provenance are mandatory in domain models and tests.
+
+
+## D-015 — Reopen framework choice after second-pass audit
+- **Status:** Open
+- **Decision:** Before implementation, compare (A) native Kotlin/Jetpack Compose + Media3 and (B) React/TypeScript + Capacitor with a native Media3 plugin using the same small vertical-slice acceptance test. Keep Flutter as a fallback, not an assumed base.
+- **Reason:** The new audit found native Kotlin/Compose projects with Media3/addon capability patterns and a multi-source native reference. React familiarity may still offer faster UI iteration; bridge/player complexity needs evidence.
+- **Required evidence:** Reproducible Android build, fake-provider universal search, partial results, title grouping/language provenance, actual test-media track selection, player failure events, lifecycle handling, package/build complexity, licence/dependency review, and developer iteration effort.
+- **Relationship to D-012:** React/Capacitor remains a viable candidate but is no longer the only initial spike. No framework is accepted until this comparison is recorded.
+
+## D-016 — Treat official destinations separately from playable streams
+- **Status:** Accepted
+- **Decision:** An availability integration may provide an official streaming/rental/purchase destination without providing playable media. Represent it as an external destination, not as an in-app stream.
+- **Reason:** Users should miss less availability information even when 7xCinema cannot authoritatively play a title internally.
+- **Implication:** Measure catalogue discovery, in-app playback and official-destination coverage separately. Validate destination domains and API terms.
+
+## D-017 — Every result retains source identity
+- **Status:** Accepted
+- **Decision:** Aggregated title/source records and playback candidates retain explicit provider identity; never rely on one global active provider.
+- **Reason:** Source-specific IDs, detail calls, language claims, restrictions, and playback resolution differ.
+- **Implication:** A logical title groups sources but does not erase provider-specific records. Matching must be source-aware and reversible.
