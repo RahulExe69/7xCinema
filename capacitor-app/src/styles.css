@@ -62,3 +62,16 @@
 .episode-row-copy small{font-size:9px;color:#858ea0;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .episode-play-icon{font-size:13px;color:var(--mint);flex:none}
 @media(max-width:640px){.library-episodes{padding:12px}.episode-row{padding:8px;gap:8px}.episode-number{font-size:7px;padding:5px}.episode-row-copy strong{font-size:9px}.episode-row-copy small{font-size:8px}.jellyfin-connected small{font-size:8px}}
+
+
+.library-variants{margin-top:19px;padding:15px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:12px}
+.library-variants h3{font-family:"Space Grotesk",sans-serif;font-size:15px;letter-spacing:-.3px;margin:6px 0 12px}
+.library-variant-list{display:grid;gap:7px}
+.library-variant-row{display:flex;align-items:center;gap:10px;width:100%;min-width:0;padding:11px;background:#171b26;border:1px solid rgba(255,255,255,.07);border-radius:9px;text-align:left;transition:border-color .16s,background .16s}
+.library-variant-row:hover,.library-variant-row:focus-visible{border-color:rgba(139,255,207,.35);background:#1a202b}
+.library-variant-icon{width:34px;height:34px;display:grid;place-items:center;flex:none;color:var(--mint);background:rgba(139,255,207,.08);border:1px solid rgba(139,255,207,.16);border-radius:8px;font-size:15px}
+.library-variant-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:5px}
+.library-variant-copy strong{font-size:10px;white-space:normal;overflow-wrap:anywhere}
+.library-variant-copy small{font-size:8px;color:#919bad;line-height:1.5}
+.library-variant-play{font-size:12px;color:var(--mint);padding-left:5px}
+@media(max-width:640px){.library-variants{padding:12px;margin-top:14px}.library-variant-row{padding:9px;gap:8px}.library-variant-icon{width:30px;height:30px}.library-variant-copy strong{font-size:9px}}
