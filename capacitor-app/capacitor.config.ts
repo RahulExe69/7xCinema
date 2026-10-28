@@ -9,6 +9,9 @@ const config: CapacitorConfig = {
     backgroundColor: "#080a10",
   },
   plugins: {
+    CapacitorHttp: {
+      enabled: true,
+    },
     Browser: {
       presentationStyle: "popover",
     },
