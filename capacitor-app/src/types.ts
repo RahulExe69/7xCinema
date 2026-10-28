@@ -24,6 +24,11 @@ export interface MediaItem {
   overview: string;
   posterPath?: string;
   backdropPath?: string;
+  imageUrl?: string;
+  playableUrl?: string;
+  itemPageUrl?: string;
+  licenseUrl?: string;
+  creator?: string;
   rating?: number;
   voteCount?: number;
   originalLanguage?: string;
