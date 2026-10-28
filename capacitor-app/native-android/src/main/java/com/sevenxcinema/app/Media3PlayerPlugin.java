@@ -111,7 +111,7 @@ public final class Media3PlayerPlugin extends Plugin {
         JSONObject safe = new JSONObject();
         if (headers == null) return safe;
         // Only allow authentication headers used by configured media libraries.
-        for (String allowed : new String[] {"Authorization", "X-Emby-Token"}) {
+        for (String allowed : new String[] {"Authorization", "X-Emby-Token", "Referer", "Origin", "User-Agent", "Cookie", "Accept", "Accept-Language", "X-Requested-With"}) {
             String value = headers.optString(allowed, "");
             if (!value.isEmpty() && value.length() <= 4096
                     && value.indexOf('\r') < 0 && value.indexOf('\n') < 0) {
