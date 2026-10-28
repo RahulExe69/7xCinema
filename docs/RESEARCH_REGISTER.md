@@ -308,3 +308,12 @@ The current branch's SearchRepository creates search requests from all enabled a
 However, each catalogue remains a separate section carrying addon/catalog identity; the normal search code does not globally collapse all provider records into one canonical title object. Its Discover flow selects one catalogue at a time. PlaybackAvailability checks stream resource support against media type/ID and tests that catalogue-only addons do not count as playable. The Android player uses Media3/ExoPlayer and optional MPV.
 
 Conclusion: NuvioMobile is now the strongest existing consumer-app base to test, but global title deduplication/source-language aggregation and automatic curated-source setup are material refactors. GPL-3.0 distribution requirements must be accepted before code reuse. See [Base Repository Comparison](BASE_REPOSITORY_COMPARISON.md).
+
+
+### 14. Consumet API / consumet.ts — legacy multi-provider entertainment API reference
+- **Links:** [consumet-api](https://github.com/prince-ao/consumet-api) · [consumet.ts](https://github.com/prince-ao/consumet.ts) · [documentation](https://docs.consumet.org)
+- **Observed:** The API README says it scrapes multiple websites and provides API access to information and links for entertainment including movies, books and anime. The TypeScript library exposes provider-like extension classes and APIs. GitHub currently reports MIT for these repositories, but that covers the software licence only.
+- **Maintenance concern:** Repository metadata for both main code repositories reported their last pushed code date as 2022-07-20 even though they are not marked archived. Treat this as a stale/uncertain maintenance signal; verify releases, dependency security and individual provider health before relying on it.
+- **Potential value:** Historical reference for provider-per-class abstractions, typed response models, and API wrapping of heterogeneous sites.
+- **Risks:** README explicitly describes scraping websites. The legal/terms basis for each upstream site, current reliability, source authorisation, and stream rights are unverified. Do not deploy or adopt its listed sources just because the code is MIT.
+- **Decision:** Low-priority architecture reference only; not a proposed provider to enable. Any individual provider would require independent access/rights, security, dependency, maintenance, and playback review.
