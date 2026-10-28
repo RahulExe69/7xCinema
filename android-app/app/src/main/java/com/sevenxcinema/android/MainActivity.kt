@@ -4,10 +4,8 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -34,7 +31,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,14 +57,11 @@ import com.sevenxcinema.aggregation.CatalogueItem
 import com.sevenxcinema.aggregation.ClaimEvidence
 import com.sevenxcinema.aggregation.ClaimKind
 import com.sevenxcinema.aggregation.LogicalTitle
-import com.sevenxcinema.aggregation.PlayerTrack
-import com.sevenxcinema.aggregation.PlayerTrackType
 import com.sevenxcinema.aggregation.ProviderLanguageClaim
 import com.sevenxcinema.aggregation.ProviderSearchStatus
 import com.sevenxcinema.aggregation.SearchProvider
 import com.sevenxcinema.aggregation.SearchSnapshot
 import com.sevenxcinema.aggregation.SourceRecord
-import com.sevenxcinema.aggregation.addVerifiedPlayerTracks
 import com.sevenxcinema.aggregation.aggregateSearch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -272,19 +265,7 @@ private fun LogicalTitleCard(title: LogicalTitle, onSelectSource: (SourceRecord)
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
-            val languages = title.languageClaims
-                .groupBy { it.language }
-                .map { (language, claims) ->
-                    val kinds = claims.map { claim ->
-                        when (claim.kind) {
-                            ClaimKind.EMBEDDED_AUDIO -> "player audio"
-                            ClaimKind.DUBBED_VERSION -> "dubbed version"
-                            ClaimKind.SUBTITLE -> "subtitle"
-                            ClaimKind.REPORTED -> "reported"
-                        }
-                    }.distinct().joinToString("/")
-                    "$language · $kinds"
-                }
+            val languages = describeLanguageClaims(title)
             if (languages.isNotEmpty()) {
                 Text(
                     text = languages.joinToString("  |  "),
@@ -317,74 +298,6 @@ private fun LogicalTitleCard(title: LogicalTitle, onSelectSource: (SourceRecord)
         }
     }
 }
-
-private fun demoProviders(): List<SearchProvider> = listOf(
-    SearchProvider(
-        id = "demo-english",
-        enabled = true,
-        eligible = true,
-        searchCapable = true,
-        priority = 1,
-        search = {
-            listOf(
-                CatalogueItem(
-                    providerItemId = "dune-en",
-                    title = "Dune: Part Two",
-                    mediaType = "movie",
-                    year = 2024,
-                    externalIds = mapOf("imdb" to "tt15239678", "tmdb" to "693134"),
-                    languageClaims = listOf(
-                        ProviderLanguageClaim("en", "English", kind = ClaimKind.REPORTED, evidence = ClaimEvidence.PROVIDER_METADATA),
-                    ),
-                ),
-            )
-        },
-    ),
-    SearchProvider(
-        id = "demo-hindi-version",
-        enabled = true,
-        eligible = true,
-        searchCapable = true,
-        priority = 2,
-        search = {
-            Thread.sleep(140)
-            listOf(
-                CatalogueItem(
-                    providerItemId = "dune-hi",
-                    title = "Dune Part Two (Hindi Dub)",
-                    mediaType = "movie",
-                    year = 2024,
-                    externalIds = mapOf("imdb" to "tt15239678"),
-                    languageClaims = listOf(
-                        ProviderLanguageClaim("hi", "Hindi", kind = ClaimKind.DUBBED_VERSION, evidence = ClaimEvidence.PROVIDER_METADATA),
-                    ),
-                ),
-            )
-        },
-    ),
-    SearchProvider(
-        id = "demo-bengali-subtitles",
-        enabled = true,
-        eligible = true,
-        searchCapable = true,
-        priority = 3,
-        search = {
-            Thread.sleep(280)
-            listOf(
-                CatalogueItem(
-                    providerItemId = "dune-bn-subs",
-                    title = "Dune Part Two",
-                    mediaType = "movie",
-                    year = 2024,
-                    externalIds = mapOf("tmdb" to "693134"),
-                    languageClaims = listOf(
-                        ProviderLanguageClaim("bn", "Bengali", kind = ClaimKind.SUBTITLE, evidence = ClaimEvidence.SUBTITLE_API),
-                    ),
-                ),
-            )
-        },
-    ),
-)
 
 private data class TrackRow(
     val groupIndex: Int,
