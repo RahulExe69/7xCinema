@@ -263,3 +263,9 @@ For 7xCinema, TMDB remains a metadata/catalogue candidate, not a playback source
 
 ### Official destination coverage
 Discovery coverage can improve by listing eligible official providers and externally handing off to their official apps or title pages. This is a different outcome from in-app playback and must have a distinct UI label and success metric. See [Coverage Model](COVERAGE_MODEL.md) and [Provider Matrix](PROVIDER_MATRIX.md).
+
+
+### Fork status verified on 2026-10-28
+GitHub compare reports the renamed fork's main branch is identical to upstream main at commit 7b47958867f992fda91ed5315375c6137b1d2ebf, with zero commits ahead/behind and zero changed files. Sampled blob hashes for Cargo.toml, src/lib.rs, src/providers/mod.rs, src/providers/models.rs, src/service.rs, src/tui/app/search.rs, and docs/providers.md are identical. Therefore, do not assume the fork contains custom all-provider search changes; treat it as an upstream snapshot unless a later compare shows otherwise.
+
+Reference: [compare main branches](https://github.com/mesamirh/MovieBox-Tui/compare/main...RahulExe69:main).
