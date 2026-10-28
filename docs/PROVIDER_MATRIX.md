@@ -9,8 +9,8 @@ A provider being named in an upstream repository is evidence that the repository
 
 | Candidate | Intended role | Evidence observed | Current decision | Required gate |
 |---|---|---|---|---|
-| TMDB API | Catalogue metadata, artwork, title IDs, recommendations | Official developer API documentation; non-commercial use requires attribution; commercial use requires licensing contact | Candidate for metadata, not playback | Confirm intended use, current terms, attribution/logo notice, rate limits and cache policy |
-| Watchmode API | Availability by country; official service links/deeplinks; title/episode availability | Official API says it returns metadata and availability links, not video. Current page lists Developer plan at 2,500 credits/month, non-commercial with attribution, up to 3 countries; paid plans include additional features | Optional official-availability layer | Verify supported country list includes India for chosen plan; confirm free-plan link limitations, API credits, attribution, cache and terms before deployment |
+| TMDB API | Catalogue metadata, artwork, title IDs, recommendations, plus per-country Watch Providers availability | Official metadata endpoints; Watch Providers endpoint is powered by JustWatch and returns availability information rather than playable streams or full deep links | Candidate for metadata and a possible official-availability layer, not playback | Satisfy both TMDB and JustWatch attribution, check current terms/rate limits/caching and India coverage; confirm the intended use is eligible |
+| Watchmode API | Availability by country; official service links/deeplinks; title/episode availability | Official API says it returns metadata and availability links, not video. Current page lists Developer plan at 2,500 credits/month, non-commercial with attribution, up to 3 countries and no app/episode deep links; paid Startup/Business pricing currently begins at USD $349/month | Optional official-availability layer | Verify supported country list includes India for chosen plan; confirm free-plan link limitations, API credits, attribution, cache and terms before deployment |
 | Official Sources addon | Official service destination offers and external hand-off | README says it returns official streaming/rental/purchase destinations, not streams; MIT code licence; Watchmode dependency | Design reference / possible external destination adapter | Re-check maintenance, Watchmode terms/plan, link validation and region accuracy |
 | User-owned Jellyfin/Plex server | Personal-library catalogue and playback | Documented by projects such as Lumora; supported server protocols can expose the user's own media | Future optional integration | Review API/licence terms, auth, secure token storage, TLS, user consent and remote-server safety |
 | Stremio Addon SDK | Interoperability protocol for catalogue, metadata, streams and subtitles | Official SDK documents manifest, catalogue, metadata, streams and subtitle resources | Candidate adapter type, not a content provider itself | Evaluate each addon independently for source rights, data safety, supported IDs/types, privacy, reliability and rate limits |
@@ -26,6 +26,8 @@ A provider being named in an upstream repository is evidence that the repository
 
 References:
 - [TMDB developer FAQ](https://developer.themoviedb.org/docs/faq)
+- [TMDB movie watch providers](https://developer.themoviedb.org/reference/movie-watch-providers)
+- [TMDB TV watch providers](https://developer.themoviedb.org/reference/tv-series-watch-providers)
 - [Watchmode API and plan details](https://api.watchmode.com/)
 - [Watchmode pricing](https://api.watchmode.com/pricing)
 - [Official Sources](https://github.com/user-griffin/official-sources)
