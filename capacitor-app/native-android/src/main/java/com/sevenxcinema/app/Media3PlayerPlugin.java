@@ -62,6 +62,9 @@ public final class Media3PlayerPlugin extends Plugin {
                 Intent intent = new Intent(getActivity(), NativePlayerActivity.class);
                 intent.putExtra(NativePlayerActivity.EXTRA_URL, parsed.toASCIIString());
                 intent.putExtra(NativePlayerActivity.EXTRA_TITLE, title == null ? "7xCinema" : title);
+                JSObject options = call.getData();
+                long resumePositionMs = options == null ? 0L : Math.max(0L, Math.min(options.optLong("startPositionMs", 0L), 604_800_000L));
+                intent.putExtra(NativePlayerActivity.EXTRA_START_POSITION_MS, resumePositionMs);
                 intent.putStringArrayListExtra(NativePlayerActivity.EXTRA_FALLBACK_URLS, fallbackUrls);
                 intent.putExtra(NativePlayerActivity.EXTRA_HEADERS, safePlaybackHeaders(call.getObject("headers")).toString());
                 getActivity().startActivity(intent);
