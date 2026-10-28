@@ -23,6 +23,7 @@ A provider being named in an upstream repository is evidence that the repository
 | FlixQuest Scraper API | Architecture reference for a separate multi-provider API | FlixQuest README describes an external Scraper API and provider status; implementation is not fully inside its client repository | Reference only; no adoption decision | Inspect API implementation if accessible, licence, terms, safety boundaries and actual provider behaviour |
 | AIOStreams | Stremio addon aggregation reference | Active TypeScript project; README documents fan-out, deduplication, filtering, sorting and formatting; AGPL-3.0 | High-value architecture reference only; no bundled provider automatically approved | Review AGPL implications and security; assess every upstream addon separately; do not adopt restriction-evasion proxy paths |
 | TMDB-Embed-API | Aggregation architecture reference | Public Node.js project demonstrates provider registry/result aggregation; README lists many source integrations | Reference only; do not blindly use its stream adapters | Review code, security, dependency and rights boundary for every individual integration |
+| Consumet API / consumet.ts | Legacy multi-provider entertainment data/link API reference | README says it scrapes websites; GitHub last code push reported as 2022-07-20; MIT code licence | Low-priority architecture reference only; no source is approved | Verify maintenance, dependencies, upstream site terms/rights and actual source behaviour individually |
 
 References:
 - [TMDB developer FAQ](https://developer.themoviedb.org/docs/faq)
@@ -35,6 +36,8 @@ References:
 - [MovieBox-TUI provider guide](https://github.com/mesamirh/MovieBox-Tui/blob/main/docs/providers.md)
 - [FlixQuest](https://github.com/flixquest/flixquest)
 - [AIOStreams](https://github.com/Viren070/AIOStreams)
+- [Consumet API](https://github.com/prince-ao/consumet-api)
+- [Consumet TypeScript library](https://github.com/prince-ao/consumet.ts)
 - [TMDB-Embed-API](https://github.com/Inside4ndroid/TMDB-Embed-API)
 - [iptv-org/iptv](https://github.com/iptv-org/iptv)
 
@@ -89,6 +92,6 @@ One label cannot substitute for another. Search verification does not imply play
 2. Inspect the local fork's divergence from upstream before choosing any code to reuse.
 3. Run the native Kotlin/Compose + Media3 versus React/Capacitor + native-player thin-slice comparison.
 4. Treat TMDB and Watchmode as separate replaceable metadata/availability adapters; make neither a playback backend.
-5. Do not enable MovieBox-TUI source adapters, unknown community addons, or any scraped resolver merely because it appears in candidate code. Each must pass the eligibility and evidence gates.
+5. Do not enable MovieBox-TUI source adapters, Consumet site adapters, unknown community addons, or any scraped resolver merely because it appears in candidate code. Each must pass the eligibility and evidence gates.
 6. Study AIOStreams' aggregation pipeline alongside the TUI addon aggregator; neither a protocol aggregator nor its upstream addons replace per-source eligibility review.
 7. Keep user-owned server integrations and official destination links as possible coverage layers, distinct from general third-party playable-source coverage.
