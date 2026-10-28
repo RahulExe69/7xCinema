@@ -126,3 +126,26 @@ The MVP is not considered demonstrated until a reproducible test proves:
 7. unit/integration tests and a documented local build path pass.
 
 Real provider adoption is subject to the research and responsible-access requirements.
+
+
+## 8. Coverage and official destinations
+
+### FR-COVERAGE-01 — Integration category (MVP)
+Every integration declares whether it provides metadata/catalogue results, playable sources, official availability destinations, personal-library content, an interoperability protocol, or live TV.
+
+**Acceptance:** A catalogue-only adapter cannot enable Watch unless a compatible playback source is available separately.
+
+### FR-COVERAGE-02 — Official external destination
+If a title has no verified compatible in-app source but an eligible availability integration supplies an official destination, the title page may offer “Watch on [official provider]” or an equivalent external hand-off.
+
+**Acceptance:** The option is clearly external; the destination is validated; it is never represented as an internal stream. Provider, region and freshness information are preserved when supplied.
+
+### FR-COVERAGE-03 — Separate coverage metrics
+Track catalogue discovery coverage, verified in-app playable-source coverage, official-destination coverage and language coverage separately.
+
+**Acceptance:** Reports and UI cannot treat metadata or a destination link as proof of playable media.
+
+### FR-COVERAGE-04 — Source identity
+Every result/source retains provider identity after deduplication.
+
+**Acceptance:** A title matched across three providers retains all three source records, and resolving a candidate uses its correct provider/item identifier rather than a global current-provider assumption.
