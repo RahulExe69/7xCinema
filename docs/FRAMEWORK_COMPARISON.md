@@ -143,3 +143,30 @@ Before finalising the framework, demonstrate:
 - [Media3 track selection](https://developer.android.com/media/media3/exoplayer/track-selection)
 - [Flutter testing overview](https://docs.flutter.dev/testing/overview)
 - [TMDB API FAQ and attribution requirements](https://developer.themoviedb.org/docs/faq)
+
+
+## 7. Update after second-pass repository research — 2026-10-28
+
+The earlier suggestion to prototype React/Capacitor first is no longer enough to select one implementation path. The new audit found native Kotlin/Compose applications with Media3 and capability-aware addon models (Nuvio Mobile/TV), a multi-source native design reference (Lumora), and a community Stremio client combining Kotlin/Compose, Media3/MPV and a Rust local component. These projects make a native Android path a serious competitor.
+
+### Updated recommendation: compare two thin vertical slices
+
+**Path A — Native Kotlin + Jetpack Compose + Media3/ExoPlayer**
+- Direct native control of Android player lifecycle, track selection, media sessions and player callbacks.
+- Likely simpler for Android-specific audio/subtitle controls and lifecycle.
+- Requires more Kotlin/native UI work and less reuse of the React web-first workflow.
+
+**Path B — React + TypeScript + Capacitor + native Kotlin/Media3 plugin**
+- Fast web-first UI iteration and reuse of familiar React/TypeScript patterns.
+- Keeps playback native behind a typed plugin boundary.
+- Adds bridge/lifecycle/event mapping which must be proven, not assumed.
+
+Do not compare a polished app on one path against an empty skeleton on the other. Each spike should implement the same small vertical path: a query to two fake providers; partial results; one deduplicated title with source and language evidence; and playback of an authorised test asset with actual track discovery plus a controlled startup failure. Compare build reproducibility, event correctness, Android lifecycle, package size, testability, dependency/license risk, iteration speed and maintainability.
+
+Flutter remains a fallback if both paths fail or there is a deliberate choice to adopt it, but there is no evidence to justify adopting FlixQuest wholesale.
+
+### Code licence is distinct from framework suitability
+
+Nuvio Mobile/TV and CloudStream declare GPL-3.0. FlixQuest declares GPL-3.0 and uses a separately maintained custom player. Lumora's current licence is PolyForm Noncommercial 1.0.0 and it expressly prohibits rebranding; use it as architecture reference only, not as a renamed base. The community Stremio Android repository's licence was not detected in GitHub metadata and must be inspected before reuse. These constraints do not prevent an independent implementation against permitted, documented interfaces, but copying code requires a specific review.
+
+References: [Nuvio Mobile](https://github.com/NuvioMedia/NuvioMobile), [Nuvio TV](https://github.com/NuvioMedia/NuvioTV), [Lumora](https://github.com/LumoraPlayer/Lumora), [community Stremio Android](https://github.com/stremio-native/stremio-android), [Media3 track selection](https://developer.android.com/media/media3/exoplayer/track-selection).
