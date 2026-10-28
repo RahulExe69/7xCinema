@@ -33,6 +33,7 @@ export interface MediaItem {
   libraryItemType?: JellyfinItemType;
   episodeNumber?: number;
   seasonNumber?: number;
+  resumePositionMs?: number;
   kind: MediaKind;
   title: string;
   originalTitle: string;
