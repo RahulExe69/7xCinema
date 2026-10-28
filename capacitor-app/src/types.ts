@@ -1,4 +1,17 @@
 export type MediaKind = "movie" | "tv";
+export type LanguageClaimKind = "embedded-audio" | "dubbed-version" | "subtitle" | "reported";
+export type LanguageEvidence = "provider-metadata" | "filename" | "subtitle-api" | "player-probe" | "unknown";
+
+export interface LanguageClaim {
+  languageCode?: string;
+  language: string;
+  kind: LanguageClaimKind;
+  evidence: LanguageEvidence;
+  sourceId: string;
+  selectable: boolean;
+  reportedKind?: LanguageClaimKind;
+  releaseName?: string;
+}
 export type AppPage = "home" | "search" | "movies" | "series" | "watchlist" | "settings";
 
 export interface MediaItem {
@@ -14,6 +27,7 @@ export interface MediaItem {
   rating?: number;
   voteCount?: number;
   originalLanguage?: string;
+  languageClaims?: LanguageClaim[];
   genreIds: number[];
   genres: string[];
   runtimeMinutes?: number;
