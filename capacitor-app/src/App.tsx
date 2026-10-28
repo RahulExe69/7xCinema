@@ -360,7 +360,7 @@ export default function App() {
       setApiRevision((value) => value + 1); setSearchMessage("");
     } catch (error) { setSettingsMessage(error instanceof Error ? error.message : "Settings could not be saved."); }
   };
-  const openMediaSource = async (item: MediaItem, rawUrl: string, fallbackUrls: string[] = [], sourceHeaders?: Record<string, string>) => {
+  const openMediaSource = async (item: MediaItem, rawUrl: string, fallbackUrls: string[] = [], sourceHeaders?: Record<string, string>, progressUrl?: string) => {
     const candidates = [rawUrl, ...fallbackUrls];
     const intent = getPlaybackIntent({
       playableUrl: rawUrl,
@@ -386,7 +386,7 @@ export default function App() {
     setShowAdvancedSource(false);
     if (isNativePlayerAvailable()) {
       try {
-        await NativePlayer.play({ url: intent.url, fallbackUrls: intent.fallbackUrls, headers: sourceHeaders, startPositionMs: item.resumePositionMs, title: item.title });
+        await NativePlayer.play({ url: intent.url, fallbackUrls: intent.fallbackUrls, headers: sourceHeaders, startPositionMs: item.resumePositionMs, progressUrl: progressUrl, title: item.title });
         setPlayTarget(null);
       } catch (error) {
         setPlayerError(error instanceof Error ? error.message : "The native player could not open this source.");
@@ -416,7 +416,7 @@ export default function App() {
     if (item.libraryItemId && jellyfinSession && (item.libraryItemType === "movie" || item.libraryItemType === "episode")) {
       try {
         const source = buildJellyfinPlayback(jellyfinSession, item.libraryItemId);
-        void openMediaSource(item, source.url, [], source.headers);
+        void openMediaSource(item, source.url, [], source.headers, source.progressUrl);
       } catch (error) {
         setPlayerError(error instanceof Error ? error.message : "Could not open this Jellyfin item.");
       }
