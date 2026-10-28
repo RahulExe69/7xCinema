@@ -8,6 +8,8 @@ import { createOfflineProvider, searchEveryProvider } from "./core/search";
 import { getPlaybackIntent } from "./core/playback";
 import { createInternetArchiveProvider } from "./services/internetArchive";
 import { createTmdbSearchProvider, fetchTrending, fetchWatchProviders, fetchOfficialTrailer, getTmdbKey, hasTmdbKey, setTmdbKey } from "./services/tmdb";
+import { authenticateJellyfin, buildJellyfinPlayback, createJellyfinSearchProvider, fetchJellyfinEpisodes, fetchJellyfinSeasons, type JellyfinEpisode, type JellyfinSeason, type JellyfinSession } from "./services/jellyfin";
+import { clearJellyfinSession, persistJellyfinSession, restoreJellyfinSession } from "./services/jellyfinSession";
 import type { AppPage, MediaItem, ProviderReport, WatchProviderResponse } from "./types";
 
 const NAV: { page: AppPage; label: string; icon: string }[] = [
@@ -50,6 +52,20 @@ export default function App() {
   const [showAdvancedSource, setShowAdvancedSource] = useState(false);
   const [genreFilter, setGenreFilter] = useState("all");
   const [kindFilter, setKindFilter] = useState<"all" | "movie" | "tv">("all");
+  const [jellyfinSession, setJellyfinSession] = useState<JellyfinSession | null>(null);
+  const [jellyfinServerUrl, setJellyfinServerUrl] = useState(() => {
+    try { return localStorage.getItem("7xcinema.jellyfin.server") ?? ""; } catch { return ""; }
+  });
+  const [jellyfinUsername, setJellyfinUsername] = useState("");
+  const [jellyfinPassword, setJellyfinPassword] = useState("");
+  const [jellyfinBusy, setJellyfinBusy] = useState(false);
+  const [jellyfinMessage, setJellyfinMessage] = useState("");
+  const [jellyfinChecking, setJellyfinChecking] = useState(true);
+  const [jellyfinSeasons, setJellyfinSeasons] = useState<JellyfinSeason[]>([]);
+  const [jellyfinSeasonId, setJellyfinSeasonId] = useState("");
+  const [jellyfinEpisodes, setJellyfinEpisodes] = useState<JellyfinEpisode[]>([]);
+  const [jellyfinEpisodesBusy, setJellyfinEpisodesBusy] = useState(false);
+  const [jellyfinEpisodesMessage, setJellyfinEpisodesMessage] = useState("");
   const activeSearchId = useRef(0);
   const nativeBackState = useRef<{ page: AppPage; selected: MediaItem | null; playTarget: MediaItem | null }>({
     page, selected, playTarget,
