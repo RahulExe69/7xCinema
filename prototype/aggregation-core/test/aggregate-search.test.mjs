@@ -27,6 +27,14 @@ const movie = (overrides = {}) => ({
   ...overrides,
 });
 
+test("rejects duplicate provider IDs so statuses cannot overwrite each other", async () => {
+  const provider = baseProvider({ id: "duplicate" });
+  await assert.rejects(
+    aggregateSearch("example", [provider, { ...provider }]),
+    /Provider IDs must be unique/,
+  );
+});
+
 test("normalises punctuation and accents without reducing a title to a loose substring", () => {
   assert.equal(normaliseTitle("  Amélie: The Sequel! "), "amelie the sequel");
   assert.notEqual(normaliseTitle("Dune"), normaliseTitle("Dune Part Two"));
