@@ -3,6 +3,8 @@ import { Capacitor, registerPlugin } from "@capacitor/core";
 export interface NativePlayerOptions {
   url: string;
   title: string;
+  /** Ordered, adapter-supplied fallback URLs tried after a player error. */
+  fallbackUrls?: string[];
 }
 
 interface NativePlayerResult {
