@@ -16,15 +16,18 @@ This roadmap sequences work by reducing the biggest risks early. Dates and effor
 ## Phase 1 — Candidate and licence audit
 **Goal:** Choose a technically sound foundation and eligible integrations.
 
-- Inspect MovieBox-TUI library modules and dependency graph.
+- [x] Inspect initial MovieBox-TUI provider contract, service dispatch, models, Cargo manifest, and Android/Termux delivery model.
+- Inspect MovieBox-TUI dependency graph and confirm local fork divergence.
 - Inspect FlixQuest's UI/player structure.
-- Inspect aggregation patterns in TMDB-Embed-API without assuming its providers are reliable.
-- Compare CloudStream and Stremio extension/protocol models.
+- [x] Inspect TMDB-Embed-API's advertised registry/aggregation model and record its security/source-eligibility concerns.
+- Inspect selected aggregation logic and security boundaries only as needed for architectural research.
+- [x] Inspect CloudStream's extension-oriented model and Stremio's resource protocol at README/docs level.
+- Compare extension loading/contract details without copying unreviewed integrations.
 - Review licences of candidate projects and transitive dependencies.
 - Assess provider access legitimacy, terms, maintenance, regions, and security.
-- Build a capability/evidence matrix for shortlisted providers.
+- Build a capability/evidence matrix for explicitly eligible providers, with date/region/test method and separate search/resolve/playback verification.
 
-**Exit gate:** Architecture alternatives and at least one eligible end-to-end integration candidate are backed by evidence.
+**Exit gate:** Architecture alternatives and at least one eligible end-to-end integration candidate are backed by evidence. Initial code audit is documented in TECHNICAL_AUDIT.md; source eligibility, deeper code checks, and runtime verification remain open.
 
 ## Phase 2 — Technical feasibility spike
 **Goal:** Prove the difficult pieces before investing in a large app.
