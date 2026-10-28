@@ -203,3 +203,14 @@ The existing test suite includes:
 These are valuable test categories to reproduce in the new universal-search engine. They do not establish that all current providers are stable or authorised.
 
 References: [addon aggregator](https://github.com/mesamirh/MovieBox-Tui/blob/main/src/providers/addons/aggregator.rs), [content pipeline tests](https://github.com/mesamirh/MovieBox-Tui/blob/main/tests/content_pipeline.rs), [error handling tests](https://github.com/mesamirh/MovieBox-Tui/blob/main/tests/error_handling.rs), [addon manifest tests](https://github.com/mesamirh/MovieBox-Tui/blob/main/tests/addons_manifest.rs).
+
+
+## 12. AIOStreams — direct aggregation-pattern reference
+
+Reviewed [Viren070/AIOStreams](https://github.com/Viren070/AIOStreams), its README, and GitHub repository metadata. It is an actively updated TypeScript/Stremio aggregator licensed AGPL-3.0. Its documented pipeline fetches configured addon results and deduplicates, filters, sorts and formats them into a unified list.
+
+This is among the closest architectural references to the orchestration pattern 7xCinema needs. It is still not the full 7xCinema solution: it operates as a Stremio addon aggregation layer, does not itself supply every stream, and cannot establish rights or reliability for its upstream addons. Its ecosystem includes torrent/debrid/Usenet integrations and its README documents proxy options; do not blindly adopt its bundled sources or mechanisms that bypass provider restrictions. AGPL obligations also require a deliberate licence decision before copying or adapting code.
+
+Use it to compare pipeline stages, addon capabilities, filtering/sorting configuration and deduplication tests. The 7xCinema core should define its own source eligibility rules, provenance model, safe networking boundaries, and distinct discovery/playback/official-destination coverage.
+
+References: [README](https://github.com/Viren070/AIOStreams), [LICENSE](https://github.com/Viren070/AIOStreams/blob/main/LICENSE).
