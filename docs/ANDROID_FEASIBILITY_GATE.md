@@ -65,15 +65,23 @@ The spike passes only when the tests above are demonstrated, not merely describe
 
 ## Recommended next implementation sequence
 
-1. Treat the merged JavaScript core as the reference contract. Add JSON fixtures that can be reused by a Kotlin port and by a Capacitor/native bridge test.
-2. Create a small Android spike using Kotlin, Compose, and Media3: search box, result card, source picker, player surface, and actual prepared-player track list. No production provider integrations yet.
+1. Treat the merged JavaScript core and shared identity fixture set as reference contracts; keep the Kotlin/JVM tests aligned with the same cases.
+2. [Completed in code/CI] Create a Kotlin/Compose + Media3 slice with a search box, grouped result card, source picker and player surface. The synthetic adapters are deliberately not production providers.
 3. In parallel, time-box a review of Nuvio's reusable interfaces and GPL obligations; do not copy code while that review is open.
 4. Compare the native spike with a minimal Capacitor bridge using the same fixture suite. Choose on demonstrated build/playback parity and maintenance cost—not on UI mockups.
 5. Add real provider adapters only after source eligibility, terms, error isolation, and provenance are defined.
 
+## Completed since the first gate review
+
+- The JavaScript reference and Kotlin/JVM aggregation cores now share [identity fixtures](../prototype/aggregation-core/test/fixtures/identity-cases.tsv); both test suites pass against them.
+- A native Android app slice lives in [android-app](../android-app/README.md). It calls the Kotlin core through three synthetic adapters, displays one merged logical title with source choices and language claim types, and transitions into a Media3 player screen when a source option is selected.
+- The player accepts a tester-supplied authorised HTTP(S) media URL, reports loading/player errors, inspects audio/subtitle tracks reported by the prepared player, and offers track-selection controls.
+- A clean GitHub Actions build successfully produced a debug APK and uploaded it in [workflow run 40670343817](https://github.com/RahulExe69/7xCinema/actions/runs/40670343817).
+
 ## Known limits
 
-- No real provider adapter is wired into the prototype.
-- No Android UI or APK has been built by this repository yet.
-- No live playback, subtitle selection, or embedded-audio selection has been validated.
+- Search results and provider names in the Android app are synthetic. No real provider adapter or automatic source resolver is wired into the UI.
+- The APK has been compiled in CI but not installed or exercised on a physical Android device in this review.
+- No real authorised media asset has yet been played in the Android slice here, so audio/subtitle discovery and track switching are implemented but not yet device-verified.
+- Error and timeout isolation are covered by Kotlin/JVM tests; app lifecycle, rotation/background handling, and playback error recovery still need on-device tests.
 - Nuvio source review was targeted, not a complete audit of every module or transitive dependency.
