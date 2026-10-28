@@ -12,6 +12,7 @@
 - Optional live TMDB multi-search and trending titles when a user configures a TMDB v3 API key.
 - Region-aware official watch/rent/buy destinations reported by TMDB.
 - A device-local watchlist, title details, genre/kind filters, and settings.
+- Optional Jellyfin personal-library integration: server login, secure Android session storage, library browsing, season/episode selection, resume positions, and progress reports from the native player.
 - A watch-first flow modelled on 7xAnime: actual direct sources open automatically, title cards have a one-tap Watch action, and manual URL entry is tucked under Advanced.
 - A native AndroidX Media3 player bridge with actual audio/subtitle track selection; the web preview uses HTML5 video for compatible direct HTTP(S) media URLs.
 - Metadata-only titles offer TMDB-reported official destinations and a real trailer when available, instead of presenting a paste-URL form as the default player screen.
@@ -21,7 +22,7 @@
 
 ## Project status — migration MVP, not a finished streaming service
 
-The app shell, discovery experience, watch-first source chooser, and native Android player bridge are being migrated; the application is **not yet a complete streaming app**. Live metadata needs a TMDB API key. Internet Archive is the first direct-media adapter, but it only accepts uploader-marked Public Domain Mark/CC0 entries and does not independently verify copyright ownership. There is no general third-party commercial-stream resolver. The Android app uses a native Media3 player while the web preview uses HTML5 video. HLS/DASH, protected streams, audio/subtitle selection, and device playback still need a native-player integration and validation on real devices. We will not label provider-reported language metadata as a verified audio/subtitle track.
+The Capacitor app now includes a native AndroidX Media3 player and a watch-first source chooser. Jellyfin playback uses its authenticated library stream and reports progress back to the user's server; the web preview cannot play authenticated Jellyfin streams. Internet Archive is the first public direct-media adapter, gated to uploader-declared Public Domain Mark/CC0 entries, which still require review on the original item page. TMDB supplies catalogue metadata, official destinations and listed trailers—not full movie streams. There is no generic commercial-stream resolver. The app is **not yet production-complete**: authorised external services beyond these integrations still need adapter work, and device-level playback, account/network edge cases, audio/subtitle selection, and resume/progress sync need real-phone validation.
 
 ## Run the app
 
