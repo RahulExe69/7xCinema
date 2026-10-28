@@ -135,6 +135,40 @@ test("one search queries multiple eligible providers and merges the same title w
   assert.equal(result.successfulProviders, 3);
 });
 
+test("deduplicates repeated source items from the same provider and keeps their language claims", async () => {
+  const provider = baseProvider({
+    id: "one-provider",
+    async search() {
+      return [
+        movie({
+          providerItemId: "same-item",
+          title: "Example Film",
+          externalIds: { imdb: "tt2222222" },
+          languageClaims: [
+            { languageCode: "en", language: "English", kind: "reported", evidence: "provider-metadata" },
+          ],
+        }),
+        movie({
+          providerItemId: "same-item",
+          title: "Example Film (Hindi Dub)",
+          externalIds: { imdb: "tt2222222" },
+          languageClaims: [
+            { languageCode: "hi", language: "Hindi", kind: "dubbed-version", evidence: "provider-metadata" },
+          ],
+        }),
+      ];
+    },
+  });
+
+  const result = await aggregateSearch("example", [provider], { timeoutMs: 500 });
+  assert.equal(result.results.length, 1);
+  assert.equal(result.results[0].sources.length, 1);
+  assert.ok(result.results[0].alternateTitles.includes("Example Film (Hindi Dub)"));
+  assert.ok(result.results[0].languageClaims.some(claim => claim.languageCode === "en"));
+  assert.ok(result.results[0].languageClaims.some(claim => claim.languageCode === "hi"));
+  assert.equal(result.providerStatuses[0].resultCount, 1);
+});
+
 test("emits progressive partial results before a slow provider finishes", async () => {
   const events = [];
   const fast = baseProvider({
