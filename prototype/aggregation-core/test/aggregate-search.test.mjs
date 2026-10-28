@@ -383,7 +383,7 @@ function normalisedTestSource(record) {
 
 
 function loadSharedIdentityFixtures() {
-  const lines = readFileSync(new URL("./fixtures/identity-cases.tsv", import.meta.url), "utf8").split(/\\r?\\n/);
+  const lines = readFileSync(new URL("./fixtures/identity-cases.tsv", import.meta.url), "utf8").split(/\r?\n/);
   const cases = new Map();
 
   for (const line of lines) {
