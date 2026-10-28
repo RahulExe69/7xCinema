@@ -32,7 +32,7 @@
 **Files:** `capacitor-app/package.json`, `capacitor-app/tsconfig.json`, `capacitor-app/vite.config.ts`, `capacitor-app/capacitor.config.ts`, `capacitor-app/index.html`, `capacitor-app/src/main.tsx`.
 
 - [ ] Verify toolchain and TypeScript build in CI.
-- [ ] Generate Capacitor Android project in a clean runner and build debug APK.
+- [ ] Generate Capacitor Android project in a clean runner, integrate the native Media3 bridge, and build debug APK.
 - [ ] Verify external official links use the Capacitor browser path.
 
 ### Task 2: Search and catalogue domain
@@ -47,7 +47,7 @@
 
 **Files:** `capacitor-app/src/App.tsx`, `capacitor-app/src/styles.css`.
 
-- [ ] Validate home, search, movies, series, My List, settings, detail modal, watch-provider destination, and direct URL player.
+- [ ] Validate home, search, movies, series, My List, settings, detail modal, watch-provider destination, web player fallback, and native Media3 player.
 - [ ] Verify URL cannot be played before the user presses Load and passes validation.
 - [ ] Verify keyboard-only focus, reduced-motion preference, mobile bottom navigation, and narrow viewport layout.
 
@@ -64,7 +64,8 @@
 
 **Files:** New Capacitor Media3 plugin sources, its Android build configuration, source adapters, playback tests, and updated docs.
 
-- [ ] Add the native player bridge only after the app shell's current CI is green.
+- [x] Add an initial native Media3 playback Activity and audio/subtitle track picker through a local Capacitor bridge.
+- [ ] Verify the bridge build and all native behaviour in CI and on a physical Android device.
 - [ ] Verify actual audio/subtitle track discovery and selection with authorized local/test assets on a physical device.
 - [ ] Add only integrations whose terms, licence, reliability, and source permissions have been reviewed.
 - [ ] Do not report the app as production-ready until these end-to-end gates pass.
