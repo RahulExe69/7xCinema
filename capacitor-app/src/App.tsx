@@ -485,7 +485,7 @@ export default function App() {
       return;
     }
     if (sourceHeaders && Object.keys(sourceHeaders).length > 0) {
-      setPlayerError("Authenticated personal-library playback requires the native Android Media3 player. Open this library from the Android app.");
+      setPlayerError("This source requires provider request headers and the native Android Media3 player. Open it from the Android app.");
       return;
     }
     setPlayerLoaded(true);
@@ -728,8 +728,10 @@ export default function App() {
           ? <><h3>That source didn’t start.</h3><p>Try the original source page, or choose another authorised destination. We won’t pretend a metadata result is a working stream.</p><button className="button button-primary" onClick={() => startPlayback(playTarget)}>Retry source <span>→</span></button></>
           : <><h3>{playTarget.providerItems?.length ? "Choose a source to play." : "Choose how to watch."}</h3><p className="source-choice-note">{playTarget.providerItems?.length ? "MovieBox-TUI checks the configured streaming providers, combines matching releases, and keeps source identity so the selected version can be resolved correctly." : "7xCinema checks the available playback information first. When a real media source is present, it opens automatically. Otherwise, choose an official destination or trailer below."}</p></>}
         {playTarget.providerItems?.length ? <section className="moviebox-source-panel">
-          <div className="moviebox-panel-heading"><span className="section-kicker">MOVIEBOX-TUI · MULTI-SOURCE ENGINE</span><strong>{movieboxDetails ? "Choose an episode" : movieboxPlayback ? "Choose a release" : "Checking available sources"}</strong></div>
+          <div className="moviebox-panel-heading"><span className="section-kicker">MOVIEBOX-TUI · MULTI-SOURCE ENGINE</span><strong>{movieboxPlayback ? "Choose a release" : movieboxDetails ? "Choose an episode" : "Checking available sources"}</strong></div>
           <p className="field-help">Sources are searched across enabled providers. Titles are merged for browsing, while each provider-specific ID is retained for playback.</p>
+          {playTarget.languageClaims?.length ? <p className="field-help"><strong>Provider-reported languages:</strong> {Array.from(new Set(playTarget.languageClaims.map((claim) => claim.language))).join(" · ")}. These source labels are metadata, not verified embedded audio or subtitle tracks.</p> : null}
+          {playerError && <div className="watch-message moviebox-message">{playerError}</div>}
           {movieboxLoading && <div className="inline-loading"><span className="spinner" /> {movieboxDetails ? "Loading episodes and available source details…" : "Searching MovieBox, 4KHDHub, Dramachi and available BDIX sources…"}</div>}
           {movieboxMessage && <div className="watch-message moviebox-message">{movieboxMessage}</div>}
           {movieboxDetails?.seasons?.map((season) => <div className="moviebox-season" key={season.number}>
@@ -748,7 +750,7 @@ export default function App() {
             {movieboxPlayback.releases.slice(0, 20).map((release, index) => {
               const source = movieboxPlayback.release_sources[index];
               return <button className="moviebox-release-row" key={source ? source.provider + "|" + source.media_id + "|" + source.release_index : release.provider + "|" + release.filename + "|" + index} disabled={!source || movieboxResolvingIndex !== null} onClick={() => void playMovieboxRelease(index)}>
-                <span className="moviebox-release-copy"><strong>{release.filename || "Untitled release"}</strong><small>{release.provider} · {release.quality || "Quality unknown"}{release.language ? " · " + release.language : ""}{release.codec ? " · " + release.codec : ""}</small></span>
+                <span className="moviebox-release-copy"><strong>{release.filename || "Untitled release"}</strong><small>{catalogueSourceLabel(release.provider)} · {release.quality || "Quality unknown"}{release.language ? " · " + release.language : ""}{release.codec ? " · " + release.codec : ""}</small></span>
                 <span className="moviebox-play-icon">{movieboxResolvingIndex === index ? "…" : "▶"}</span>
               </button>;
             })}
@@ -804,7 +806,7 @@ function MediaGrid({ items, onSelect, onWatch, isSaved, onToggleSave }: { items:
       {item.imageUrl || item.posterPath ? <img className="poster-image" src={item.imageUrl ?? posterUrl(item.posterPath)} alt={item.title + " poster"} loading="lazy" /> : <div className="poster-missing">7x<span>CINEMA</span></div>}
       <span className="poster-kind">{kindLabel(item)}</span><span className="poster-rating"><i>★</i> {ratingLabel(item)}</span><span className="poster-hover"><i>↗</i><small>VIEW DETAILS</small></span>
     </button>
-    <button className="poster-watch-action" onClick={() => (item.libraryVariants?.length ?? 0) > 1 ? onSelect(item) : onWatch(item)} aria-label={(item.libraryVariants?.length ?? 0) > 1 ? "Choose a version of " + item.title : item.libraryItemId ? (item.libraryItemType === "series" ? "Browse episodes for " + item.title : "Play " + item.title + " from your library") : (getPlaybackIntent(item).type === "direct" ? "Play " + item.title : "Find where to watch " + item.title)}>{(item.libraryVariants?.length ?? 0) > 1 ? "▷ Choose version" : item.providerItems?.length ? "▶ Choose source" : item.libraryItemId ? (item.libraryItemType === "series" ? "▷ Episodes" : (item.resumePositionMs && item.resumePositionMs > 30_000 ? "▶ Resume" : "▶ Play from library")) : (getPlaybackIntent(item).type === "direct" ? "▶ Play now" : "▷ Watch")}</button>
+    <button className="poster-watch-action" onClick={() => (item.libraryVariants?.length ?? 0) > 1 ? onSelect(item) : onWatch(item)} aria-label={(item.libraryVariants?.length ?? 0) > 1 ? "Choose a version of " + item.title : item.providerItems?.length ? "Choose a source for " + item.title : item.libraryItemId ? (item.libraryItemType === "series" ? "Browse episodes for " + item.title : "Play " + item.title + " from your library") : (getPlaybackIntent(item).type === "direct" ? "Play " + item.title : "Find where to watch " + item.title)}>{(item.libraryVariants?.length ?? 0) > 1 ? "▷ Choose version" : item.providerItems?.length ? "▶ Choose source" : item.libraryItemId ? (item.libraryItemType === "series" ? "▷ Episodes" : (item.resumePositionMs && item.resumePositionMs > 30_000 ? "▶ Resume" : "▶ Play from library")) : (getPlaybackIntent(item).type === "direct" ? "▶ Play now" : "▷ Watch")}</button>
     <div className="media-card-info"><button className="media-title" onClick={() => onSelect(item)}>{item.title}</button><div className="media-subline"><span>{item.year ?? "Year unknown"}</span><i /><span>{(item.libraryVariants?.length ?? 0) > 1 ? item.libraryVariants?.length + " library versions" : item.sources.length > 1 ? item.sources.length + " catalogues" : (item.genres[0] ?? (item.kind === "movie" ? "Film" : "Series"))}</span></div><button className={"save-small " + (isSaved(item) ? "is-saved" : "")} onClick={() => onToggleSave(item)} aria-label={isSaved(item) ? "Remove " + item.title + " from My List" : "Save " + item.title + " to My List"}>{isSaved(item) ? "✓" : "+"}</button></div>
   </article>)}</div>;
 }
