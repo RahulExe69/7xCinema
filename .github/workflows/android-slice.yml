@@ -1,0 +1,51 @@
+name: Android Compose Player Slice
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "android-app/**"
+      - "prototype/kotlin-aggregation-core/**"
+      - ".github/workflows/android-slice.yml"
+  pull_request:
+    paths:
+      - "android-app/**"
+      - "prototype/kotlin-aggregation-core/**"
+      - ".github/workflows/android-slice.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install Android SDK packages
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.14"
+      - name: Build debug APK
+        working-directory: android-app
+        run: gradle assembleDebug --no-daemon --stacktrace
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: 7xCinema-Android-Debug
+          path: android-app/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
