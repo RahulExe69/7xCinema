@@ -401,6 +401,11 @@ export default function App() {
   };
 
   const startPlayback = (item: MediaItem) => {
+    if (item.libraryItemId && !jellyfinSession) {
+      setJellyfinMessage("Reconnect your Jellyfin library in Settings to play this saved library item.");
+      openPage("settings");
+      return;
+    }
     if (item.libraryItemType === "series" && item.libraryItemId) {
       setPlayTarget(null);
       setSelected(item);
@@ -555,7 +560,7 @@ export default function App() {
           {(selected.languageClaims?.length ?? 0) > 0 && <section className="language-evidence" aria-label="Language evidence"><div className="section-kicker">LANGUAGE EVIDENCE</div><div className="language-claim-list">{selected.languageClaims?.map((claim) => <div className={"language-claim " + (claim.selectable && claim.evidence === "player-probe" ? "verified" : "reported")} key={[claim.sourceId, claim.languageCode, claim.kind, claim.evidence, claim.reportedKind].join(":")}><strong>{claim.language}</strong><small>{languageClaimLabel(claim)} · {catalogueSourceLabel(claim.sourceId)}</small></div>)}</div><p className="language-evidence-note">Reported metadata is not proof that a particular stream contains this track. Selectable audio and subtitles are confirmed only by the prepared player.</p></section>}
           {(selected.libraryVariants?.length ?? 0) > 1 && <section className="library-variants" aria-label="Available library versions">
             <div className="section-kicker">MULTIPLE COPIES IN YOUR LIBRARY</div><h3>Choose a version</h3>
-            <div className="library-variant-list">{selected.libraryVariants?.map((variant) => <button className="library-variant-row" key={variant.providerId + ":" + variant.itemId} onClick={() => {
+            <div className="library-variant-list">{selected.libraryVariants?.map((variant) => <button className="library-variant-row" key={variant.providerId + ":" + variant.itemId} disabled={!jellyfinSession} title={!jellyfinSession ? "Reconnect your Jellyfin library to play this version" : undefined} onClick={() => {
               const versionItem: MediaItem = {
                 ...selected,
                 id: "jellyfin:" + variant.itemId,
