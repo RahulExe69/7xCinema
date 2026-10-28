@@ -168,7 +168,7 @@ private fun dedupeClaims(claims: List<LanguageClaim>): List<LanguageClaim> =
             .thenBy { it.sourceId },
     )
 
-private fun dedupeProviderRecords(records: List<SourceRecord>): List<SourceRecord> {
+internal fun dedupeProviderRecords(records: List<SourceRecord>): List<SourceRecord> {
     val bySourceId = linkedMapOf<String, SourceRecord>()
     for (record in records) {
         val existing = bySourceId[record.sourceId]
