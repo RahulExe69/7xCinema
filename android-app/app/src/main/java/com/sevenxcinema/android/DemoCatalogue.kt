@@ -120,7 +120,7 @@ private fun isDemoSearchQuery(query: String): Boolean {
  * Provider-reported audio claims are explicitly not presented as selectable tracks.
  */
 fun describeLanguageClaims(title: LogicalTitle): List<String> {
-    val providerBySource = title.sources.associate { it.id to it.providerId }
+    val providerBySource = title.sources.associate { it.sourceId to it.providerId }
     return title.languageClaims.distinct().map { claim ->
         val detail = when (claim.kind) {
             ClaimKind.EMBEDDED_AUDIO ->
