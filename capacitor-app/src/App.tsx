@@ -257,7 +257,7 @@ export default function App() {
           {!tmdbEnabled && <div className="setup-banner"><div className="setup-icon">✳</div><div><strong>Unlock live catalogue search</strong><p>Connect a TMDB API key to search live movie/series metadata and check official streaming destinations for your region.</p></div><button onClick={() => openPage("settings")}>Set up <span>→</span></button></div>}
 
           <section className="section-block"><div className="section-heading"><div><div className="section-kicker">HAND-PICKED FOR YOUR SESSION</div><h2>{tmdbEnabled ? "Trending this week" : "Your starter collection"} <span className="heading-star">✳</span></h2><p>{tmdbEnabled ? "Freshly fetched from the live catalogue." : "A ready-to-browse collection that works even offline."}</p></div><button className="text-action" onClick={() => openPage("movies")}>Explore all <span>→</span></button></div>
-            {trendingBusy && <div className="inline-loading"><span className="spinner" /> Loading trending titles…</div>}<MediaGrid items={trending.slice(0, 8)} onSelect={setSelected} isSaved={isSaved} onToggleSave={toggleWatchlist} /></section>
+            {trendingBusy && <div className="inline-loading"><span className="spinner" /> Loading trending titles…</div>}<MediaGrid items={trending.slice(0, 8)} onSelect={setSelected} onWatch={startPlayback} isSaved={isSaved} onToggleSave={toggleWatchlist} /></section>
 
           <section className="feature-strip"><div className="feature-item"><span className="feature-icon">⌕</span><div><strong>One search, many catalogues</strong><p>Provider searches run in parallel, with partial results and individual failure handling.</p></div></div><div className="feature-item"><span className="feature-icon">◎</span><div><strong>Honest language details</strong><p>Original-language metadata is not mislabeled as a verified audio or subtitle track.</p></div></div><div className="feature-item"><span className="feature-icon">↗</span><div><strong>Watch from official sources</strong><p>Availability links come from catalogue data, never invented by the app.</p></div></div></section>
           <section className="section-block"><div className="section-heading"><div><div className="section-kicker">KEEP EXPLORING</div><h2>Different worlds. One place.</h2><p>Jump into a mood, a universe, or a whole new story.</p></div></div><div className="mood-grid">
@@ -275,7 +275,7 @@ export default function App() {
           {page === "search" && searching && <div className="inline-loading"><span className="spinner" /> Searching every enabled catalogue. Results appear as sources finish…</div>}
           {page === "search" && searchMessage && !searching && <div className="notice-panel"><strong>Nothing to show yet</strong><p>{searchMessage}</p>{!tmdbEnabled && <button className="button button-secondary" onClick={() => openPage("settings")}>Connect live catalogue</button>}</div>}
           {page === "watchlist" && watchlist.length === 0 && <div className="empty-state"><span className="empty-symbol">＋</span><h2>Your list is a blank canvas.</h2><p>Save movies and series you want to remember. They’ll stay here on this device.</p><button className="button button-primary" onClick={() => openPage("home")}>Discover something <span>→</span></button></div>}
-          {visibleItems.length > 0 && <MediaGrid items={visibleItems} onSelect={setSelected} isSaved={isSaved} onToggleSave={toggleWatchlist} />}
+          {visibleItems.length > 0 && <MediaGrid items={visibleItems} onSelect={setSelected} onWatch={startPlayback} isSaved={isSaved} onToggleSave={toggleWatchlist} />}
           {page === "search" && !searching && !searchMessage && visibleItems.length === 0 && <div className="empty-state"><span className="empty-symbol">⌕</span><h2>No matching titles.</h2><p>Try a shorter title, a genre, or a different spelling.</p></div>}
         </section>}
 
@@ -356,12 +356,13 @@ function languageClaimLabel(claim: import("./types").LanguageClaim): string {
   return "Original-language metadata";
 }
 
-function MediaGrid({ items, onSelect, isSaved, onToggleSave }: { items: MediaItem[]; onSelect: (item: MediaItem) => void; isSaved: (item: MediaItem) => boolean; onToggleSave: (item: MediaItem) => void }) {
+function MediaGrid({ items, onSelect, onWatch, isSaved, onToggleSave }: { items: MediaItem[]; onSelect: (item: MediaItem) => void; onWatch: (item: MediaItem) => void; isSaved: (item: MediaItem) => boolean; onToggleSave: (item: MediaItem) => void }) {
   return <div className="media-grid">{items.map((item) => <article className="media-card" key={getStableMediaId(item)}>
     <button className="poster-button" onClick={() => onSelect(item)} aria-label={"View details for " + item.title}>
       {item.imageUrl || item.posterPath ? <img className="poster-image" src={item.imageUrl ?? posterUrl(item.posterPath)} alt={item.title + " poster"} loading="lazy" /> : <div className="poster-missing">7x<span>CINEMA</span></div>}
       <span className="poster-kind">{kindLabel(item)}</span><span className="poster-rating"><i>★</i> {ratingLabel(item)}</span><span className="poster-hover"><i>↗</i><small>VIEW DETAILS</small></span>
     </button>
+    <button className="poster-watch-action" onClick={() => onWatch(item)} aria-label={getPlaybackIntent(item).type === "direct" ? "Play " + item.title : "Find where to watch " + item.title}>{getPlaybackIntent(item).type === "direct" ? "▶ Play now" : "▷ Watch"}</button>
     <div className="media-card-info"><button className="media-title" onClick={() => onSelect(item)}>{item.title}</button><div className="media-subline"><span>{item.year ?? "Year unknown"}</span><i /><span>{item.sources.length > 1 ? item.sources.length + " catalogues" : (item.genres[0] ?? (item.kind === "movie" ? "Film" : "Series"))}</span></div><button className={"save-small " + (isSaved(item) ? "is-saved" : "")} onClick={() => onToggleSave(item)} aria-label={isSaved(item) ? "Remove " + item.title + " from My List" : "Save " + item.title + " to My List"}>{isSaved(item) ? "✓" : "+"}</button></div>
   </article>)}</div>;
 }
