@@ -50,11 +50,19 @@ if (!main.includes("Media3PlayerPlugin.class")) {
 }
 
 let gradle = await readFile(gradlePath, "utf8");
-if (!gradle.includes("androidx.media3:media3-exoplayer:1.11.1")) {
+const requiredMedia3Dependencies = [
+  'androidx.media3:media3-exoplayer:1.11.1',
+  'androidx.media3:media3-ui:1.11.1',
+  'androidx.media3:media3-exoplayer-hls:1.11.1',
+  'androidx.media3:media3-exoplayer-dash:1.11.1',
+];
+for (const coordinate of requiredMedia3Dependencies) {
+  if (gradle.includes(coordinate)) continue;
   if (!/dependencies\s*\{/.test(gradle)) throw new Error("Generated app Gradle file has no dependencies block.");
-  gradle = gradle.replace(/dependencies\s*\{/, (match) => match + '\n    implementation "androidx.media3:media3-exoplayer:1.11.1"\n    implementation "androidx.media3:media3-ui:1.11.1"');
-  await writeFile(gradlePath, gradle);
+  const artifact = coordinate.split(":")[1];
+  gradle = gradle.replace(/dependencies\s*\{/, (match) => match + '\n    implementation "' + coordinate + '"');
 }
+await writeFile(gradlePath, gradle);
 
 let manifest = await readFile(androidManifest, "utf8");
 if (!manifest.includes('android:name=".NativePlayerActivity"')) {
