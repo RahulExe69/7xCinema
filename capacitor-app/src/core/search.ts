@@ -40,6 +40,14 @@ export function mergeResults(items: MediaItem[]): MediaItem[] {
       ...existing,
       ...item,
       // Never allow an empty/partial provider result to erase richer fields.
+      // The UI may open this merged item for playback; do not lose the
+      // user-library identity when a richer metadata result arrives later.
+      id: existing.id || item.id,
+      libraryItemId: existing.libraryItemId || item.libraryItemId,
+      libraryItemType: existing.libraryItemType || item.libraryItemType,
+      episodeNumber: existing.episodeNumber ?? item.episodeNumber,
+      seasonNumber: existing.seasonNumber ?? item.seasonNumber,
+      externalIds: { ...(item.externalIds ?? {}), ...(existing.externalIds ?? {}) },
       title: existing.title || item.title,
       originalTitle: existing.originalTitle || item.originalTitle,
       overview: (existing.overview?.length ?? 0) >= (item.overview?.length ?? 0) ? existing.overview : item.overview,
