@@ -20,15 +20,18 @@ This roadmap sequences work by reducing the biggest risks early. Dates and effor
 - [x] Inspect initial MovieBox-TUI provider contract, service dispatch, models, Cargo manifest, and Android/Termux delivery model.
 - [x] Compare the renamed MovieBox-TUI fork with upstream main: identical at commit 7b47958867f992fda91ed5315375c6137b1d2ebf, with no ahead/behind commits or changed files. Recheck if either branch moves.
 - Inspect the dependency graph and decide whether a separate provider-core extraction is feasible.
+- [x] Inspect the NuvioMobile search fan-out, per-catalogue result model, playback capability checks, Media3/MPV path and GPL-3.0 status.
+- [x] Add a base-repository comparison for Nuvio adaptation versus a fresh app.
+- [x] Inspect Lumora, AIOStreams and Official Sources as source-aggregation/official-destination references.
 - Inspect FlixQuest's UI/player structure.
 - [x] Inspect TMDB-Embed-API's advertised registry/aggregation model and record its security/source-eligibility concerns.
-- Inspect selected aggregation logic and security boundaries only as needed for architectural research.
+- [x] Inspect selected aggregation logic in the MovieBox-TUI addon aggregator and AIOStreams README; broader security/eligibility review remains per provider.
 - [x] Inspect CloudStream's extension-oriented model and Stremio's resource protocol at README/docs level.
 - Compare extension loading/contract details without copying unreviewed integrations.
 - Review licences of candidate projects and transitive dependencies.
 - Assess provider access legitimacy, terms, maintenance, regions, and security.
 - [x] Create an initial provider/data-source matrix distinguishing metadata, playable sources, official destinations, personal libraries and protocol adapters.
-- Build a capability/evidence matrix for explicitly eligible providers, with date/region/test method and separate search/resolve/playback verification.
+- [x] Build an initial declared-capability and source-role matrix. Live search/resolve/playback evidence remains an open research task.
 - Verify TMDB/Watchmode terms, credits, attribution and India region support before adopting either service.
 
 **Exit gate:** Architecture alternatives and at least one eligible end-to-end integration candidate are backed by evidence. Initial code audit is documented in TECHNICAL_AUDIT.md; source eligibility, deeper code checks, and runtime verification remain open.
@@ -36,8 +39,8 @@ This roadmap sequences work by reducing the biggest risks early. Dates and effor
 ## Phase 2 — Technical feasibility spike
 **Goal:** Prove the difficult pieces before investing in a large app.
 
-- Compare Flutter, React/Capacitor, and a Rust/local-service approach against explicit criteria.
-- Establish whether reusable Rust components compile and run in the intended Android environment.
+- Compare NuvioMobile adaptation, a fresh native Kotlin/Compose + Media3 app, and a fresh React/Capacitor + native Media3 path against the same acceptance tests.
+- If the Nuvio spike is not selected, establish whether reusable Rust components compile and run in the intended Android environment.
 - Demonstrate UI-to-provider request and typed result mapping.
 - Demonstrate playback of a permitted test asset through the intended player.
 - Prove that the chosen approach can expose player errors and actual audio/subtitle tracks where supported.
