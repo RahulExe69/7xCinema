@@ -3,6 +3,7 @@ import { Browser } from "@capacitor/browser";
 import { isNativePlayerAvailable, NativePlayer } from "./native-player";
 import { backdropUrl, getStableMediaId, languageNames, posterUrl, starterCatalogue } from "./catalogue";
 import { createOfflineProvider, searchEveryProvider } from "./core/search";
+import { createInternetArchiveProvider } from "./services/internetArchive";
 import { createTmdbSearchProvider, fetchTrending, fetchWatchProviders, fetchOfficialTrailer, getTmdbKey, hasTmdbKey, setTmdbKey } from "./services/tmdb";
 import type { AppPage, MediaItem, ProviderReport, WatchProviderResponse } from "./types";
 
@@ -96,7 +97,7 @@ export default function App() {
     if (!clean) { setSearchMessage("Enter a title, genre, or year to search the catalogue."); setPage("search"); return; }
     const searchId = ++activeSearchId.current;
     setQuery(clean); setPage("search"); setSelected(null); setSearching(true); setSearchMessage(""); setResults([]);
-    const providers = [createOfflineProvider()];
+    const providers = [createOfflineProvider(), createInternetArchiveProvider()];
     if (hasTmdbKey()) providers.push(createTmdbSearchProvider());
     try {
       const snapshot = await searchEveryProvider(clean, providers, (partial) => {
@@ -148,7 +149,7 @@ export default function App() {
       setApiRevision((value) => value + 1); setSearchMessage("");
     } catch (error) { setSettingsMessage(error instanceof Error ? error.message : "Settings could not be saved."); }
   };
-  const startPlayback = (item: MediaItem) => { setPlayTarget(item); setPlayUrl(""); setPlayerLoaded(false); setPlayerError(""); };
+  const startPlayback = (item: MediaItem) => { setPlayTarget(item); setPlayUrl(item.playableUrl ?? ""); setPlayerLoaded(false); setPlayerError(""); };
   const validatePlaybackUrl = async () => {
     let parsed: URL;
     try { parsed = new URL(playUrl.trim()); } catch { setPlayerError("Enter a complete media URL beginning with https:// or http://."); return; }
@@ -242,10 +243,11 @@ export default function App() {
 
     {selected && <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><section className="detail-modal" role="dialog" aria-modal="true" aria-label={selected.title}>
       <button className="modal-close" onClick={() => setSelected(null)} aria-label="Close details">×</button><div className="detail-backdrop" style={{ backgroundImage: selected.backdropPath ? 'linear-gradient(0deg, #11141d 0%, rgba(17,20,29,.22) 100%), url("' + backdropUrl(selected.backdropPath) + '")' : undefined }} />
-      <div className="detail-content"><div className="detail-poster-wrap">{selected.posterPath ? <img className="detail-poster" src={posterUrl(selected.posterPath)} alt={selected.title + " poster"} /> : <div className="poster-missing">7x</div>}</div>
+      <div className="detail-content"><div className="detail-poster-wrap">{selected.imageUrl || selected.posterPath ? <img className="detail-poster" src={selected.imageUrl ?? posterUrl(selected.posterPath)} alt={selected.title + " poster"} /> : <div className="poster-missing">7x</div>}</div>
         <div className="detail-info"><div className="section-kicker">{kindLabel(selected)} · {selected.year ?? "Year unknown"}</div><h2>{selected.title}</h2><div className="detail-facts"><span className="rating-star">★</span><strong>{ratingLabel(selected)}</strong><span>{selected.kind === "movie" ? (selected.runtimeMinutes ? selected.runtimeMinutes + " min" : "Feature film") : (selected.seasonCount ? selected.seasonCount + " seasons" : "Series")}</span><span className="fact-divider">|</span><span>{selected.originalLanguage ? languageNames[selected.originalLanguage] ?? selected.originalLanguage.toUpperCase() : "Original language unknown"}</span></div>
           <p className="detail-overview">{selected.overview || "No synopsis is available for this title yet."}</p><div className="genre-tags">{selected.genres.map((genre) => <span key={genre}>{genre}</span>)}</div>
           {selected.sources.length > 0 && <div className="catalogue-provenance"><span>CATALOGUE MATCHES</span><div>{selected.sources.map((source) => <span key={source}>{catalogueSourceLabel(source)}</span>)}</div></div>}
+          {selected.itemPageUrl && selected.licenseUrl && <div className="open-license-note"><strong>Uploader-marked open-license media</strong><p>This item's metadata declares {selected.licenseUrl.includes("/zero/1.0") ? "CC0 1.0" : "Public Domain Mark 1.0"}. The label is an uploader claim, not an independent legal verification.</p><div className="open-license-links"><button className="text-action" onClick={() => void openOfficialDestination(selected.itemPageUrl)}>Review archive item ↗</button><button className="text-action" onClick={() => void openOfficialDestination(selected.licenseUrl)}>Review licence ↗</button></div>{selected.creator && <p>Creator/uploader metadata: {selected.creator}</p>}</div>}
           {(selected.languageClaims?.length ?? 0) > 0 && <section className="language-evidence" aria-label="Language evidence"><div className="section-kicker">LANGUAGE EVIDENCE</div><div className="language-claim-list">{selected.languageClaims?.map((claim) => <div className={"language-claim " + (claim.selectable && claim.evidence === "player-probe" ? "verified" : "reported")} key={[claim.sourceId, claim.languageCode, claim.kind, claim.evidence, claim.reportedKind].join(":")}><strong>{claim.language}</strong><small>{languageClaimLabel(claim)} · {catalogueSourceLabel(claim.sourceId)}</small></div>)}</div><p className="language-evidence-note">Reported metadata is not proof that a particular stream contains this track. Selectable audio and subtitles are confirmed only by the prepared player.</p></section>}
           <div className="detail-actions"><button className="button button-primary" onClick={() => startPlayback(selected)}>▶ &nbsp;Open player</button><button className={"button " + (isSaved(selected) ? "button-saved" : "button-secondary")} onClick={() => toggleWatchlist(selected)}>{isSaved(selected) ? "✓ In My List" : "＋ Add to My List"}</button>{trailerUrl && <button className="button button-secondary" onClick={() => void openOfficialDestination(trailerUrl)}>Watch official trailer ↗</button>}</div>
           {trailerLoading && <p className="field-help">Checking for an official trailer…</p>}
@@ -263,7 +265,7 @@ export default function App() {
 
     {playTarget && <div className="modal-backdrop player-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setPlayTarget(null); }}><section className="player-modal" role="dialog" aria-modal="true" aria-label={"Player for " + playTarget.title}>
       <div className="player-top"><div><div className="section-kicker">7XCINEMA PLAYER</div><h2>{playTarget.title}</h2></div><button className="modal-close inline-close" onClick={() => setPlayTarget(null)} aria-label="Close player">×</button></div>
-      {!playerLoaded || !playUrl || playerError ? <div className="player-entry"><div className="player-entry-icon">▶</div><h3>Bring your own authorised source.</h3><p>This catalogue discovers titles and official destinations; it never invents stream links. Android opens the native Media3 player, while the web preview uses the browser player.</p><label className="field-label" htmlFor="media-url">Direct media URL</label><input id="media-url" className="settings-input" inputMode="url" placeholder="https://example.com/your-authorised-video.mp4" value={playUrl} onChange={(event) => { setPlayUrl(event.target.value); setPlayerError(""); setPlayerLoaded(false); }} /><p className="field-help">Use an HTTP(S) media URL you have permission to access. Android Media3 supports compatible direct, HLS, and DASH streams and reports its actual audio/subtitle tracks. DRM-protected streams and provider-specific authentication are not bypassed.</p>{playerError && <div className="player-error">{playerError}</div>}<button className="button button-primary" onClick={validatePlaybackUrl}>Load media <span>→</span></button></div>
+      {!playerLoaded || !playUrl || playerError ? <div className="player-entry"><div className="player-entry-icon">▶</div><h3>{playTarget.playableUrl ? "Open-license archive video" : "Bring your own authorised source."}</h3><p>{playTarget.playableUrl ? "The archive item has a direct media file. Check its uploader-declared licence on the item page before relying on it; 7xCinema does not independently verify copyright ownership." : "This catalogue discovers titles and official destinations; it never invents stream links. Android opens the native Media3 player, while the web preview uses the browser player."}</p><label className="field-label" htmlFor="media-url">Direct media URL</label><input id="media-url" className="settings-input" inputMode="url" placeholder="https://example.com/your-authorised-video.mp4" value={playUrl} onChange={(event) => { setPlayUrl(event.target.value); setPlayerError(""); setPlayerLoaded(false); }} /><p className="field-help">Use an HTTP(S) media URL you have permission to access. Android Media3 supports compatible direct, HLS, and DASH streams and reports its actual audio/subtitle tracks. DRM-protected streams and provider-specific authentication are not bypassed.</p>{playerError && <div className="player-error">{playerError}</div>}<button className="button button-primary" onClick={validatePlaybackUrl}>Load media <span>→</span></button></div>
         : <div className="video-stage"><video key={playUrl} src={playUrl} controls autoPlay playsInline preload="metadata" onError={() => setPlayerError("This URL could not be played. Check the link, permissions, format, and device support.")} /><div className="video-actions"><button className="button button-ghost" onClick={() => { setPlayUrl(""); setPlayerLoaded(false); setPlayerError(""); }}>Change URL</button><span>Direct source · no source resolution</span></div>{playerError && <div className="player-error">{playerError}</div>}</div>}
     </section></div>}
   </div>;
@@ -272,6 +274,7 @@ export default function App() {
 function catalogueSourceLabel(sourceId: string): string {
   if (sourceId === "offline-catalogue") return "Offline catalogue";
   if (sourceId === "tmdb" || sourceId.startsWith("tmdb:")) return "TMDB";
+  if (sourceId === "internet-archive-open-license") return "Internet Archive · open-license";
   return sourceId.split("::")[0] || sourceId;
 }
 function languageClaimLabel(claim: import("./types").LanguageClaim): string {
@@ -286,7 +289,7 @@ function languageClaimLabel(claim: import("./types").LanguageClaim): string {
 function MediaGrid({ items, onSelect, isSaved, onToggleSave }: { items: MediaItem[]; onSelect: (item: MediaItem) => void; isSaved: (item: MediaItem) => boolean; onToggleSave: (item: MediaItem) => void }) {
   return <div className="media-grid">{items.map((item) => <article className="media-card" key={getStableMediaId(item)}>
     <button className="poster-button" onClick={() => onSelect(item)} aria-label={"View details for " + item.title}>
-      {item.posterPath ? <img className="poster-image" src={posterUrl(item.posterPath)} alt={item.title + " poster"} loading="lazy" /> : <div className="poster-missing">7x<span>CINEMA</span></div>}
+      {item.imageUrl || item.posterPath ? <img className="poster-image" src={item.imageUrl ?? posterUrl(item.posterPath)} alt={item.title + " poster"} loading="lazy" /> : <div className="poster-missing">7x<span>CINEMA</span></div>}
       <span className="poster-kind">{kindLabel(item)}</span><span className="poster-rating"><i>★</i> {ratingLabel(item)}</span><span className="poster-hover"><i>↗</i><small>VIEW DETAILS</small></span>
     </button>
     <div className="media-card-info"><button className="media-title" onClick={() => onSelect(item)}>{item.title}</button><div className="media-subline"><span>{item.year ?? "Year unknown"}</span><i /><span>{item.sources.length > 1 ? item.sources.length + " catalogues" : (item.genres[0] ?? (item.kind === "movie" ? "Film" : "Series"))}</span></div><button className={"save-small " + (isSaved(item) ? "is-saved" : "")} onClick={() => onToggleSave(item)} aria-label={isSaved(item) ? "Remove " + item.title + " from My List" : "Save " + item.title + " to My List"}>{isSaved(item) ? "✓" : "+"}</button></div>
