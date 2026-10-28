@@ -6,6 +6,7 @@ The primary app shell is React + TypeScript + Vite inside Capacitor 8. The older
 - Responsive cinema-inspired UI for Android and web.
 - Local starter catalogue, title details, filters, and a device-local watchlist.
 - One search entry point that fans out concurrently to every enabled catalogue adapter, streams partial results, and isolates provider errors/timeouts.
+- An Internet Archive adapter that searches only explicit Public Domain Mark/CC0 declarations, verifies that item metadata contains a compatible MP4, preserves the original item/licence links, and offers direct playback.
 - Optional live TMDB multi-search and trending catalogues when a TMDB v3 API key is configured.
 - Official watch/rent/buy destinations reported by TMDB for a selected country.
 - Accurate metadata language labelling: original-language metadata is not presented as a verified audio or subtitle track.
@@ -38,3 +39,7 @@ This migration does **not** claim a finished third-party stream resolver or a co
 
 ## Build output
 The `Capacitor Android Build` GitHub Actions workflow runs tests, builds the web assets, generates the Android shell, builds `app-debug.apk`, and uploads it as `7xCinema-Capacitor-Debug`.
+
+
+## Open-license archive safety
+The archive adapter only accepts item metadata that explicitly names the Creative Commons Public Domain Mark 1.0 or CC0 1.0 URL and contains an MP4 file. It retains links to the original item and licence so the user can review them. Those licence fields are uploader-supplied metadata, not independent rights verification; check the item page before reuse or redistribution. This adapter is not an endorsement that every Internet Archive upload is lawful or public domain. Internet Archive supports metadata search and item metadata APIs; the implementation uses those APIs directly and does not proxy or rehost the media.
