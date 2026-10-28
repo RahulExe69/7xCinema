@@ -9,7 +9,7 @@ The primary app shell is React + TypeScript + Vite inside Capacitor 8. The older
 - Optional live TMDB multi-search and trending catalogues when a TMDB v3 API key is configured.
 - Official watch/rent/buy destinations reported by TMDB for a selected country.
 - Accurate metadata language labelling: original-language metadata is not presented as a verified audio or subtitle track.
-- Direct HTTP(S) media URL playback for media the user is authorised to access and the current WebView/browser player supports.
+- Native AndroidX Media3 playback bridge with player controls and actual reported audio/subtitle-track selection; web preview uses HTML5 video for compatible direct HTTP(S) URLs.
 - Unit tests for deduplication, provenance, provider failure isolation, progressive results, and timeouts.
 
 ## Setup
@@ -34,7 +34,7 @@ Open **Settings**, paste your own TMDB v3 API key, choose the region, and save. 
 TMDB data provides metadata and reported official watch destinations, not playback URLs. Review TMDB's terms and branding requirements before public distribution.
 
 ## What this is not yet
-This migration does **not** claim a finished third-party stream resolver or a connected library of live playback providers. The current player is a direct-URL WebView player, not the native Media3 player and not a DRM bypass. HLS/DASH format support varies by device. Production provider adapters still require their own licence/terms review, documented permissions, real-world tests, and source-specific failure handling. A native Media3 Capacitor plugin and fully authorised source integrations remain explicit next milestones.
+This migration does **not** claim a finished third-party stream resolver or a connected library of live playback providers. The current player is a direct-URL WebView player, not the native Media3 player and not a DRM bypass. HLS/DASH format support varies by device. Production provider adapters still require their own licence/terms review, documented permissions, real-world tests, and source-specific failure handling. Physical-device playback testing and individually reviewed, authorised source integrations remain explicit next milestones.
 
 ## Build output
 The `Capacitor Android Build` GitHub Actions workflow runs tests, builds the web assets, generates the Android shell, builds `app-debug.apk`, and uploads it as `7xCinema-Capacitor-Debug`.
