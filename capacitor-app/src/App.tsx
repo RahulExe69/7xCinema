@@ -214,6 +214,7 @@ export default function App() {
     setQuery(clean); setPage("search"); setSelected(null); setSearching(true); setSearchMessage(""); setResults([]);
     const providers = [createOfflineProvider(), createInternetArchiveProvider()];
     if (hasTmdbKey()) providers.push(createTmdbSearchProvider());
+    if (jellyfinSession) providers.push(createJellyfinSearchProvider(jellyfinSession));
     try {
       const snapshot = await searchEveryProvider(clean, providers, (partial) => {
         if (activeSearchId.current !== searchId) return;
@@ -229,7 +230,47 @@ export default function App() {
     } finally {
       if (activeSearchId.current === searchId) setSearching(false);
     }
-  }, [query]);
+  }, [query, jellyfinSession]);
+
+  useEffect(() => {
+    if (jellyfinSession && query.trim()) void runSearch(query);
+  }, [jellyfinSession?.userId]);
+
+  const connectJellyfin = async () => {
+    setJellyfinBusy(true);
+    setJellyfinMessage("");
+    try {
+      const session = await authenticateJellyfin(jellyfinServerUrl, jellyfinUsername, jellyfinPassword);
+      const persisted = await persistJellyfinSession(session);
+      setJellyfinSession(session);
+      setJellyfinServerUrl(session.baseUrl);
+      try { localStorage.setItem("7xcinema.jellyfin.server", session.baseUrl); } catch { /* Server address is non-secret; connection still works in memory. */ }
+      setJellyfinPassword("");
+      setJellyfinMessage(persisted
+        ? "Connected. Your session token is stored in Android secure storage."
+        : "Connected for this browser session only. The token was not saved to unencrypted browser storage.");
+    } catch (error) {
+      setJellyfinMessage(error instanceof Error ? error.message : "Could not connect to this Jellyfin server.");
+    } finally {
+      setJellyfinBusy(false);
+    }
+  };
+
+  const disconnectJellyfin = async () => {
+    setJellyfinBusy(true);
+    try {
+      await clearJellyfinSession();
+      setJellyfinSession(null);
+      setJellyfinPassword("");
+      setJellyfinUsername("");
+      setJellyfinMessage("Jellyfin disconnected and its saved session token was cleared.");
+      try { localStorage.removeItem("7xcinema.jellyfin.server"); } catch { /* Ignore local preference cleanup errors. */ }
+    } catch (error) {
+      setJellyfinMessage(error instanceof Error ? error.message : "Could not clear the saved Jellyfin session.");
+    } finally {
+      setJellyfinBusy(false);
+    }
+  };
 
   const toggleWatchlist = useCallback((item: MediaItem) => {
     const stableId = getStableMediaId(item);
