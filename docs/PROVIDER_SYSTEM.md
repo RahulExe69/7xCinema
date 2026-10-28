@@ -185,3 +185,11 @@ Each capability needs:
 
 Do not let a provider's declaration bypass source eligibility. “Supports subtitles” does not mean every title has subtitles, and “supports series” does not mean every season/episode is available. No generic capability should assert every language is available.
 
+
+## Experimental MovieBox-TUI adapter boundary
+
+The current Capacitor development branch uses the UI-independent Rust facade from the sibling [Moviebox-Tui](https://github.com/RahulExe69/Moviebox-Tui) repository. The adapter contract exposes provider discovery, all-provider search, provider-specific details, episode metadata, playback-source discovery, and selected-source resolution through a small JSON API. In the Android APK the Rust shared library is bundled locally; the API binds only to `127.0.0.1`, uses an ephemeral port and a random per-process token, and is not a remote proxy.
+
+The current `all` operation includes five built-in providers: MovieBox, 4KHDHub, Dramachi, CircleFTP (BDIX), and DhakaFlix (BDIX). Each response contains a list of provider/media IDs so the visible title can be deduplicated without losing source identity. Release discovery can add matching releases from other enabled providers, and resolution refers to the provider-specific release index rather than accepting a client-supplied arbitrary URL.
+
+The optional Stremio/community add-on subsystem is not yet surfaced in the app. Keep it out of the default search until it has explicit per-addon configuration, status/error reporting, privacy/terms review, and tested result normalization. This is an implementation milestone only; provider reachability, rights, reliability, playback and real-device behaviour remain unverified.
