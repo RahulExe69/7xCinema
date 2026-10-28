@@ -17,7 +17,7 @@ The project needs a fast mobile-first UI iteration loop and a shared web-compati
 - **Local data:** offline starter catalogue and device-local My List.
 - **Live metadata:** optional TMDB v3 API key stored on device; build-time `VITE_TMDB_API_KEY` is also supported but is public in the bundle.
 - **Official availability:** TMDB watch-provider endpoint filtered to a user-selected region. Provider records link to TMDB's reported availability page, rather than inventing a direct streaming URL.
-- **Playback (current MVP):** browser/WebView media element for user-supplied direct HTTP(S) media URLs. URL scheme and embedded credentials are validated; compatibility still depends on the media format and target device.
+- **Playback (current MVP):** local native AndroidX Media3 player bridge for user-supplied direct HTTP(S) URLs, with play/pause/seek and track selection based on actual prepared-player audio/subtitle groups; the web preview uses HTML5 video. URL schemes and embedded credentials are validated on both sides.
 - **Build verification:** GitHub Actions installs JS dependencies, tests search orchestration, builds the web bundle, generates a fresh Capacitor Android project, builds the debug APK, and uploads an artifact.
 
 ## Deliberate safety and correctness rules
@@ -46,7 +46,9 @@ The project needs a fast mobile-first UI iteration loop and a shared web-compati
 - [ ] My List survives process/app restart.
 
 ### Gate C — Native playback
-- [ ] A dedicated Capacitor plugin wraps AndroidX Media3 if WebView playback is insufficient.
+- [x] A local Capacitor bridge wraps AndroidX Media3 and exposes a native playback Activity.
+- [ ] Verify the native bridge's Gradle integration and debug APK in CI.
+- [ ] Add a dedicated Capacitor bridge API that can report selected-track details back to React if the UX needs them.
 - [ ] Authorized test assets cover supported direct MP4, HLS, and DASH media where technically compatible.
 - [ ] Audio and subtitle tracks are listed from the prepared player, with verified selection events.
 - [ ] Loading, failure, retry, seek, orientation, app backgrounding, and teardown are tested on real Android devices.
