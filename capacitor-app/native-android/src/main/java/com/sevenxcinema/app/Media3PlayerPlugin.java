@@ -5,6 +5,7 @@ import android.net.Uri;
 
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
+import org.json.JSONObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
@@ -62,6 +63,7 @@ public final class Media3PlayerPlugin extends Plugin {
                 intent.putExtra(NativePlayerActivity.EXTRA_URL, parsed.toASCIIString());
                 intent.putExtra(NativePlayerActivity.EXTRA_TITLE, title == null ? "7xCinema" : title);
                 intent.putStringArrayListExtra(NativePlayerActivity.EXTRA_FALLBACK_URLS, fallbackUrls);
+                intent.putExtra(NativePlayerActivity.EXTRA_HEADERS, safePlaybackHeaders(call.getObject("headers")).toString());
                 getActivity().startActivity(intent);
 
                 JSObject result = new JSObject();
@@ -72,6 +74,24 @@ public final class Media3PlayerPlugin extends Plugin {
                 call.reject("Could not open the native player.", error);
             }
         });
+    }
+
+    private static JSONObject safePlaybackHeaders(JSONObject headers) {
+        JSONObject safe = new JSONObject();
+        if (headers == null) return safe;
+        // Only allow authentication headers used by configured media libraries.
+        for (String allowed : new String[] {"Authorization", "X-Emby-Token"}) {
+            String value = headers.optString(allowed, "");
+            if (!value.isEmpty() && value.length() <= 4096
+                    && value.indexOf('\r') < 0 && value.indexOf('\n') < 0) {
+                try {
+                    safe.put(allowed, value);
+                } catch (org.json.JSONException ignored) {
+                    // Ignore malformed headers.
+                }
+            }
+        }
+        return safe;
     }
 
     private static boolean isSafeMediaUrl(URI uri) {
