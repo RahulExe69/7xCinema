@@ -14,8 +14,10 @@ This roadmap sequences work by reducing the biggest risks early. Dates and effor
 
 **Exit gate:** The scope and acceptance criteria are clear enough to guide research and prototypes.
 
-## Phase 1 — Candidate and licence audit
+## Phase 1 — Candidate and licence audit (in progress)
 **Goal:** Choose a technically sound foundation and eligible integrations.
+
+**Status note:** The repository/code architecture audit and initial source-role matrix are documented. No third-party playable-source adapter has yet passed the complete eligibility and runtime verification gate. This phase is not complete.
 
 - [x] Inspect initial MovieBox-TUI provider contract, service dispatch, models, Cargo manifest, and Android/Termux delivery model.
 - [x] Compare the renamed MovieBox-TUI fork with upstream main: identical at commit 7b47958867f992fda91ed5315375c6137b1d2ebf, with no ahead/behind commits or changed files. Recheck if either branch moves.
@@ -34,7 +36,7 @@ This roadmap sequences work by reducing the biggest risks early. Dates and effor
 - [x] Build an initial declared-capability and source-role matrix. Live search/resolve/playback evidence remains an open research task.
 - Verify TMDB/Watchmode terms, credits, attribution and India region support before adopting either service.
 
-**Exit gate:** Architecture alternatives and at least one eligible end-to-end integration candidate are backed by evidence. Initial code audit is documented in TECHNICAL_AUDIT.md; source eligibility, deeper code checks, and runtime verification remain open.
+**Exit gate:** Architecture alternatives and at least one source that is both eligible and end-to-end verified are backed by evidence. The initial code audit is documented in TECHNICAL_AUDIT.md, but this exit gate remains OPEN until licensing/terms and security checks plus repeatable search, resolution, and playback tests are completed.
 
 ## Phase 2 — Technical feasibility spike
 **Goal:** Prove the difficult pieces before investing in a large app.
