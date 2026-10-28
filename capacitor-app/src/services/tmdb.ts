@@ -73,8 +73,10 @@ function mapRecord(record: TmdbRecord, fallbackKind?: MediaKind): MediaItem | nu
   const title = media === "movie" ? (record.title ?? record.original_title) : (record.name ?? record.original_name);
   if (!title) return null;
   const genreIds = record.genre_ids ?? [];
+  const sourceId = `tmdb:${media}:${record.id}`;
+  const originalLanguage = record.original_language ?? undefined;
   return {
-    id: `tmdb:${media}:${record.id}`,
+    id: sourceId,
     tmdbId: record.id,
     kind: media,
     title,
@@ -85,7 +87,15 @@ function mapRecord(record: TmdbRecord, fallbackKind?: MediaKind): MediaItem | nu
     backdropPath: record.backdrop_path ?? undefined,
     rating: Number.isFinite(record.vote_average) ? record.vote_average : undefined,
     voteCount: record.vote_count ?? undefined,
-    originalLanguage: record.original_language ?? undefined,
+    originalLanguage,
+    languageClaims: originalLanguage ? [{
+      languageCode: originalLanguage,
+      language: languageNames[originalLanguage] ?? originalLanguage.toUpperCase(),
+      kind: "reported" as const,
+      evidence: "provider-metadata" as const,
+      sourceId,
+      selectable: false,
+    }] : [],
     genreIds,
     genres: genreIds.map((id) => genreNames[id] ?? "Other"),
     runtimeMinutes: record.runtime ?? undefined,
