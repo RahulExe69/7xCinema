@@ -109,3 +109,15 @@ A user searches once, sees a coherent catalogue entry assembled from available p
 ## 11. Status and assumptions
 
 This document captures the agreed direction. The app is at the planning/research stage. Framework, provider execution location, exact sources, and detailed UI remain open decisions until repository and capability research is complete.
+
+
+## 12. Coverage without false promises
+
+“Don't miss content” means maximising discovery across eligible catalogues and showing verified compatible options; it does not mean promising 100% global availability. A title may be discoverable but not playable in-app.
+
+7xCinema should reason about three complementary layers:
+1. **Discovery:** identify titles, seasons and episodes across catalogue sources.
+2. **In-app playback:** identify permitted, compatible playback candidates and verified audio/subtitle capabilities.
+3. **Official destination:** when internal playback is unavailable, optionally show a validated official provider destination or availability offer.
+
+The UI must not label an official destination as a playable stream or claim a language exists just because a different source has it. Measure discovery, playback and destination coverage separately.
