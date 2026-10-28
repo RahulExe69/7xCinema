@@ -75,3 +75,54 @@
 .library-variant-copy small{font-size:8px;color:#919bad;line-height:1.5}
 .library-variant-play{font-size:12px;color:var(--mint);padding-left:5px}
 @media(max-width:640px){.library-variants{padding:12px;margin-top:14px}.library-variant-row{padding:9px;gap:8px}.library-variant-icon{width:30px;height:30px}.library-variant-copy strong{font-size:9px}}
+
+
+/* MovieBox-TUI multi-provider source and episode picker */
+.moviebox-source-panel {
+  width: 100%;
+  margin: 18px 0 8px;
+  padding: 16px;
+  border: 1px solid rgba(139, 255, 207, .2);
+  border-radius: 16px;
+  background: rgba(18, 24, 34, .72);
+  text-align: left;
+}
+.moviebox-panel-heading { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+.moviebox-panel-heading strong { font-size: 17px; color: var(--text, #f0f3f9); }
+.moviebox-panel-heading .section-kicker { color: var(--accent, #8bffcf); }
+.moviebox-message { margin: 10px 0; }
+.moviebox-season { margin-top: 13px; }
+.moviebox-season-title, .moviebox-list-title {
+  margin: 10px 0 7px;
+  color: var(--accent, #8bffcf);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.moviebox-episode-row, .moviebox-release-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 7px;
+  padding: 11px 12px;
+  color: var(--text, #f0f3f9);
+  text-align: left;
+  border: 1px solid rgba(145, 160, 180, .15);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .025);
+  cursor: pointer;
+}
+.moviebox-episode-row:hover, .moviebox-release-row:hover { border-color: rgba(139, 255, 207, .5); background: rgba(139, 255, 207, .06); }
+.moviebox-episode-row:disabled, .moviebox-release-row:disabled { opacity: .52; cursor: wait; }
+.moviebox-episode-number { flex: 0 0 auto; color: var(--accent, #8bffcf); font-size: 11px; font-weight: 800; }
+.moviebox-episode-copy, .moviebox-release-copy { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 4px; }
+.moviebox-episode-copy strong, .moviebox-release-copy strong { font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }
+.moviebox-episode-copy small, .moviebox-release-copy small { color: var(--muted, #9ba4b5); font-size: 10px; line-height: 1.45; overflow-wrap: anywhere; }
+.moviebox-play-icon { color: var(--accent, #8bffcf); font-size: 14px; font-weight: 800; }
+.moviebox-release-list { margin-top: 16px; }
+@media (max-width: 520px) {
+  .moviebox-source-panel { padding: 12px; }
+  .moviebox-episode-row, .moviebox-release-row { gap: 8px; padding: 10px 9px; }
+}
