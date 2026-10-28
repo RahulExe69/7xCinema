@@ -317,3 +317,32 @@ Conclusion: NuvioMobile is now the strongest existing consumer-app base to test,
 - **Potential value:** Historical reference for provider-per-class abstractions, typed response models, and API wrapping of heterogeneous sites.
 - **Risks:** README explicitly describes scraping websites. The legal/terms basis for each upstream site, current reliability, source authorisation, and stream rights are unverified. Do not deploy or adopt its listed sources just because the code is MIT.
 - **Decision:** Low-priority architecture reference only; not a proposed provider to enable. Any individual provider would require independent access/rights, security, dependency, maintenance, and playback review.
+
+
+## Subtitle-source research — 2026-10-28
+
+Subtitle search is a separate integration type from video/audio-source discovery. A subtitle API can improve subtitle coverage but cannot establish that a dubbed audio version exists.
+
+### OpenSubtitles.com REST API — primary candidate to evaluate
+- **Official docs:** https://ai.opensubtitles.com/api-docs · https://opensubtitles.stoplight.io/docs/opensubtitles-api/e3750fd63a100-getting-started
+- The current OpenSubtitles.com API provides a REST search flow supporting external IDs (IMDb/TMDb), movie hashes and text queries, with language/format fields and a documented download flow.
+- Authentication uses an application API key; user-authenticated operations may additionally use a bearer token. The application key must not be embedded in public client code or committed. Implement secure configuration and respect response rate-limit headers and returned host.
+- **Migration warning:** An official OpenSubtitles forum notice dated 2026-01-29 announced the final shutdown of the old OpenSubtitles.org XML-RPC API for third-party apps and directed developers to migrate to the modern .com REST API. Do not inherit legacy .org XML-RPC code from an old player/project.
+- **Value:** A dedicated subtitle adapter with language, media identity, and format metadata. Match subtitles using episode/movie identifiers and, where available, file hash/name/edition. Subtitle quality and timing still need validation against the selected video version.
+- **Risks/unknowns:** Confirm current API terms, app registration, quota/plan, download rules, caching and redistribution terms before production. Search success is not proof that the subtitle matches the exact source version.
+- **Status:** Primary subtitle API candidate; not integrated or live-tested.
+
+References: [API docs](https://ai.opensubtitles.com/api-docs), [official API shutdown/migration notice](https://forum.opensubtitles.com/t/opensubtitles-org-api-final-shutdown-notice-for-non-vip-users/5045), [OpenSubtitles API getting-started guide](https://opensubtitles.stoplight.io/docs/opensubtitles-api/e3750fd63a100-getting-started).
+
+### Wyzie Subs API — alternate candidate, terms/key review required
+- **Docs:** https://docs.wyzie.io/subs/intro · [Terms](https://store.wyzie.io/terms) · [Open-source statement](https://wyzie.io/open-source)
+- Wyzie Subs is a subtitle-search API with a documented key-required request flow; its public documentation advertises a free quota and paid plans. Its provider implementation is described by Wyzie as closed source, while separate Wyzie libraries/proxies have their own licences.
+- Its published terms last updated 2026-09-24 prohibit using the service to facilitate piracy, copyright infringement or unauthorized distribution, and prohibit bypassing its technical controls. Any future use must fit the terms, including the intended app distribution and subtitle handling.
+- **Value:** A potentially convenient multi-source subtitle integration, not a video source.
+- **Risks/unknowns:** API key, quota, current provider set, attribution/redistribution conditions, title/version matching, and reliability need review. Do not mistake the API's free tier for an unrestricted commercial redistribution licence.
+- **Status:** Alternate subtitle candidate; eligibility review required before use.
+
+References: [Wyzie docs](https://docs.wyzie.io/subs/intro), [Terms of Service](https://store.wyzie.io/terms), [Wyzie source/licensing overview](https://wyzie.io/open-source).
+
+## Subtitle adapter acceptance
+Before enabling any subtitle API, test: exact movie/episode match, correct language tags, correct format/encoding, release/version matching, download expiry/redirect handling, malformed/oversized subtitle rejection, rate limiting, secret redaction, and no claim that subtitles imply dubbed audio.
