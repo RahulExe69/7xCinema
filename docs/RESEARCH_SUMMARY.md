@@ -69,24 +69,22 @@ MovieBox-TUI remains a potential source of isolated provider/domain concepts; it
 | Candidate repository audit | Initial code-level pass completed; full per-repo review remains |
 | Provider/source eligibility | Not yet cleared; candidate documentation is not approval |
 | Framework/base choice | Open; must be decided by proof of concept |
-| Universal search implementation | Not started |
-| Cross-provider title deduplication | Not started |
-| Language/source aggregation implementation | Not started |
+| Framework-neutral universal-search prototype | Implemented under prototype/aggregation-core; GitHub Actions passed on main commit dcd413a7816218b08fdfebc2ee3e32b56c6c1156 |
+| Cross-provider title deduplication | Prototype tested with synthetic fixtures; production matching policy and wider evaluation remain open |
+| Language/source aggregation | Prototype preserves per-source claims and separates provider-reported audio from player-observed tracks; player integration remains open |
 | Playback integration and fallback | Not started |
-| Tests/CI/release workflow | Not established in 7xCinema repo |
+| Prototype tests / CI | Node built-in tests run in GitHub Actions and passed on the merged commit; full app build/release CI is not established |
 
 ## Next milestone
 
-Run the same minimal feasibility test against the shortlisted base approaches:
-1. two fake catalogue providers return overlapping and distinct titles;
-2. show partial results while one source is delayed or fails;
-3. merge the same title into one group while preserving each source;
-4. distinguish a real audio track from a separate dubbed version;
-5. play a licensed test asset and discover its actual tracks;
-6. trigger a player-start failure and verify recovery;
-7. compare build effort, source-model fit, licence obligations and maintainability.
+The first framework-neutral aggregation slice is now implemented and tested with synthetic providers; its scope and limits are documented in [the prototype README](../prototype/aggregation-core/README.md). The remaining feasibility gate is app-base/player comparison:
+1. build NuvioMobile unmodified and estimate the cost of adapting its source-centric result sections;
+2. compare it with a fresh native Kotlin/Compose + Media3 vertical slice and a fresh React/Capacitor + native Media3 slice;
+3. play a licensed test asset and discover its actual audio/subtitle tracks;
+4. trigger a player-start failure and verify recovery;
+5. compare build effort, source-model fit, licence obligations and maintainability.
 
-Only after this gate should the repository move from planning into the first application implementation. Keep the exact decision and evidence in the decision log.
+The prototype does **not** include a live third-party provider or validate end-to-end video playback. It is not a final app framework decision. Record the next decision in the decision log.
 
 
 ## Subtitle coverage research
