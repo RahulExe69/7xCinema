@@ -162,3 +162,26 @@ Maintain separate measurements:
 - **Language coverage:** embedded audio tracks, separate dubbed versions and subtitles, reported as separate kinds of evidence.
 
 A title can have metadata and an official destination but no in-app source. The UI must say so clearly rather than presenting a broken Watch button or inventing playback support.
+
+
+## 13. Explicit capability contract for 7xCinema
+
+The existing TUI provider model has only a few broad booleans. 7xCinema should declare capabilities at a useful level of detail and keep declaration separate from verification.
+
+Suggested capability families:
+- **Catalogue:** search movies, search series, retrieve title metadata, enumerate seasons, enumerate episodes, pagination, trending/catalogue feeds.
+- **Playback discovery:** resolve movie, resolve episode, enumerate candidate streams, direct-file, HLS, DASH, approved embed hand-off.
+- **Language:** enumerate embedded audio tracks, report separate dub versions, enumerate embedded subtitles, search external subtitles, language metadata confidence.
+- **Availability:** official subscriptions, free-with-ads, rental, purchase, official app/page destination.
+- **Personal media:** local library, user-owned server, watched state/resume sync.
+- **Live TV:** channel catalogue, EPG, live stream candidate.
+- **Identity/scope:** accepted media types, ID namespaces/prefixes, supported regions, authentication requirements and rate limits.
+
+Each capability needs:
+- declared support: yes/no/unknown;
+- evidence level: documented, code-inspected, contract-tested, resolve-tested, playback-tested;
+- verification date and test environment where applicable;
+- relevant constraints, expiry or error conditions.
+
+Do not let a provider's declaration bypass source eligibility. “Supports subtitles” does not mean every title has subtitles, and “supports series” does not mean every season/episode is available. No generic capability should assert every language is available.
+
