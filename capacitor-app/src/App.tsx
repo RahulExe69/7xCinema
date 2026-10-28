@@ -369,7 +369,6 @@ export default function App() {
     } catch (error) { setSettingsMessage(error instanceof Error ? error.message : "Settings could not be saved."); }
   };
   const loadMovieboxSources = async (
-    item: MediaItem,
     source: ProviderMediaRef,
     season = 0,
     episode = 0,
@@ -411,7 +410,7 @@ export default function App() {
       return;
     }
     if (item.kind !== "tv") {
-      await loadMovieboxSources(item, source);
+      await loadMovieboxSources(source);
       return;
     }
     setMovieboxLoading(true);
@@ -737,7 +736,7 @@ export default function App() {
             <div className="moviebox-season-title">Season {season.number}</div>
             {season.episodes.map((episode) => <button className="moviebox-episode-row" key={season.number + "-" + episode.number} disabled={movieboxLoading || movieboxResolvingIndex !== null} onClick={() => {
               if (!playTarget) return;
-              void loadMovieboxSources(playTarget, movieboxDetails.id, season.number, episode.number);
+              void loadMovieboxSources(movieboxDetails.id, season.number, episode.number);
             }}>
               <span className="moviebox-episode-number">S{String(season.number).padStart(2, "0")}E{String(episode.number).padStart(2, "0")}</span>
               <span className="moviebox-episode-copy"><strong>{episode.title || ("Episode " + episode.number)}</strong>{episode.overview && <small>{episode.overview}</small>}</span>
