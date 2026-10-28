@@ -24,6 +24,7 @@ if (mainFiles.length !== 1) {
   throw new Error(`Expected one generated MainActivity.java; found ${mainFiles.length}.`);
 }
 await cp(path.join(sourceJava, "com", "sevenxcinema", "app"), path.join(appJava, "com", "sevenxcinema", "app"), { recursive: true });
+await cp(path.join(sourceJava, "com", "sevenx", "cinema"), path.join(appJava, "com", "sevenx", "cinema"), { recursive: true });
 
 const mainPath = mainFiles[0];
 let main = await readFile(mainPath, "utf8");
@@ -33,16 +34,19 @@ if (!main.includes("Media3PlayerPlugin.class")) {
   if (!main.includes("import android.os.Bundle;")) {
     main = main.replace(packageMatch[0], packageMatch[0] + "\n\nimport android.os.Bundle;");
   }
-  const importLine = `import ${packageMatch[1]}.Media3PlayerPlugin;`;
-  if (!main.includes(importLine)) {
-    main = main.replace(/import\s+com\.getcapacitor\.BridgeActivity;/, (line) => line + "\n" + importLine);
+  const importLines = [`import ${packageMatch[1]}.Media3PlayerPlugin;`, "import com.sevenx.cinema.MobileBackendPlugin;"];
+  for (const importLine of importLines) {
+    if (!main.includes(importLine)) {
+      main = main.replace(/import\s+com\.getcapacitor\.BridgeActivity;/, (line) => line + "\n" + importLine);
+    }
   }
   const emptyClass = /public\s+class\s+MainActivity\s+extends\s+BridgeActivity\s*\{\s*\}/;
-  const expandedClass = `public class MainActivity extends BridgeActivity {\n    @Override\n    public void onCreate(Bundle savedInstanceState) {\n        registerPlugin(Media3PlayerPlugin.class);\n        super.onCreate(savedInstanceState);\n    }\n}`;
+  const expandedClass = `public class MainActivity extends BridgeActivity {\n    @Override\n    public void onCreate(Bundle savedInstanceState) {\n        registerPlugin(Media3PlayerPlugin.class);
+        registerPlugin(MobileBackendPlugin.class);\n        super.onCreate(savedInstanceState);\n    }\n}`;
   if (emptyClass.test(main)) {
     main = main.replace(emptyClass, expandedClass);
   } else if (/public\s+class\s+MainActivity\s+extends\s+BridgeActivity\s*\{/.test(main)) {
-    main = main.replace(/public\s+class\s+MainActivity\s+extends\s+BridgeActivity\s*\{/, (match) => match + "\n    @Override\n    public void onCreate(Bundle savedInstanceState) {\n        registerPlugin(Media3PlayerPlugin.class);\n        super.onCreate(savedInstanceState);\n    }");
+    main = main.replace(/public\s+class\s+MainActivity\s+extends\s+BridgeActivity\s*\{/, (match) => match + "\n    @Override\n    public void onCreate(Bundle savedInstanceState) {\n        registerPlugin(Media3PlayerPlugin.class);\n        registerPlugin(MobileBackendPlugin.class);\n        super.onCreate(savedInstanceState);\n    }");
   } else {
     throw new Error("Could not safely register Media3PlayerPlugin in generated MainActivity.java.");
   }
