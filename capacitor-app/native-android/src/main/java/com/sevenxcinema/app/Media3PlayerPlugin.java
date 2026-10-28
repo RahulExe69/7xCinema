@@ -40,6 +40,22 @@ public final class Media3PlayerPlugin extends Plugin {
             return;
         }
 
+        String progressUrl = "";
+        String requestedProgressUrl = call.getString("progressUrl");
+        if (requestedProgressUrl != null && !requestedProgressUrl.trim().isEmpty()) {
+            try {
+                URI candidate = new URI(requestedProgressUrl.trim());
+                if (isSafeMediaUrl(candidate) && sameOrigin(parsed, candidate)
+                        && candidate.getRawQuery() == null && candidate.getRawFragment() == null
+                        && candidate.getPath() != null
+                        && candidate.getPath().matches(".*/Users/[A-Za-z0-9_-]{1,80}/PlayingItems/[A-Za-z0-9_-]{1,80}/Progress")) {
+                    progressUrl = candidate.toASCIIString();
+                }
+            } catch (URISyntaxException ignored) {
+                // Playback still works; malformed progress reporting is just disabled.
+            }
+        }
+
         ArrayList<String> fallbackUrls = new ArrayList<>();
         JSArray fallbackArray = call.getArray("fallbackUrls");
         if (fallbackArray != null) {
@@ -65,6 +81,7 @@ public final class Media3PlayerPlugin extends Plugin {
                 JSObject options = call.getData();
                 long resumePositionMs = options == null ? 0L : Math.max(0L, Math.min(options.optLong("startPositionMs", 0L), 604_800_000L));
                 intent.putExtra(NativePlayerActivity.EXTRA_START_POSITION_MS, resumePositionMs);
+                intent.putExtra(NativePlayerActivity.EXTRA_PROGRESS_URL, progressUrl);
                 intent.putStringArrayListExtra(NativePlayerActivity.EXTRA_FALLBACK_URLS, fallbackUrls);
                 intent.putExtra(NativePlayerActivity.EXTRA_HEADERS, safePlaybackHeaders(call.getObject("headers")).toString());
                 getActivity().startActivity(intent);
@@ -77,6 +94,16 @@ public final class Media3PlayerPlugin extends Plugin {
                 call.reject("Could not open the native player.", error);
             }
         });
+    }
+
+    private static boolean sameOrigin(URI left, URI right) {
+        if (!left.getScheme().equalsIgnoreCase(right.getScheme())
+                || !left.getHost().equalsIgnoreCase(right.getHost())) return false;
+        int leftPort = left.getPort() >= 0 ? left.getPort()
+                : (left.getScheme().equalsIgnoreCase("https") ? 443 : 80);
+        int rightPort = right.getPort() >= 0 ? right.getPort()
+                : (right.getScheme().equalsIgnoreCase("https") ? 443 : 80);
+        return leftPort == rightPort;
     }
 
     private static JSONObject safePlaybackHeaders(JSONObject headers) {
