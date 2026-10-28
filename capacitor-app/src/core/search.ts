@@ -1,5 +1,5 @@
 import { getStableMediaId, starterCatalogue } from "../catalogue";
-import type { LanguageClaim, MediaItem, ProviderReport, SearchProvider, SearchSnapshot } from "../types";
+import type { LanguageClaim, MediaItem, PlaybackSource, ProviderReport, SearchProvider, SearchSnapshot } from "../types";
 
 function timeoutError(message: string) {
   const error = new Error(message);
@@ -13,12 +13,16 @@ export function mergeResults(items: MediaItem[]): MediaItem[] {
     const id = getStableMediaId(item);
     const existing = groups.get(id);
     if (!existing) {
-      groups.set(id, { ...item, genreIds: [...item.genreIds], genres: [...item.genres], sources: [...item.sources], languageClaims: [...(item.languageClaims ?? [])] });
+      groups.set(id, { ...item, genreIds: [...item.genreIds], genres: [...item.genres], sources: [...item.sources], languageClaims: [...(item.languageClaims ?? [])], playbackSources: [...(item.playbackSources ?? [])] });
       continue;
     }
     const sources = [...new Set([...existing.sources, ...item.sources])];
     const genreIds = [...new Set([...existing.genreIds, ...item.genreIds])];
     const genres = [...new Set([...existing.genres, ...item.genres])];
+    const sourceCandidates = new Map<string, PlaybackSource>();
+    for (const candidate of [...(existing.playbackSources ?? []), ...(item.playbackSources ?? [])]) {
+      if (!sourceCandidates.has(candidate.url)) sourceCandidates.set(candidate.url, candidate);
+    }
     const claims = new Map<string, LanguageClaim>();
     for (const claim of [...(existing.languageClaims ?? []), ...(item.languageClaims ?? [])]) {
       const claimKey = [
@@ -43,6 +47,7 @@ export function mergeResults(items: MediaItem[]): MediaItem[] {
       backdropPath: existing.backdropPath || item.backdropPath,
       imageUrl: existing.imageUrl || item.imageUrl,
       playableUrl: existing.playableUrl || item.playableUrl,
+      playbackSources: [...sourceCandidates.values()],
       itemPageUrl: existing.itemPageUrl || item.itemPageUrl,
       licenseUrl: existing.licenseUrl || item.licenseUrl,
       creator: existing.creator || item.creator,
