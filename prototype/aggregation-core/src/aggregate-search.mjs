@@ -155,7 +155,7 @@ function dedupeProviderRecords(records) {
     if (existing.mediaType !== record.mediaType || knownYearsConflict || episodeCoordinatesConflict || idConflict) {
       existing.identityConflict = true;
       existing.year = null;
-    } else if (existing.year === null && record.year !== null) {
+    } else if (!existing.identityConflict && existing.year === null && record.year !== null) {
       existing.year = record.year;
     }
     if (record.title !== existing.title && !existing.alternateTitles.includes(record.title)) {
