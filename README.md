@@ -12,13 +12,13 @@
 - Optional live TMDB multi-search and trending titles when a user configures a TMDB v3 API key.
 - Region-aware official watch/rent/buy destinations reported by TMDB.
 - A device-local watchlist, title details, genre/kind filters, and settings.
-- A direct HTTP(S) media URL player for media the user is authorised to access and the WebView supports.
+- A native AndroidX Media3 player bridge with actual audio/subtitle track selection; the web preview uses HTML5 video for compatible direct HTTP(S) media URLs.
 - Unit tests for deduplication, provenance, partial results, provider errors, and timeouts.
 - GitHub Actions that tests the app, builds web assets, generates the Capacitor Android shell, builds a debug APK, and uploads it.
 
 ## Project status — migration MVP, not a finished streaming service
 
-The app shell and discovery experience are being migrated; the application is **not yet a complete streaming app**. Live metadata needs a TMDB API key. There are no real third-party playback-provider adapters or automatic stream resolver in the Capacitor app yet, and the current player is the browser/WebView media element rather than the old native Media3 player. HLS/DASH, protected streams, audio/subtitle selection, and device playback still need a native-player integration and validation on real devices. We will not label provider-reported language metadata as a verified audio/subtitle track.
+The app shell, discovery experience, and native Android player bridge are being migrated; the application is **not yet a complete streaming app**. Live metadata needs a TMDB API key. There are no real third-party playback-provider adapters or automatic stream resolver in the Capacitor app yet, and the current player is the browser/WebView media element rather than the old native Media3 player. HLS/DASH, protected streams, audio/subtitle selection, and device playback still need a native-player integration and validation on real devices. We will not label provider-reported language metadata as a verified audio/subtitle track.
 
 ## Run the app
 
