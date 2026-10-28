@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chooseArchiveMp4, isExplicitOpenLicense } from "./internetArchive";
+import { chooseArchiveMp4, chooseArchiveMp4Candidates, isExplicitOpenLicense } from "./internetArchive";
 
 describe("Internet Archive open-license gate", () => {
   it("accepts only explicit Creative Commons Public Domain Mark and CC0 declarations", () => {
@@ -27,6 +27,16 @@ describe("Internet Archive open-license gate", () => {
       { name: "movie.avi", format: "AVI", size: "30000" },
     ]);
     expect(file?.name).toBe("movie-720p.mp4");
+  });
+
+  it("returns a bounded ordered fallback list of compatible files", () => {
+    expect(chooseArchiveMp4Candidates([
+      { name: "sample.mp4", format: "MPEG4", size: "100" },
+      { name: "small.mp4", format: "MPEG4", size: "500" },
+      { name: "large.mp4", format: "MPEG4", size: "9000" },
+      { name: "medium.mp4", format: "MPEG4", size: "2500" },
+      { name: "huge.mp4", format: "MPEG4", size: "19000" },
+    ], 3).map((file) => file.name)).toEqual(["huge.mp4", "large.mp4", "medium.mp4"]);
   });
 
   it("returns no file when no compatible MP4 exists", () => {
