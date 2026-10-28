@@ -41,18 +41,20 @@ public final class Media3PlayerPlugin extends Plugin {
             return;
         }
 
-        try {
-            Intent intent = new Intent(getActivity(), NativePlayerActivity.class);
-            intent.putExtra(NativePlayerActivity.EXTRA_URL, parsed.toASCIIString());
-            intent.putExtra(NativePlayerActivity.EXTRA_TITLE, title == null ? "7xCinema" : title);
-            getActivity().startActivity(intent);
+        getActivity().runOnUiThread(() -> {
+            try {
+                Intent intent = new Intent(getActivity(), NativePlayerActivity.class);
+                intent.putExtra(NativePlayerActivity.EXTRA_URL, parsed.toASCIIString());
+                intent.putExtra(NativePlayerActivity.EXTRA_TITLE, title == null ? "7xCinema" : title);
+                getActivity().startActivity(intent);
 
-            JSObject result = new JSObject();
-            result.put("opened", true);
-            result.put("player", "androidx-media3");
-            call.resolve(result);
-        } catch (Exception error) {
-            call.reject("Could not open the native player.", error);
-        }
+                JSObject result = new JSObject();
+                result.put("opened", true);
+                result.put("player", "androidx-media3");
+                call.resolve(result);
+            } catch (Exception error) {
+                call.reject("Could not open the native player.", error);
+            }
+        });
     }
 }
