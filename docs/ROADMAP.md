@@ -9,7 +9,8 @@ This roadmap sequences work by reducing the biggest risks early. Dates and effor
 - [x] Document product vision and requirements.
 - [x] Document proposed provider, search, language, and playback architecture.
 - [x] Create an initial research register.
-- [ ] Review the baseline documents and record material changes in the decision log.
+- [x] Review the baseline documents and record material changes in the decision log.
+- [x] Distinguish catalogue discovery, in-app playback, official destinations and language evidence.
 
 **Exit gate:** The scope and acceptance criteria are clear enough to guide research and prototypes.
 
@@ -25,7 +26,9 @@ This roadmap sequences work by reducing the biggest risks early. Dates and effor
 - Compare extension loading/contract details without copying unreviewed integrations.
 - Review licences of candidate projects and transitive dependencies.
 - Assess provider access legitimacy, terms, maintenance, regions, and security.
+- [x] Create an initial provider/data-source matrix distinguishing metadata, playable sources, official destinations, personal libraries and protocol adapters.
 - Build a capability/evidence matrix for explicitly eligible providers, with date/region/test method and separate search/resolve/playback verification.
+- Verify TMDB/Watchmode terms, credits, attribution and India region support before adopting either service.
 
 **Exit gate:** Architecture alternatives and at least one eligible end-to-end integration candidate are backed by evidence. Initial code audit is documented in TECHNICAL_AUDIT.md; source eligibility, deeper code checks, and runtime verification remain open.
 
