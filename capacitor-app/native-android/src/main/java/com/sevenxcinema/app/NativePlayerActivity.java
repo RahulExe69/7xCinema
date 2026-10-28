@@ -46,6 +46,7 @@ public final class NativePlayerActivity extends Activity {
     public static final String EXTRA_TITLE = "com.sevenxcinema.app.MEDIA_TITLE";
     public static final String EXTRA_FALLBACK_URLS = "com.sevenxcinema.app.MEDIA_FALLBACK_URLS";
     public static final String EXTRA_HEADERS = "com.sevenxcinema.app.MEDIA_HEADERS";
+    public static final String EXTRA_START_POSITION_MS = "com.sevenxcinema.app.MEDIA_START_POSITION_MS";
 
     private static final int BACKGROUND = Color.rgb(8, 10, 16);
     private static final int SURFACE = Color.rgb(22, 26, 37);
@@ -58,6 +59,7 @@ public final class NativePlayerActivity extends Activity {
     private TextView statusView;
     private String mediaUrl;
     private String mediaTitle;
+    private long resumePositionMs = 0L;
     private final ArrayList<String> sourceUrls = new ArrayList<>();
     private final Map<String, String> requestHeaders = new LinkedHashMap<>();
     private int currentSourceIndex = 0;
@@ -68,6 +70,7 @@ public final class NativePlayerActivity extends Activity {
         super.onCreate(savedInstanceState);
         mediaUrl = getIntent().getStringExtra(EXTRA_URL);
         mediaTitle = getIntent().getStringExtra(EXTRA_TITLE);
+        resumePositionMs = Math.max(0L, Math.min(getIntent().getLongExtra(EXTRA_START_POSITION_MS, 0L), 604_800_000L));
         if (!isSafeMediaUrl(mediaUrl)) {
             Toast.makeText(this, "The media URL is not valid.", Toast.LENGTH_LONG).show();
             finish();
@@ -243,7 +246,7 @@ public final class NativePlayerActivity extends Activity {
 
     private void prepareSourceAtIndex(int index) {
         if (player == null || index < 0 || index >= sourceUrls.size()) return;
-        player.setMediaItem(buildMediaItem(sourceUrls.get(index)));
+        player.setMediaItem(buildMediaItem(sourceUrls.get(index)), index == 0 ? resumePositionMs : 0L);
         player.setPlayWhenReady(true);
         player.prepare();
     }
