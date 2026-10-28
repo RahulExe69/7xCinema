@@ -1,4 +1,5 @@
 import test from "node:test";
+import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import {
   addVerifiedPlayerTracks,
@@ -378,4 +379,100 @@ function normalisedTestSource(record) {
     episodeNumber: record.episodeNumber ?? null,
     languageClaims,
   };
+}
+
+
+function loadSharedIdentityFixtures() {
+  const lines = readFileSync(new URL("./fixtures/identity-cases.tsv", import.meta.url), "utf8").split(/\\r?\\n/);
+  const cases = new Map();
+
+  for (const line of lines) {
+    if (!line.trim() || line.startsWith("#")) continue;
+    const fields = line.split("|");
+    const [kind, caseId] = fields;
+    const entry = cases.get(caseId) || { id: caseId, records: [], expected: null, languages: null };
+
+    if (kind === "R") {
+      const [, , providerId, providerItemId, title, mediaType, year, idsRaw, season, episode,
+        languageCode, language, claimKind, evidence] = fields;
+      const externalIds = {};
+      for (const pair of (idsRaw || "").split(";").filter(Boolean)) {
+        const splitAt = pair.indexOf("=");
+        if (splitAt > 0) externalIds[pair.slice(0, splitAt)] = pair.slice(splitAt + 1);
+      }
+      const languageClaims = languageCode || language || claimKind
+        ? [{
+            languageCode: languageCode || null,
+            language: language || null,
+            kind: claimKind || "reported",
+            evidence: evidence || "provider-metadata",
+          }]
+        : [];
+      entry.records.push({
+        providerId,
+        item: {
+          providerItemId,
+          title,
+          mediaType,
+          year: year ? Number(year) : null,
+          externalIds,
+          seasonNumber: season ? Number(season) : null,
+          episodeNumber: episode ? Number(episode) : null,
+          languageClaims,
+        },
+      });
+    } else if (kind === "E") {
+      const [, , groupCount, groupSizes, confidences, canonicalIds, years, sourceConflicts] = fields;
+      entry.expected = {
+        groupCount: Number(groupCount),
+        groupSizes,
+        confidences,
+        canonicalIds,
+        years,
+        sourceConflicts,
+      };
+    } else if (kind === "L") {
+      entry.languages = (fields[2] || "").split(",").filter(Boolean).sort();
+    } else {
+      throw new Error("Unknown row in shared identity fixture: " + kind);
+    }
+    cases.set(caseId, entry);
+  }
+
+  return [...cases.values()];
+}
+
+for (const fixture of loadSharedIdentityFixtures()) {
+  test("shared JS/Kotlin identity fixture: " + fixture.id, async () => {
+    const byProvider = new Map();
+    for (const record of fixture.records) {
+      if (!byProvider.has(record.providerId)) byProvider.set(record.providerId, []);
+      byProvider.get(record.providerId).push(record.item);
+    }
+    const providers = [...byProvider.entries()].map(([id, items]) => ({
+      id,
+      priority: 100,
+      enabled: true,
+      eligible: true,
+      capabilities: { search: true },
+      async search() { return items; },
+    }));
+
+    const result = await aggregateSearch("fixture", providers, { timeoutMs: 1_000, concurrency: 4 });
+    assert.equal(result.results.length, fixture.expected.groupCount);
+    assert.equal(result.results.map(title => title.sources.length).join(","), fixture.expected.groupSizes);
+    assert.equal(result.results.map(title => title.matchConfidence).join(","), fixture.expected.confidences);
+    assert.equal(result.results.map(title => title.canonicalId).join(","), fixture.expected.canonicalIds);
+    assert.equal(result.results.map(title => String(title.year ?? "null")).join(","), fixture.expected.years);
+    assert.equal(
+      result.results.flatMap(title => title.sources.map(source => String(source.identityConflict === true))).join(","),
+      fixture.expected.sourceConflicts,
+    );
+    if (fixture.languages) {
+      const actualLanguages = [...new Set(
+        result.results.flatMap(title => title.languageClaims.map(claim => claim.languageCode + ":" + claim.kind)),
+      )].sort();
+      assert.deepEqual(actualLanguages, fixture.languages);
+    }
+  });
 }
