@@ -8,7 +8,7 @@ import { createOfflineProvider, mergeResults, searchEveryProvider } from "./core
 import { getPlaybackIntent } from "./core/playback";
 import { createInternetArchiveProvider } from "./services/internetArchive";
 import { createTmdbSearchProvider, fetchTrending, fetchWatchProviders, fetchOfficialTrailer, getTmdbKey, hasTmdbKey, setTmdbKey } from "./services/tmdb";
-import { authenticateJellyfin, buildJellyfinPlayback, createJellyfinSearchProvider, fetchJellyfinEpisodes, fetchJellyfinLibrary, fetchJellyfinSeasons, type JellyfinEpisode, type JellyfinSeason, type JellyfinSession } from "./services/jellyfin";
+import { authenticateJellyfin, buildJellyfinPlayback, createJellyfinSearchProvider, fetchJellyfinEpisodes, fetchJellyfinLibrary, fetchJellyfinResumeItems, fetchJellyfinSeasons, type JellyfinEpisode, type JellyfinSeason, type JellyfinSession } from "./services/jellyfin";
 import { clearJellyfinSession, persistJellyfinSession, restoreJellyfinSession } from "./services/jellyfinSession";
 import type { AppPage, MediaItem, ProviderReport, WatchProviderResponse } from "./types";
 
@@ -19,7 +19,7 @@ const NAV: { page: AppPage; label: string; icon: string }[] = [
 const REGIONS = [["IN", "India"], ["US", "United States"], ["GB", "United Kingdom"], ["CA", "Canada"], ["AU", "Australia"], ["BD", "Bangladesh"]] as const;
 function readWatchlist(): MediaItem[] { try { const value = JSON.parse(localStorage.getItem("7xcinema.watchlist") ?? "[]") as MediaItem[]; return Array.isArray(value) ? value : []; } catch { return []; } }
 function readRegion(): string { try { return localStorage.getItem("7xcinema.region") ?? "IN"; } catch { return "IN"; } }
-function kindLabel(item: MediaItem) { return item.kind === "movie" ? "MOVIE" : "SERIES"; }
+function kindLabel(item: MediaItem) { return item.libraryItemType === "episode" ? "EPISODE" : item.kind === "movie" ? "MOVIE" : "SERIES"; }
 function ratingLabel(item: MediaItem) { return typeof item.rating === "number" && item.rating > 0 ? item.rating.toFixed(1) : "—"; }
 
 export default function App() {
@@ -64,6 +64,9 @@ export default function App() {
   const [jellyfinLibrary, setJellyfinLibrary] = useState<MediaItem[]>([]);
   const [jellyfinLibraryBusy, setJellyfinLibraryBusy] = useState(false);
   const [jellyfinLibraryError, setJellyfinLibraryError] = useState("");
+  const [jellyfinResume, setJellyfinResume] = useState<MediaItem[]>([]);
+  const [jellyfinResumeBusy, setJellyfinResumeBusy] = useState(false);
+  const [jellyfinResumeError, setJellyfinResumeError] = useState("");
   const [jellyfinSeasons, setJellyfinSeasons] = useState<JellyfinSeason[]>([]);
   const [jellyfinSeasonId, setJellyfinSeasonId] = useState("");
   const [jellyfinEpisodes, setJellyfinEpisodes] = useState<JellyfinEpisode[]>([]);
@@ -112,6 +115,25 @@ export default function App() {
         if (!controller.signal.aborted) setJellyfinLibraryError(error instanceof Error ? error.message : "Could not load your Jellyfin library.");
       })
       .finally(() => { if (!controller.signal.aborted) setJellyfinLibraryBusy(false); });
+    return () => controller.abort();
+  }, [jellyfinSession?.baseUrl, jellyfinSession?.userId]);
+
+  useEffect(() => {
+    if (!jellyfinSession) {
+      setJellyfinResume([]);
+      setJellyfinResumeError("");
+      setJellyfinResumeBusy(false);
+      return;
+    }
+    const controller = new AbortController();
+    setJellyfinResumeBusy(true);
+    setJellyfinResumeError("");
+    fetchJellyfinResumeItems(jellyfinSession, controller.signal, 40)
+      .then((items) => { if (!controller.signal.aborted) setJellyfinResume(items); })
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) setJellyfinResumeError(error instanceof Error ? error.message : "Could not load Continue Watching.");
+      })
+      .finally(() => { if (!controller.signal.aborted) setJellyfinResumeBusy(false); });
     return () => controller.abort();
   }, [jellyfinSession?.baseUrl, jellyfinSession?.userId]);
 
@@ -320,14 +342,14 @@ export default function App() {
       : page === "search"
         ? results
         : (page === "movies" || page === "series")
-          ? mergeResults([...trending, ...jellyfinLibrary])
+          ? mergeResults([...trending, ...jellyfinLibrary, ...jellyfinResume])
           : trending;
     if (page === "movies") items = items.filter((item) => item.kind === "movie");
     if (page === "series") items = items.filter((item) => item.kind === "tv");
     if (kindFilter !== "all" && page !== "movies" && page !== "series") items = items.filter((item) => item.kind === kindFilter);
     if (genreFilter !== "all") items = items.filter((item) => item.genres.includes(genreFilter));
     return items;
-  }, [page, watchlist, results, trending, jellyfinLibrary, kindFilter, genreFilter]);
+  }, [page, watchlist, results, trending, jellyfinLibrary, jellyfinResume, kindFilter, genreFilter]);
   const hero = trending.find((item) => item.backdropPath) ?? starterCatalogue[0];
 
   const querySubmit = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); void runSearch(); };
@@ -461,7 +483,13 @@ export default function App() {
 
           {!tmdbEnabled && <div className="setup-banner"><div className="setup-icon">✳</div><div><strong>Unlock live catalogue search</strong><p>Connect a TMDB API key to search live movie/series metadata and check official streaming destinations for your region.</p></div><button onClick={() => openPage("settings")}>Set up <span>→</span></button></div>}
 
-          {jellyfinSession && <section className="section-block"><div className="section-heading"><div><div className="section-kicker">YOUR PERSONAL MEDIA SERVER</div><h2>Continue in your library <span className="heading-star">✳</span></h2><p>Recently added titles from {jellyfinSession.username}'s Jellyfin server.</p></div><button className="text-action" onClick={() => openPage("movies")}>Browse library <span>→</span></button></div>
+          {jellyfinSession && <section className="section-block"><div className="section-heading"><div><div className="section-kicker">PICK UP WHERE YOU LEFT OFF</div><h2>Continue watching <span className="heading-star">✳</span></h2><p>Saved progress from your Jellyfin server, including individual episodes.</p></div></div>
+            {jellyfinResumeBusy && <div className="inline-loading"><span className="spinner" /> Loading resume positions…</div>}
+            {jellyfinResumeError && !jellyfinResumeBusy && <div className="watch-message">{jellyfinResumeError}</div>}
+            {!jellyfinResumeBusy && jellyfinResume.length === 0 && !jellyfinResumeError && <p className="field-help">Nothing in your library has a saved resume position yet.</p>}
+            {jellyfinResume.length > 0 && <MediaGrid items={mergeResults(jellyfinResume).slice(0, 8)} onSelect={setSelected} onWatch={startPlayback} isSaved={isSaved} onToggleSave={toggleWatchlist} />}
+          </section>}
+          {jellyfinSession && <section className="section-block"><div className="section-heading"><div><div className="section-kicker">YOUR PERSONAL MEDIA SERVER</div><h2>Recently added <span className="heading-star">✳</span></h2><p>Movies and series from {jellyfinSession.username}'s Jellyfin server.</p></div><button className="text-action" onClick={() => openPage("movies")}>Browse library <span>→</span></button></div>
             {jellyfinLibraryBusy && <div className="inline-loading"><span className="spinner" /> Loading your library…</div>}
             {jellyfinLibraryError && !jellyfinLibraryBusy && <div className="watch-message">{jellyfinLibraryError}</div>}
             {jellyfinLibrary.length > 0 && <MediaGrid items={mergeResults(jellyfinLibrary).slice(0, 8)} onSelect={setSelected} onWatch={startPlayback} isSaved={isSaved} onToggleSave={toggleWatchlist} />}
@@ -520,7 +548,7 @@ export default function App() {
     {selected && <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><section className="detail-modal" role="dialog" aria-modal="true" aria-label={selected.title}>
       <button className="modal-close" onClick={() => setSelected(null)} aria-label="Close details">×</button><div className="detail-backdrop" style={{ backgroundImage: selected.backdropPath ? 'linear-gradient(0deg, #11141d 0%, rgba(17,20,29,.22) 100%), url("' + backdropUrl(selected.backdropPath) + '")' : undefined }} />
       <div className="detail-content"><div className="detail-poster-wrap">{selected.imageUrl || selected.posterPath ? <img className="detail-poster" src={selected.imageUrl ?? posterUrl(selected.posterPath)} alt={selected.title + " poster"} /> : <div className="poster-missing">7x</div>}</div>
-        <div className="detail-info"><div className="section-kicker">{kindLabel(selected)} · {selected.year ?? "Year unknown"}</div><h2>{selected.title}</h2><div className="detail-facts"><span className="rating-star">★</span><strong>{ratingLabel(selected)}</strong><span>{selected.kind === "movie" ? (selected.runtimeMinutes ? selected.runtimeMinutes + " min" : "Feature film") : (selected.seasonCount ? selected.seasonCount + " seasons" : "Series")}</span><span className="fact-divider">|</span><span>{selected.originalLanguage ? languageNames[selected.originalLanguage] ?? selected.originalLanguage.toUpperCase() : "Original language unknown"}</span></div>
+        <div className="detail-info"><div className="section-kicker">{kindLabel(selected)} · {selected.year ?? "Year unknown"}</div><h2>{selected.title}</h2><div className="detail-facts"><span className="rating-star">★</span><strong>{ratingLabel(selected)}</strong><span>{selected.libraryItemType === "episode" ? ("S" + String(selected.seasonNumber ?? 1).padStart(2, "0") + "E" + String(selected.episodeNumber ?? 0).padStart(2, "0")) : selected.kind === "movie" ? (selected.runtimeMinutes ? selected.runtimeMinutes + " min" : "Feature film") : (selected.seasonCount ? selected.seasonCount + " seasons" : "Series")}</span><span className="fact-divider">|</span><span>{selected.originalLanguage ? languageNames[selected.originalLanguage] ?? selected.originalLanguage.toUpperCase() : "Original language unknown"}</span></div>
           <p className="detail-overview">{selected.overview || "No synopsis is available for this title yet."}</p><div className="genre-tags">{selected.genres.map((genre) => <span key={genre}>{genre}</span>)}</div>
           {selected.sources.length > 0 && <div className="catalogue-provenance"><span>CATALOGUE MATCHES</span><div>{selected.sources.map((source) => <span key={source}>{catalogueSourceLabel(source)}</span>)}</div></div>}
           {selected.itemPageUrl && selected.licenseUrl && <div className="open-license-note"><strong>Uploader-marked open-license media</strong><p>This item's metadata declares {selected.licenseUrl.includes("/zero/1.0") ? "CC0 1.0" : "Public Domain Mark 1.0"}. The label is an uploader claim, not an independent legal verification.</p><div className="open-license-links"><button className="text-action" onClick={() => void openOfficialDestination(selected.itemPageUrl)}>Review archive item ↗</button><button className="text-action" onClick={() => void openOfficialDestination(selected.licenseUrl)}>Review licence ↗</button></div>{selected.creator && <p>Creator/uploader metadata: {selected.creator}</p>}</div>}
