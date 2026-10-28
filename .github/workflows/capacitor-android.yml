@@ -109,9 +109,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          JNI_LIBS="capacitor-app/android/app/src/main/jniLibs/arm64-v8a"
+          JNI_LIBS="android/app/src/main/jniLibs/arm64-v8a"
           mkdir -p "$JNI_LIBS"
-          install -m 0644 moviebox-tui-engine/target/aarch64-linux-android/release/libmoviebox_tui.so "$JNI_LIBS/libmoviebox_tui.so"
+          install -m 0644 ../moviebox-tui-engine/target/aarch64-linux-android/release/libmoviebox_tui.so "$JNI_LIBS/libmoviebox_tui.so"
 
       - name: Integrate local Media3 native player
         run: node scripts/integrate-native-player.mjs
