@@ -326,12 +326,16 @@ public final class NativePlayerActivity extends Activity {
 
     private boolean isSafeMediaUrl(String value) {
         if (value == null || value.trim().isEmpty()) return false;
-        Uri uri = Uri.parse(value);
-        String scheme = uri.getScheme();
-        return uri.getHost() != null
-                && scheme != null
-                && (scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))
-                && uri.getUserInfo() == null;
+        try {
+            java.net.URI uri = new java.net.URI(value.trim());
+            String scheme = uri.getScheme();
+            return uri.getHost() != null
+                    && scheme != null
+                    && (scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))
+                    && uri.getUserInfo() == null;
+        } catch (java.net.URISyntaxException error) {
+            return false;
+        }
     }
 
     private int dp(int value) {
