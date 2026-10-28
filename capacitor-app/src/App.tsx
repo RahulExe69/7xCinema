@@ -3,7 +3,7 @@ import { Browser } from "@capacitor/browser";
 import { isNativePlayerAvailable, NativePlayer } from "./native-player";
 import { backdropUrl, getStableMediaId, languageNames, posterUrl, starterCatalogue } from "./catalogue";
 import { createOfflineProvider, searchEveryProvider } from "./core/search";
-import { createTmdbSearchProvider, fetchTrending, fetchWatchProviders, getTmdbKey, hasTmdbKey, setTmdbKey } from "./services/tmdb";
+import { createTmdbSearchProvider, fetchTrending, fetchWatchProviders, fetchOfficialTrailer, getTmdbKey, hasTmdbKey, setTmdbKey } from "./services/tmdb";
 import type { AppPage, MediaItem, ProviderReport, WatchProviderResponse } from "./types";
 
 const NAV: { page: AppPage; label: string; icon: string }[] = [
@@ -28,6 +28,9 @@ export default function App() {
   const [watchData, setWatchData] = useState<WatchProviderResponse | null>(null);
   const [watchLoading, setWatchLoading] = useState(false);
   const [watchError, setWatchError] = useState("");
+  const [trailerUrl, setTrailerUrl] = useState<string | null>(null);
+  const [trailerLoading, setTrailerLoading] = useState(false);
+  const [trailerMessage, setTrailerMessage] = useState("");
   const [region, setRegion] = useState(readRegion);
   const [apiKeyDraft, setApiKeyDraft] = useState(getTmdbKey);
   const [apiRevision, setApiRevision] = useState(0);
@@ -62,6 +65,26 @@ export default function App() {
       .finally(() => { if (!controller.signal.aborted) setWatchLoading(false); });
     return () => controller.abort();
   }, [selected?.id, region, tmdbEnabled, apiRevision]);
+
+  useEffect(() => {
+    if (!selected || !tmdbEnabled) {
+      setTrailerUrl(null); setTrailerLoading(false); setTrailerMessage("");
+      return;
+    }
+    const controller = new AbortController();
+    setTrailerUrl(null); setTrailerLoading(true); setTrailerMessage("");
+    fetchOfficialTrailer(selected, controller.signal)
+      .then((url) => {
+        if (controller.signal.aborted) return;
+        setTrailerUrl(url);
+        if (!url) setTrailerMessage("No official trailer or teaser was listed for this title.");
+      })
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) setTrailerMessage(error instanceof Error ? error.message : "Trailer lookup is temporarily unavailable.");
+      })
+      .finally(() => { if (!controller.signal.aborted) setTrailerLoading(false); });
+    return () => controller.abort();
+  }, [selected?.id, tmdbEnabled, apiRevision]);
 
   const openPage = useCallback((next: AppPage) => {
     setPage(next); setSelected(null); setPlayTarget(null);
@@ -224,7 +247,9 @@ export default function App() {
           <p className="detail-overview">{selected.overview || "No synopsis is available for this title yet."}</p><div className="genre-tags">{selected.genres.map((genre) => <span key={genre}>{genre}</span>)}</div>
           {selected.sources.length > 0 && <div className="catalogue-provenance"><span>CATALOGUE MATCHES</span><div>{selected.sources.map((source) => <span key={source}>{catalogueSourceLabel(source)}</span>)}</div></div>}
           {(selected.languageClaims?.length ?? 0) > 0 && <section className="language-evidence" aria-label="Language evidence"><div className="section-kicker">LANGUAGE EVIDENCE</div><div className="language-claim-list">{selected.languageClaims?.map((claim) => <div className={"language-claim " + (claim.selectable && claim.evidence === "player-probe" ? "verified" : "reported")} key={[claim.sourceId, claim.languageCode, claim.kind, claim.evidence, claim.reportedKind].join(":")}><strong>{claim.language}</strong><small>{languageClaimLabel(claim)} · {catalogueSourceLabel(claim.sourceId)}</small></div>)}</div><p className="language-evidence-note">Reported metadata is not proof that a particular stream contains this track. Selectable audio and subtitles are confirmed only by the prepared player.</p></section>}
-          <div className="detail-actions"><button className="button button-primary" onClick={() => startPlayback(selected)}>▶ &nbsp;Open player</button><button className={"button " + (isSaved(selected) ? "button-saved" : "button-secondary")} onClick={() => toggleWatchlist(selected)}>{isSaved(selected) ? "✓ In My List" : "＋ Add to My List"}</button></div>
+          <div className="detail-actions"><button className="button button-primary" onClick={() => startPlayback(selected)}>▶ &nbsp;Open player</button><button className={"button " + (isSaved(selected) ? "button-saved" : "button-secondary")} onClick={() => toggleWatchlist(selected)}>{isSaved(selected) ? "✓ In My List" : "＋ Add to My List"}</button>{trailerUrl && <button className="button button-secondary" onClick={() => void openOfficialDestination(trailerUrl)}>Watch official trailer ↗</button>}</div>
+          {trailerLoading && <p className="field-help">Checking for an official trailer…</p>}
+          {trailerMessage && tmdbEnabled && <p className="field-help">{trailerMessage}</p>}
         </div>
       </div>
       <div className="watch-section"><div className="watch-heading"><div><div className="section-kicker">WHERE TO WATCH</div><h3>Official destinations <span>{region}</span></h3></div><span className="official-tag">TMDB DATA</span></div>
