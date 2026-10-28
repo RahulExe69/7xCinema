@@ -15,6 +15,17 @@ export interface LanguageClaim {
 }
 export type AppPage = "home" | "search" | "movies" | "series" | "watchlist" | "settings";
 
+export interface LibraryVariant {
+  providerId: string;
+  itemId: string;
+  itemType: JellyfinItemType;
+  title: string;
+  year?: number;
+  resumePositionMs?: number;
+  language?: string;
+  releaseName?: string;
+}
+
 export interface PlaybackSource {
   id: string;
   providerId: string;
@@ -31,6 +42,7 @@ export interface MediaItem {
   externalIds?: Record<string, string>;
   libraryItemId?: string;
   libraryItemType?: JellyfinItemType;
+  libraryVariants?: LibraryVariant[];
   episodeNumber?: number;
   seasonNumber?: number;
   resumePositionMs?: number;
