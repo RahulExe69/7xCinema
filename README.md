@@ -6,7 +6,7 @@
 
 The application should do the coordination internally. Users search once; 7xCinema gathers results from enabled integrations, reconciles duplicates carefully, preserves source provenance, combines verified language information, and offers the best compatible playback options it can establish.
 
-> **Project status:** Research and prototype stage. A JavaScript reference core and a Kotlin/JVM aggregation/fan-out prototype are implemented and tested with synthetic providers; Android UI and live integrations are not yet implemented. Framework choices remain provisional until the Android feasibility gate is passed.
+> **Project status:** Research/prototype stage. JavaScript and Kotlin/JVM aggregation cores are tested, and a Kotlin/Compose + Media3 Android demo builds as a debug APK in CI. The search adapters are synthetic; source resolution and physical-device playback validation remain open.
 
 ## Vision
 
@@ -50,6 +50,7 @@ The application should do the coordination internally. Users search once; 7xCine
 - [Testing strategy](docs/TESTING.md) — validation plan for aggregation, providers, languages, and playback.
 - [Universal search core prototype](prototype/aggregation-core/README.md) — JavaScript reference implementation and automated tests using synthetic providers.
 - [Kotlin aggregation core](prototype/kotlin-aggregation-core/README.md) — Kotlin/JVM title grouping, language provenance, bounded provider fan-out, timeout isolation, and CI tests.
+- [Android app slice](android-app/README.md) — Compose search demo, source picker, Media3 playback probe, debug build instructions, and current limitations.
 - [Glossary](docs/GLOSSARY.md) — shared terminology for the project.
 - [Contributing](CONTRIBUTING.md) — workflow and quality expectations.
 
@@ -60,12 +61,12 @@ The application should do the coordination internally. Users search once; 7xCine
 | Product vision | Documented |
 | Provider candidates | Multi-pass architecture audit, provider matrix and summary; eligibility/runtime verification ongoing |
 | Existing Rust provider foundation | Provider traits and service dispatcher inspected; native-provider search is single-provider, so universal aggregation is new work |
-| Android/UI framework | Fresh Kotlin/Compose + Media3 is the preferred Android-first spike; Capacitor remains a comparison candidate; no app stack has passed the device gate |
-| Universal search engine | JavaScript reference plus Kotlin/JVM fan-out prototype pass synthetic-provider tests; live provider adapters and UI integration remain open |
+| Android/UI framework | Kotlin/Compose + Media3 Android slice is implemented and builds in CI; physical-device playback checks and a time-boxed Capacitor comparison remain open |
+| Universal search engine | JavaScript and Kotlin/JVM reference/fan-out tests pass; the Android demo UI is integrated with synthetic adapters; live provider adapters remain open |
 | Cross-provider deduplication | Prototype groups by shared IDs with a conservative ID-less title/year fallback; broader evaluation remains open |
 | Language aggregation | Prototype preserves source-scoped claims and distinguishes provider claims from player-verified tracks |
-| Playback and fallback | Planned; no app-level playback path validated |
-| Automated tests / CI | JavaScript and Kotlin/JVM prototype suites run in GitHub Actions; Android application build/device playback not established |
+| Playback and fallback | Media3 player surface, playback/error states, and actual-track inspection/selection controls compile; no authorised real-media session has been device-verified |
+| Automated tests / CI | Shared JS/Kotlin fixtures pass; GitHub Actions built and uploaded the debug APK in [run 40670343817](https://github.com/RahulExe69/7xCinema/actions/runs/40670343817); device playback validation remains open |
 
 ## Current research references
 
@@ -85,17 +86,15 @@ The application should do the coordination internally. Users search once; 7xCine
 
 See the [research register](docs/RESEARCH_REGISTER.md) for the evidence and caveats. A repository being public, an endpoint responding, or a provider appearing in documentation does **not** by itself establish that it is reliable, authorised, or appropriate to integrate.
 
-## Before implementation
+## Current implementation checkpoint
 
-The framework-neutral search prototype passes its automated tests. The Android feasibility gate now specifies the smallest end-to-end proof needed before committing to the long-term app base:
+The JavaScript reference core and Kotlin/JVM aggregation/fan-out core are implemented and tested with synthetic providers. Shared identity fixtures are consumed by both test suites so cross-provider grouping, canonical IDs, source conflicts, and language claims can be compared consistently.
 
-1. port or reuse the search contract with parity fixtures;
-2. build a search screen, unified result, source picker, and player surface;
-3. verify real prepared-player audio/subtitle tracks using permitted test media;
-4. demonstrate timeout/error isolation and a reproducible debug APK build;
-5. select the app foundation based on the spike, then add eligible providers one at a time.
+A first **native Android slice** now exists in [android-app](android-app/README.md): Kotlin + Jetpack Compose, three synthetic search adapters, one globally grouped title card with per-source choices, and an embedded AndroidX Media3 player screen that reports actual audio/subtitle tracks after the tester supplies an authorised HTTP(S) media URL. GitHub Actions built a debug APK successfully and uploaded it as an artifact.
 
-No app framework or backend stack is finalised yet. See [Android feasibility gate](docs/ANDROID_FEASIBILITY_GATE.md).
+**Important:** the app's search entries are mock data; provider source resolution is not connected, and no physical-device playback test has been completed. This is a feasibility slice—not a ready-to-use streaming app or release build.
+
+Next gates are to install the APK on a device, test it with an authorised media asset, verify track selection and error/lifecycle behaviour, and then implement one provider integration only after eligibility/terms review. The final app architecture still remains provisional. See [Android feasibility gate](docs/ANDROID_FEASIBILITY_GATE.md).
 
 ## Responsible use
 

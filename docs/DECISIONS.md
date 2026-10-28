@@ -144,3 +144,12 @@ Statuses: **Accepted**, **Proposed**, **Open**, **Superseded**.
 - **Reason:** A fresh native slice tests the product's hardest requirements against a player API that can expose actual prepared tracks, without first committing to a large inherited app architecture. Capacitor remains attractive because the existing JavaScript prototype can be reused more directly, but track selection and lifecycle must be proven through a native bridge.
 - **Required proof:** The same fixture-driven acceptance tests must pass for grouped search results, source selection, real prepared-player tracks, independent provider failures, and a reproducible debug APK.
 - **Caution:** This is not approval to start broad provider integration or a claim that a native build already succeeds. Nuvio remains a serious fallback/reference candidate; any code reuse requires licence and dependency review.
+
+
+## D-021 — Keep the first Android slice native and fixture-driven
+- **Status:** Accepted for the feasibility slice; production architecture remains provisional
+- **Decision:** Add a small fresh Kotlin/Compose Android application that depends on the Kotlin/JVM aggregation module and Media3, rather than forking NuvioMobile before testing the product-specific result model.
+- **Evidence:** The Android slice now compiles in GitHub Actions and produces a debug APK. It runs the Kotlin domain core with three synthetic adapters, displays a merged title with per-source options/language claims, and provides a Media3 player probe with prepared-player track inspection/selection controls. Shared identity fixtures are consumed by both JavaScript and Kotlin tests.
+- **Reason:** This proves that the native UI can call the aggregation model and host the intended player without inheriting a large application architecture. It does not prove production streaming: the search providers are synthetic and source-resolution is not connected.
+- **Required next proof:** Install the built APK on a real Android device, play an authorised test asset, verify track switching/error/lifecycle behaviour, and demonstrate one provider-to-playback path only after source eligibility and terms are reviewed.
+- **Caution:** Do not interpret a successful APK build or user-supplied test URL as approval of any third-party provider or proof that a real provider stream works.
