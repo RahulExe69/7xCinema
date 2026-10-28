@@ -475,7 +475,40 @@ export default function App() {
           {selected.sources.length > 0 && <div className="catalogue-provenance"><span>CATALOGUE MATCHES</span><div>{selected.sources.map((source) => <span key={source}>{catalogueSourceLabel(source)}</span>)}</div></div>}
           {selected.itemPageUrl && selected.licenseUrl && <div className="open-license-note"><strong>Uploader-marked open-license media</strong><p>This item's metadata declares {selected.licenseUrl.includes("/zero/1.0") ? "CC0 1.0" : "Public Domain Mark 1.0"}. The label is an uploader claim, not an independent legal verification.</p><div className="open-license-links"><button className="text-action" onClick={() => void openOfficialDestination(selected.itemPageUrl)}>Review archive item ↗</button><button className="text-action" onClick={() => void openOfficialDestination(selected.licenseUrl)}>Review licence ↗</button></div>{selected.creator && <p>Creator/uploader metadata: {selected.creator}</p>}</div>}
           {(selected.languageClaims?.length ?? 0) > 0 && <section className="language-evidence" aria-label="Language evidence"><div className="section-kicker">LANGUAGE EVIDENCE</div><div className="language-claim-list">{selected.languageClaims?.map((claim) => <div className={"language-claim " + (claim.selectable && claim.evidence === "player-probe" ? "verified" : "reported")} key={[claim.sourceId, claim.languageCode, claim.kind, claim.evidence, claim.reportedKind].join(":")}><strong>{claim.language}</strong><small>{languageClaimLabel(claim)} · {catalogueSourceLabel(claim.sourceId)}</small></div>)}</div><p className="language-evidence-note">Reported metadata is not proof that a particular stream contains this track. Selectable audio and subtitles are confirmed only by the prepared player.</p></section>}
-          <div className="detail-actions"><button className="button button-primary" onClick={() => startPlayback(selected)}>{getPlaybackIntent(selected).type === "direct" ? "▶  Play now" : "▷  Where to watch"}</button><button className={"button " + (isSaved(selected) ? "button-saved" : "button-secondary")} onClick={() => toggleWatchlist(selected)}>{isSaved(selected) ? "✓ In My List" : "＋ Add to My List"}</button>{trailerUrl && <button className="button button-secondary" onClick={() => void openOfficialDestination(trailerUrl)}>Watch official trailer ↗</button>}</div>
+          {selected.libraryItemType === "series" && <section className="library-episodes" aria-label="Jellyfin series episodes">
+            <div className="section-kicker">YOUR JELLYFIN LIBRARY</div><h3>Episodes</h3>
+            {!jellyfinSession ? <div className="watch-message">Reconnect your Jellyfin library in Settings to browse seasons and play episodes.</div>
+              : <><label className="field-label" htmlFor="jellyfin-season">Season</label>
+                <select id="jellyfin-season" className="settings-input" value={jellyfinSeasonId} onChange={(event) => setJellyfinSeasonId(event.target.value)} disabled={!jellyfinSeasons.length}>
+                  {jellyfinSeasons.map((season) => <option value={season.id} key={season.id}>{season.name}</option>)}
+                </select>
+                {jellyfinEpisodesBusy && <div className="inline-loading"><span className="spinner" /> Loading episodes…</div>}
+                {jellyfinEpisodesMessage && <p className="field-help">{jellyfinEpisodesMessage}</p>}
+                <div className="episode-list">{jellyfinEpisodes.map((episode) => <button className="episode-row" key={episode.id} onClick={() => {
+                  const episodeItem: MediaItem = {
+                    ...selected,
+                    id: "jellyfin:" + episode.id,
+                    title: episode.name,
+                    overview: episode.overview,
+                    libraryItemId: episode.id,
+                    libraryItemType: "episode",
+                    kind: "tv",
+                    episodeNumber: episode.number,
+                    seasonNumber: episode.seasonNumber,
+                    runtimeMinutes: episode.runtimeMinutes,
+                    playableUrl: undefined,
+                    playbackSources: undefined,
+                  };
+                  setSelected(null);
+                  startPlayback(episodeItem);
+                }}>
+                  <span className="episode-number">S{String(episode.seasonNumber ?? 1).padStart(2, "0")}E{String(episode.number ?? 0).padStart(2, "0")}</span>
+                  <span className="episode-row-copy"><strong>{episode.name}</strong><small>{episode.runtimeMinutes ? episode.runtimeMinutes + " min" : "Episode"}{episode.overview ? " · " + episode.overview : ""}</small></span>
+                  <span className="episode-play-icon">▶</span>
+                </button>)}</div>
+              </>}
+          </section>}
+          <div className="detail-actions"><button className="button button-primary" onClick={() => startPlayback(selected)}>{selected.libraryItemId ? (selected.libraryItemType === "series" ? "▷  Browse episodes" : "▶  Play from library") : (getPlaybackIntent(selected).type === "direct" ? "▶  Play now" : "▷  Where to watch")}</button><button className={"button " + (isSaved(selected) ? "button-saved" : "button-secondary")} onClick={() => toggleWatchlist(selected)}>{isSaved(selected) ? "✓ In My List" : "＋ Add to My List"}</button>{trailerUrl && <button className="button button-secondary" onClick={() => void openOfficialDestination(trailerUrl)}>Watch official trailer ↗</button>}</div>
           {trailerLoading && <p className="field-help">Checking for an official trailer…</p>}
           {trailerMessage && tmdbEnabled && <p className="field-help">{trailerMessage}</p>}
         </div>
@@ -534,7 +567,7 @@ function MediaGrid({ items, onSelect, onWatch, isSaved, onToggleSave }: { items:
       {item.imageUrl || item.posterPath ? <img className="poster-image" src={item.imageUrl ?? posterUrl(item.posterPath)} alt={item.title + " poster"} loading="lazy" /> : <div className="poster-missing">7x<span>CINEMA</span></div>}
       <span className="poster-kind">{kindLabel(item)}</span><span className="poster-rating"><i>★</i> {ratingLabel(item)}</span><span className="poster-hover"><i>↗</i><small>VIEW DETAILS</small></span>
     </button>
-    <button className="poster-watch-action" onClick={() => onWatch(item)} aria-label={getPlaybackIntent(item).type === "direct" ? "Play " + item.title : "Find where to watch " + item.title}>{getPlaybackIntent(item).type === "direct" ? "▶ Play now" : "▷ Watch"}</button>
+    <button className="poster-watch-action" onClick={() => onWatch(item)} aria-label={item.libraryItemId ? (item.libraryItemType === "series" ? "Browse episodes for " + item.title : "Play " + item.title + " from your library") : (getPlaybackIntent(item).type === "direct" ? "Play " + item.title : "Find where to watch " + item.title)}>{item.libraryItemId ? (item.libraryItemType === "series" ? "▷ Episodes" : "▶ Play from library") : (getPlaybackIntent(item).type === "direct" ? "▶ Play now" : "▷ Watch")}</button>
     <div className="media-card-info"><button className="media-title" onClick={() => onSelect(item)}>{item.title}</button><div className="media-subline"><span>{item.year ?? "Year unknown"}</span><i /><span>{item.sources.length > 1 ? item.sources.length + " catalogues" : (item.genres[0] ?? (item.kind === "movie" ? "Film" : "Series"))}</span></div><button className={"save-small " + (isSaved(item) ? "is-saved" : "")} onClick={() => onToggleSave(item)} aria-label={isSaved(item) ? "Remove " + item.title + " from My List" : "Save " + item.title + " to My List"}>{isSaved(item) ? "✓" : "+"}</button></div>
   </article>)}</div>;
 }
