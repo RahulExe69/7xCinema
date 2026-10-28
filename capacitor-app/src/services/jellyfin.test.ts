@@ -25,7 +25,7 @@ describe("Jellyfin personal-library adapter", () => {
     expect(movie).toMatchObject({
       id: "jellyfin:movie-123", libraryItemId: "movie-123",
       kind: "movie", title: "My Film", year: 2022,
-      tmdbId: 27205, runtimeMinutes: 9, sources: ["jellyfin"],
+      tmdbId: 27205, runtimeMinutes: 9, sources: ["jellyfin-library"],
       genres: ["Drama", "Mystery"],
     });
     const series = mapJellyfinItem({
