@@ -14,6 +14,16 @@ export interface LanguageClaim {
 }
 export type AppPage = "home" | "search" | "movies" | "series" | "watchlist" | "settings";
 
+export interface PlaybackSource {
+  id: string;
+  providerId: string;
+  label: string;
+  url: string;
+  type: "mp4" | "hls" | "dash" | "embed" | "unknown";
+  itemPageUrl?: string;
+  licenseUrl?: string;
+}
+
 export interface MediaItem {
   id: string;
   tmdbId?: number;
@@ -26,6 +36,7 @@ export interface MediaItem {
   backdropPath?: string;
   imageUrl?: string;
   playableUrl?: string;
+  playbackSources?: PlaybackSource[];
   itemPageUrl?: string;
   licenseUrl?: string;
   creator?: string;
