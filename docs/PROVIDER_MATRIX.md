@@ -1,7 +1,7 @@
 # 7xCinema Provider and Data-Source Matrix
 
 **Last reviewed:** 2026-10-28  
-**Status:** Research baseline only. Nothing in this matrix is automatically approved for production.
+**Status:** Research baseline plus one experimental development-branch integration. Code integration does not imply provider permission, production stability, or verified playback.
 
 A provider being named in an upstream repository is evidence that the repository has code/documentation for it—not evidence that the source is stable, authorised, or currently playable. The matrix is split by function so metadata, in-app playback, and official destination links are never confused.
 
@@ -24,6 +24,23 @@ A provider being named in an upstream repository is evidence that the repository
 | AIOStreams | Stremio addon aggregation reference | Active TypeScript project; README documents fan-out, deduplication, filtering, sorting and formatting; AGPL-3.0 | High-value architecture reference only; no bundled provider automatically approved | Review AGPL implications and security; assess every upstream addon separately; do not adopt restriction-evasion proxy paths |
 | TMDB-Embed-API | Aggregation architecture reference | Public Node.js project demonstrates provider registry/result aggregation; README lists many source integrations | Reference only; do not blindly use its stream adapters | Review code, security, dependency and rights boundary for every individual integration |
 | Consumet API / consumet.ts | Legacy multi-provider entertainment data/link API reference | README says it scrapes websites; GitHub last code push reported as 2022-07-20; MIT code licence | Low-priority architecture reference only; no source is approved | Verify maintenance, dependencies, upstream site terms/rights and actual source behaviour individually |
+
+## 2. Current implementation snapshot — experimental
+
+The `feat/moviebox-tui-providers` branch connects the Capacitor UI to the Rust provider facade in [RahulExe69/Moviebox-Tui](https://github.com/RahulExe69/Moviebox-Tui), pinned in CI to commit `2cc3390cd526d36e5864f15ba5243dc3dde46e4e`. The Android build cross-compiles the existing library for ARM64 and bundles it into the APK; it does not rely on a 7xCinema-hosted scraping server.
+
+| Adapter / source | Current implementation in the bundled Rust engine | Catalogue search | Playback discovery/resolution | Verification status |
+|---|---|---|---|---|
+| MovieBox | Existing provider client and resolver | Enabled in all-provider search | Candidate releases and selected release resolution | Code wired; real title-by-title playback verification remains |
+| 4KHDHub | Existing optional provider client | Included when initialization succeeds | Candidate releases and selected release resolution | Environment-dependent; not verified on a physical phone |
+| Dramachi | Existing provider client | Enabled in all-provider search | Candidate releases and selected release resolution | Region/network and individual result availability remain unverified |
+| CircleFTP (BDIX) | Existing BDIX provider client | Enabled in all-provider search | Candidate releases and selected release resolution | BDIX network reachability and terms remain to be confirmed |
+| DhakaFlix (BDIX) | Existing BDIX provider client | Enabled in all-provider search | Candidate releases and selected release resolution | BDIX network reachability and terms remain to be confirmed |
+| Community Stremio add-ons | Client code exists in MovieBox-TUI | **Not included** in this app's current `search_all` aggregation | Not covered by the current app flow | Not enabled in this integration |
+
+The Rust aggregator merges matching title/year/media-type rows across its enabled built-in providers and retains each `provider + media ID` pair. During playback lookup, it searches other enabled providers for matching title candidates and merges their release rows, so the user can choose among versions instead of relying on one preselected provider. Language labels are still provider-reported metadata; they are not claims that every stream contains a selectable embedded audio track.
+
+**Limits:** this integration currently queries all five enabled built-in source adapters, but “enabled” does not prove a source is reachable, lawful for a particular use, or playable at the user's location. The optional Stremio add-on subsystem is not yet exposed through the app. The provider facade, loopback authentication and ARM64 build need CI verification, and every provider still needs live search, details, resolution and physical-device playback checks before any stable-support claim.
 
 References:
 - [TMDB developer FAQ](https://developer.themoviedb.org/docs/faq)
