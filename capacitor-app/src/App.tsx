@@ -10,7 +10,8 @@ import { createInternetArchiveProvider } from "./services/internetArchive";
 import { createTmdbSearchProvider, fetchTrending, fetchWatchProviders, fetchOfficialTrailer, getTmdbKey, hasTmdbKey, setTmdbKey } from "./services/tmdb";
 import { authenticateJellyfin, buildJellyfinPlayback, createJellyfinSearchProvider, fetchJellyfinEpisodes, fetchJellyfinLibrary, fetchJellyfinResumeItems, fetchJellyfinSeasons, type JellyfinEpisode, type JellyfinSeason, type JellyfinSession } from "./services/jellyfin";
 import { clearJellyfinSession, persistJellyfinSession, restoreJellyfinSession } from "./services/jellyfinSession";
-import type { AppPage, MediaItem, ProviderReport, WatchProviderResponse } from "./types";
+import { createMovieboxTuiProvider, fetchMovieboxDetails, fetchMovieboxPlaybackSources, isMovieboxTuiAvailable, resolveMovieboxPlayback, type MovieboxMediaDetails, type MovieboxPlaybackResponse } from "./services/movieboxTui";
+import type { AppPage, MediaItem, ProviderMediaRef, ProviderReport, WatchProviderResponse } from "./types";
 
 const NAV: { page: AppPage; label: string; icon: string }[] = [
   { page: "home", label: "Home", icon: "⌂" }, { page: "movies", label: "Movies", icon: "▣" },
@@ -72,6 +73,13 @@ export default function App() {
   const [jellyfinEpisodes, setJellyfinEpisodes] = useState<JellyfinEpisode[]>([]);
   const [jellyfinEpisodesBusy, setJellyfinEpisodesBusy] = useState(false);
   const [jellyfinEpisodesMessage, setJellyfinEpisodesMessage] = useState("");
+  const [movieboxSource, setMovieboxSource] = useState<ProviderMediaRef | null>(null);
+  const [movieboxDetails, setMovieboxDetails] = useState<MovieboxMediaDetails | null>(null);
+  const [movieboxPlayback, setMovieboxPlayback] = useState<MovieboxPlaybackResponse | null>(null);
+  const [movieboxLoading, setMovieboxLoading] = useState(false);
+  const [movieboxMessage, setMovieboxMessage] = useState("");
+  const [movieboxResolvingIndex, setMovieboxResolvingIndex] = useState<number | null>(null);
+  const [movieboxSelectedEpisode, setMovieboxSelectedEpisode] = useState<{ season: number; episode: number } | null>(null);
   const activeSearchId = useRef(0);
   const nativeBackState = useRef<{ page: AppPage; selected: MediaItem | null; playTarget: MediaItem | null }>({
     page, selected, playTarget,
@@ -262,6 +270,7 @@ export default function App() {
     const searchId = ++activeSearchId.current;
     setQuery(clean); setPage("search"); setSelected(null); setSearching(true); setSearchMessage(""); setResults([]);
     const providers = [createOfflineProvider(), createInternetArchiveProvider()];
+    if (isMovieboxTuiAvailable()) providers.push(createMovieboxTuiProvider());
     if (hasTmdbKey()) providers.push(createTmdbSearchProvider());
     if (jellyfinSession) providers.push(createJellyfinSearchProvider(jellyfinSession));
     try {
@@ -279,7 +288,7 @@ export default function App() {
     } finally {
       if (activeSearchId.current === searchId) setSearching(false);
     }
-  }, [query, jellyfinSession]);
+  }, [query, jellyfinSession, apiRevision]);
 
   useEffect(() => {
     if (jellyfinSession && query.trim()) void runSearch(query);
@@ -360,6 +369,95 @@ export default function App() {
       setApiRevision((value) => value + 1); setSearchMessage("");
     } catch (error) { setSettingsMessage(error instanceof Error ? error.message : "Settings could not be saved."); }
   };
+  const loadMovieboxSources = async (
+    item: MediaItem,
+    source: ProviderMediaRef,
+    season = 0,
+    episode = 0,
+  ) => {
+    setMovieboxLoading(true);
+    setMovieboxMessage("");
+    setMovieboxPlayback(null);
+    setMovieboxSelectedEpisode(season > 0 && episode > 0 ? { season, episode } : null);
+    try {
+      const playback = await fetchMovieboxPlaybackSources(source, season, episode);
+      setMovieboxPlayback(playback);
+      if (!playback.releases.length) {
+        setMovieboxMessage("The enabled providers did not return a playable release for this title or episode.");
+      }
+    } catch (error) {
+      setMovieboxMessage(error instanceof Error ? error.message : "Could not retrieve MovieBox-TUI playback sources.");
+    } finally {
+      setMovieboxLoading(false);
+    }
+  };
+
+  const openMovieboxPlayback = async (item: MediaItem) => {
+    if (item.providerItems?.length) {
+      void openMovieboxPlayback(item);
+      return;
+    }
+    setPlayTarget(item);
+    setPlayUrl("");
+    setPlaybackQueue([]);
+    setCurrentSourceIndex(0);
+    setPlayerLoaded(false);
+    setPlayerError("");
+    setShowAdvancedSource(false);
+    setMovieboxDetails(null);
+    setMovieboxPlayback(null);
+    setMovieboxMessage("");
+    setMovieboxResolvingIndex(null);
+    setMovieboxSelectedEpisode(null);
+    const refs = item.providerItems ?? [];
+    const source = refs.find((ref) => ref.provider === "moviebox") ?? refs[0];
+    if (!source) {
+      setMovieboxMessage("This result has no provider-specific ID for playback.");
+      return;
+    }
+    setMovieboxSource(source);
+    if (item.kind !== "tv") {
+      await loadMovieboxSources(item, source);
+      return;
+    }
+    setMovieboxLoading(true);
+    try {
+      const details = await fetchMovieboxDetails(source);
+      setMovieboxDetails(details);
+      if (!details.seasons.length || !details.seasons.some((season) => season.episodes.length)) {
+        setMovieboxMessage("This provider did not return an episode list. Try another source edition if one is available.");
+      }
+    } catch (error) {
+      setMovieboxMessage(error instanceof Error ? error.message : "Could not load the series episodes.");
+    } finally {
+      setMovieboxLoading(false);
+    }
+  };
+
+  const playMovieboxRelease = async (index: number) => {
+    if (!playTarget || !movieboxPlayback) return;
+    const source = movieboxPlayback.release_sources[index];
+    if (!source) {
+      setMovieboxMessage("This release has no valid provider reference. Reload the source list.");
+      return;
+    }
+    setMovieboxResolvingIndex(index);
+    setMovieboxMessage("");
+    try {
+      const resolved = await resolveMovieboxPlayback(
+        source,
+        movieboxPlayback.season,
+        movieboxPlayback.episode,
+      );
+      const headers = Object.fromEntries(resolved.headers ?? []) as Record<string, string>;
+      await openMediaSource(playTarget, resolved.url, [], headers, undefined);
+    } catch (error) {
+      setMovieboxMessage(error instanceof Error ? error.message : "Could not resolve this provider release.");
+    } finally {
+      setMovieboxResolvingIndex(null);
+    }
+  };
+
   const openMediaSource = async (item: MediaItem, rawUrl: string, fallbackUrls: string[] = [], sourceHeaders?: Record<string, string>, progressUrl?: string) => {
     const candidates = [rawUrl, ...fallbackUrls];
     const intent = getPlaybackIntent({
