@@ -44,7 +44,7 @@ This audit records what was actually inspected, what that evidence means for 7xC
 - Existing data structures are useful reference material, but 7xCinema needs its own canonical identity, provenance, language-evidence, and playback-capability models.
 
 ### Remaining verification
-- Compare Rahul's fork against its upstream commit and identify local divergence.
+- [x] Compare Rahul's main branch against upstream main using GitHub's compare endpoint: identical at commit 7b47958867f992fda91ed5315375c6137b1d2ebf (0 ahead, 0 behind, 0 changed files). Recheck this before future reuse if either branch moves.
 - Run the project tests and inspect provider implementation/test files.
 - Verify Android ARM64 build behaviour in a controlled environment.
 - Check current provider response and playback success under the intended network/region, but only for integrations that pass source-eligibility review.
@@ -169,3 +169,12 @@ References: [NuvioMobile](https://github.com/NuvioMedia/NuvioMobile), [PlaybackA
 4. Native Kotlin/Compose is now a serious alternative to Capacitor; compare a narrow proof of concept before finalising the framework.
 
 See [Provider System](PROVIDER_SYSTEM.md), [Coverage Model](COVERAGE_MODEL.md), and [Framework Comparison](FRAMEWORK_COMPARISON.md).
+
+
+## 10. Fork comparison result — 2026-10-28
+
+GitHub's compare endpoint reports the current main branches of mesamirh/MovieBox-Tui and RahulExe69/Moviebox-Tui as **identical**, both at commit 7b47958867f992fda91ed5315375c6137b1d2ebf, with 0 ahead commits, 0 behind commits, and 0 changed files. A sampled blob check independently found identical content hashes for Cargo.toml, src/lib.rs, src/providers/mod.rs, src/providers/models.rs, src/service.rs, src/tui/app/search.rs, and docs/providers.md.
+
+This means the renamed fork currently adds no detected differences to those core paths; it remains a clean upstream snapshot, not a custom universal-search implementation. Recheck the comparison before importing code later because branches can move independently.
+
+Reference: [upstream-to-fork compare](https://github.com/mesamirh/MovieBox-Tui/compare/main...RahulExe69:main).
