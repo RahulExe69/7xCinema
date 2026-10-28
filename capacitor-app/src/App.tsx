@@ -74,6 +74,21 @@ export default function App() {
   const tmdbEnabled = hasTmdbKey();
 
   useEffect(() => {
+    let active = true;
+    restoreJellyfinSession()
+      .then((session) => {
+        if (!active) return;
+        setJellyfinSession(session);
+        if (session) setJellyfinServerUrl(session.baseUrl);
+      })
+      .catch(() => {
+        if (active) setJellyfinMessage("Could not restore the saved library session. Reconnect it in Settings.");
+      })
+      .finally(() => { if (active) setJellyfinChecking(false); });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
     if (Capacitor.getPlatform() !== "android") return;
     let disposed = false;
     let handle: { remove: () => Promise<void> } | undefined;
@@ -105,6 +120,57 @@ export default function App() {
       .finally(() => { if (!controller.signal.aborted) setTrendingBusy(false); });
     return () => controller.abort();
   }, [tmdbEnabled, apiRevision]);
+
+  useEffect(() => {
+    if (!selected || selected.libraryItemType !== "series" || !selected.libraryItemId || !jellyfinSession) {
+      setJellyfinSeasons([]);
+      setJellyfinSeasonId("");
+      setJellyfinEpisodes([]);
+      setJellyfinEpisodesMessage("");
+      setJellyfinEpisodesBusy(false);
+      return;
+    }
+    const controller = new AbortController();
+    setJellyfinSeasons([]);
+    setJellyfinSeasonId("");
+    setJellyfinEpisodes([]);
+    setJellyfinEpisodesMessage("");
+    fetchJellyfinSeasons(jellyfinSession, selected.libraryItemId, controller.signal)
+      .then((seasons) => {
+        if (controller.signal.aborted) return;
+        setJellyfinSeasons(seasons);
+        setJellyfinSeasonId(seasons[0]?.id ?? "");
+        if (!seasons.length) setJellyfinEpisodesMessage("No seasons were returned by this Jellyfin library item.");
+      })
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) setJellyfinEpisodesMessage(error instanceof Error ? error.message : "Could not load seasons.");
+      });
+    return () => controller.abort();
+  }, [selected?.libraryItemId, selected?.libraryItemType, jellyfinSession?.userId]);
+
+  useEffect(() => {
+    if (!selected || selected.libraryItemType !== "series" || !selected.libraryItemId || !jellyfinSession || !jellyfinSeasonId) {
+      setJellyfinEpisodes([]);
+      setJellyfinEpisodesBusy(false);
+      return;
+    }
+    const controller = new AbortController();
+    setJellyfinEpisodesBusy(true);
+    setJellyfinEpisodes([]);
+    setJellyfinEpisodesMessage("");
+    fetchJellyfinEpisodes(jellyfinSession, selected.libraryItemId, jellyfinSeasonId, controller.signal)
+      .then((episodes) => {
+        if (!controller.signal.aborted) {
+          setJellyfinEpisodes(episodes);
+          if (!episodes.length) setJellyfinEpisodesMessage("No episodes were returned for this season.");
+        }
+      })
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) setJellyfinEpisodesMessage(error instanceof Error ? error.message : "Could not load episodes.");
+      })
+      .finally(() => { if (!controller.signal.aborted) setJellyfinEpisodesBusy(false); });
+    return () => controller.abort();
+  }, [selected?.libraryItemId, selected?.libraryItemType, jellyfinSeasonId, jellyfinSession?.userId]);
 
   useEffect(() => {
     if (!selected || !tmdbEnabled) { setWatchData(null); setWatchError(""); return; }
