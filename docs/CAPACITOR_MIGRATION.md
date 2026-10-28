@@ -18,7 +18,8 @@ The project needs a fast mobile-first UI iteration loop and a shared web-compati
 - **Live catalogue integration:** optional TMDB v3 API key stored on device; build-time `VITE_TMDB_API_KEY` is also supported but is public in the bundle.
 - **First direct-media integration:** Internet Archive metadata search limited to uploader-declared Public Domain Mark/CC0 items with compatible MP4 files. The app links the user to the item's licence and detail page; these uploader claims still need verification.
 - **Official availability:** TMDB watch-provider endpoint filtered to a user-selected region. Provider records link to TMDB's reported availability page, rather than inventing a direct streaming URL.
-- **Playback (current MVP):** watch-first source selection adapted from the 7xAnime player flow. A real direct HTTP(S) URL returned by an adapter opens automatically through the native AndroidX Media3 bridge; web preview uses HTML5 video. If no direct URL exists, the chooser presents TMDB-reported official destinations and a listed official trailer, with manual URL input hidden under Advanced. URL schemes and embedded credentials are validated.
+- **Personal library:** optional Jellyfin authentication, secure Android token storage, movie/series search and browsing, seasons/episodes, resume positions, and native-player progress reports. The password is not stored; the token is never placed in a stream URL.
+- **Playback (current MVP):** watch-first source selection adapted from the 7xAnime player flow. A real direct HTTP(S) URL returned by an adapter opens automatically through the native AndroidX Media3 bridge; web preview uses HTML5 video. If no direct URL exists, the chooser presents TMDB-reported official destinations and a listed official trailer, with manual URL input hidden under Advanced. Jellyfin stream requests use a same-server progress endpoint and authorised headers; the native player reads the server resume position and reports progress periodically. URL schemes, embedded credentials, and progress-report origin are validated.
 - **Build verification:** GitHub Actions installs JS dependencies, tests search orchestration, builds the web bundle, generates a fresh Capacitor Android project, builds the debug APK, and uploads an artifact.
 
 ## Deliberate safety and correctness rules
@@ -51,7 +52,9 @@ The project needs a fast mobile-first UI iteration loop and a shared web-compati
 - [ ] Verify the native bridge's Gradle integration and debug APK in CI.
 - [ ] Add a dedicated Capacitor bridge API that can report selected-track details back to React if the UX needs them.
 - [ ] Authorized test assets cover supported direct MP4, HLS, and DASH media where technically compatible.
-- [ ] Audio and subtitle tracks are listed from the prepared player, with verified selection events.
+- [x] Audio and subtitle tracks are listed from the prepared player, with selectable track overrides.
+- [x] Jellyfin resume positions are passed to Media3 and periodically reported to the same server.
+- [ ] Verify track selection, resume/progress reporting, and lifecycle handling on a physical Android device.
 - [ ] Loading, failure, retry, seek, orientation, app backgrounding, and teardown are tested on real Android devices.
 - [ ] No provider-reported language is presented as selectable until the player actually exposes the track.
 
