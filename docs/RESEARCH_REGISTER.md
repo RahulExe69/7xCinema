@@ -276,3 +276,15 @@ Reference: [compare main branches](https://github.com/mesamirh/MovieBox-Tui/comp
 - This is useful as a bounded-concurrency/dedup/ranking reference, but applies to the configured addon provider. It does not replace an all-native-provider catalogue coordinator.
 - The MovieBox adapter maps provider dub entries to subject IDs, language and labels; MediaDetails.sibling_ids includes these IDs. Treat these as alternate provider subjects/versions, not as proof of embedded selectable audio tracks.
 - Existing tests cover search-failure versus empty-result distinction, provider/query cache isolation, stale details responses, playback error cleanup, URL-scheme filtering and addon manifest/capability behaviour. Reproduce these test categories in 7xCinema's aggregation core; do not infer live-source reliability from tests alone.
+
+
+### 13. AIOStreams — highly relevant addon aggregation reference
+- **Link:** https://github.com/Viren070/AIOStreams
+- **Observed:** TypeScript Stremio “super-addon” that gathers results from configured addons, then deduplicates, filters, sorts and formats them in a single response. Its README documents custom addon URLs, source grouping and a configurable pipeline.
+- **License/activity:** GitHub declares AGPL-3.0; metadata showed active code pushes on 2026-10-28 and a large, active issue backlog. The licence has network-service/source-sharing implications; review with the intended distribution model before any reuse.
+- **Potential value:** Closely matches the source aggregation pipeline concept: fan-out, normalisation, deduplication, configurable filtering/ranking, and a unified result list. Study its pipeline boundaries and tests as a reference.
+- **Limitations:** It is a Stremio addon aggregator, not a complete Android consumer app or universal catalogue search engine. Its built-in ecosystem includes torrent/debrid/Usenet and other addon integrations with their own rights/terms. Its README also documents proxy capabilities; 7xCinema should not adopt mechanisms intended to evade provider restrictions or use unreviewed sources.
+- **Decision:** Architecture reference only. Start 7xCinema's aggregator with fake/approved adapters and implement its own policy, evidence model, security gates and UI. Do not assume its integrated addons are authorised or reliable merely because the aggregator supports them.
+- **Status:** Priority 1 architecture reference for aggregation pipeline; no code/provider reuse approved.
+
+Reference: [AIOStreams README](https://github.com/Viren070/AIOStreams), [LICENSE](https://github.com/Viren070/AIOStreams/blob/main/LICENSE).
