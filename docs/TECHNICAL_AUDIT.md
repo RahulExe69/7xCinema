@@ -251,3 +251,19 @@ The current five-boolean capability model is too coarse for 7xCinema's product. 
 - identifier namespace constraints, region requirements, or playback-verification state.
 
 7xCinema should replace the coarse booleans with explicit capabilities and evidence. Unknown should remain unknown instead of defaulting to “supported.” A declared capability should be tested before being promoted to verified status.
+
+
+## 15. NuvioMobile search and playback capabilities inspected at code level
+
+Inspected the current default branch at the time of audit (cmp-rewrite) and fetched the actual files:
+- [SearchRepository.kt](https://github.com/NuvioMedia/NuvioMobile/blob/cmp-rewrite/composeApp/src/commonMain/kotlin/com/nuvio/app/features/search/SearchRepository.kt)
+- [AddonModels.kt](https://github.com/NuvioMedia/NuvioMobile/blob/cmp-rewrite/composeApp/src/commonMain/kotlin/com/nuvio/app/features/addons/AddonModels.kt)
+- [PlaybackAvailability.kt](https://github.com/NuvioMedia/NuvioMobile/blob/cmp-rewrite/composeApp/src/commonMain/kotlin/com/nuvio/app/features/streams/PlaybackAvailability.kt)
+- [PlaybackAvailabilityTest.kt](https://github.com/NuvioMedia/NuvioMobile/blob/cmp-rewrite/composeApp/src/commonTest/kotlin/com/nuvio/app/features/streams/PlaybackAvailabilityTest.kt)
+- [PlayerEngine.android.kt](https://github.com/NuvioMedia/NuvioMobile/blob/cmp-rewrite/composeApp/src/androidMain/kotlin/com/nuvio/app/features/player/PlayerEngine.android.kt)
+
+SearchRepository builds requests from every enabled addon's manifest catalog that advertises search support, plus configured personal-server search targets. Requests run concurrently and results are emitted incrementally as HomeCatalogSection objects. This demonstrates fan-out and partial-result UI. However, the normal search preserves results in per-catalog sections (with addon/catalog context) rather than performing one global canonical-title merge across all sources. The Discover feed also selects one catalog at a time.
+
+PlaybackAvailability checks that an addon manifest supports a stream resource for the requested media type and identifier; it also accounts for plugin scrapers, embedded metadata streams and supported personal servers. Tests explicitly check that catalog-only or metadata-only addons do not enable playback. The Android player source integrates Media3/ExoPlayer and optional MPV.
+
+This makes Nuvio a credible app-base candidate: it already contains the native playback layer, addon registry and concurrent search UI. The main product gap is the source-centric catalogue/section model and user-configured source workflow. The GPL-3.0 licence is a hard distribution consideration. Compare an adaptation spike against an equally small fresh-app implementation before choosing. See [Base Repository Comparison](BASE_REPOSITORY_COMPARISON.md).
