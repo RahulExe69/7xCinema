@@ -187,3 +187,32 @@ The existing dub data model includes provider-specific subject IDs, language lab
 The first player spike should use authorised test media and verify real track discovery. Android Media3 supports track-selection parameters for supported tracks, but stream compatibility depends on formats/codecs and actual manifest/media structure. See [Media3 supported formats](https://developer.android.com/media/media3/exoplayer/supported-formats) and [track selection](https://developer.android.com/media/media3/exoplayer/track-selection).
 
 See [Technical Audit](TECHNICAL_AUDIT.md) and [Framework Comparison](FRAMEWORK_COMPARISON.md) for evidence and the current provisional recommendation.
+
+
+## 11. Keep catalogue search separate from playback-source discovery
+
+7xCinema needs two related but distinct fan-out operations.
+
+### Universal catalogue search
+- Input: query and filters.
+- Calls: catalogue/search-capable adapters.
+- Returns: title/series/episode metadata claims and provider item references.
+- Core work: normalise identifiers, group matching logical titles conservatively, merge metadata/language claims with provenance, and return partial results.
+- Failure outcome: search can succeed even if no source is currently playable.
+
+### Per-title playback-source discovery
+- Input: an already matched title/episode/version plus selected language/preferences.
+- Calls: eligible source-resolution adapters and compatible stream-producing addons.
+- Returns: specific playback candidates, not catalogue cards.
+- Core work: check exact title/episode/version identity, remove duplicate candidates only when evidence supports equivalence, preserve separate language/version choices, rank compatible candidates, and then prepare the chosen player.
+- Failure outcome: a title can remain in the catalogue even if every playback candidate fails.
+
+### Official availability lookup
+- Input: a canonical title ID plus region.
+- Calls: a licensed/approved availability metadata adapter.
+- Returns: official service offers and external destinations, never an in-app playback source unless a separate approved playback integration exists.
+
+A stream aggregator such as a Stremio “super-addon” commonly aggregates stream results for one requested item; it does not automatically solve global title discovery across unrelated provider search endpoints. Likewise, the upstream TUI's addon aggregator does not replace the native-provider catalogue-search coordinator.
+
+The UI must not block title search on playback-source resolution. This separation also lets 7xCinema display an official external destination when there is no compatible in-app source, while clearly labelling the destination.
+
