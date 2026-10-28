@@ -56,6 +56,7 @@ public final class Media3PlayerPlugin extends Plugin {
             }
         }
 
+        final String safeProgressUrl = progressUrl;
         ArrayList<String> fallbackUrls = new ArrayList<>();
         JSArray fallbackArray = call.getArray("fallbackUrls");
         if (fallbackArray != null) {
@@ -81,7 +82,7 @@ public final class Media3PlayerPlugin extends Plugin {
                 JSObject options = call.getData();
                 long resumePositionMs = options == null ? 0L : Math.max(0L, Math.min(options.optLong("startPositionMs", 0L), 604_800_000L));
                 intent.putExtra(NativePlayerActivity.EXTRA_START_POSITION_MS, resumePositionMs);
-                intent.putExtra(NativePlayerActivity.EXTRA_PROGRESS_URL, progressUrl);
+                intent.putExtra(NativePlayerActivity.EXTRA_PROGRESS_URL, safeProgressUrl);
                 intent.putStringArrayListExtra(NativePlayerActivity.EXTRA_FALLBACK_URLS, fallbackUrls);
                 intent.putExtra(NativePlayerActivity.EXTRA_HEADERS, safePlaybackHeaders(call.getObject("headers")).toString());
                 getActivity().startActivity(intent);
